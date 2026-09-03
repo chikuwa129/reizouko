@@ -32,8 +32,16 @@ export async function POST(req: NextRequest) {
     const items = JSON.parse(jsonText);
 
     return NextResponse.json({ items });
-  } catch (error) {
+  } catch (error: any) {
     console.error(error);
+
+    if (error?.status === 503) {
+      return NextResponse.json(
+        { error: "Geminiが混み合っています。5分ほど待ってからもう一度お試しください。" },
+        { status: 503 }
+      );
+    }
+
     return NextResponse.json({ error: "解析に失敗しました" }, { status: 500 });
   }
 }
