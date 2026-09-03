@@ -1,12 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import { supabase } from "./lib/supabase";
 
 export default function Home() {
   const [preview, setPreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
+  const [saved, setSaved] = useState(false);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -25,6 +27,7 @@ export default function Home() {
     setLoading(true);
     setError(null);
     setResult(null);
+    setSaved(false);
     try {
       const res = await fetch("/api/receipt", {
         method: "POST",
@@ -36,11 +39,33 @@ export default function Home() {
         setError(data.error);
       } else {
         setResult(data.items);
+        await saveToSupabase(data.items);
       }
     } catch (e) {
       setError("通信エラーが発生しました");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const saveToSupabase = async (items: any[]) => {
+    const today = new Date().toISOString().split("T")[0];
+    const rows = items.map((item) => ({
+      name: item.name,
+      category: item.category,
+      price: item.price,
+      type: item.type,
+      purchase_date: today,
+      status: "未消費",
+    }));
+
+    const { error: insertError } = await supabase.from("products").insert(rows);
+
+    if (insertError) {
+      console.error(insertError);
+      setError("Supabaseへの保存に失敗しました: " + insertError.message);
+    } else {
+      setSaved(true);
     }
   };
 
@@ -66,6 +91,7 @@ export default function Home() {
 
       {loading && <p>解析中...</p>}
       {error && <p style={{ color: "red" }}>{error}</p>}
+      {saved && <p style={{ color: "green" }}>冷蔵庫に保存しました！</p>}
 
       {result && (
         <pre
