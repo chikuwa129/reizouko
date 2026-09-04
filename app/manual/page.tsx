@@ -5,9 +5,12 @@ import { supabase } from "../lib/supabase";
 import Nav from "../components/Nav";
 
 export default function ManualPage() {
+  const today = new Date().toISOString().split("T")[0];
+
   const [name, setName] = useState("");
   const [price, setPrice] = useState("");
   const [category, setCategory] = useState("");
+  const [date, setDate] = useState(today);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -15,7 +18,6 @@ export default function ManualPage() {
     e.preventDefault();
     setSaved(false);
     setError(null);
-    const today = new Date().toISOString().split("T")[0];
 
     const { error: insertError } = await supabase.from("products").insert([
       {
@@ -24,7 +26,7 @@ export default function ManualPage() {
         price: Number(price) || 0,
         type: "non_food",
         quantity: 1,
-        purchase_date: today,
+        purchase_date: date,
         status: "未消費",
         receipt_id: crypto.randomUUID(),
       },
@@ -37,6 +39,7 @@ export default function ManualPage() {
       setName("");
       setPrice("");
       setCategory("");
+      setDate(today);
     }
   };
 
@@ -50,6 +53,7 @@ export default function ManualPage() {
         <input className="input" placeholder="内容（例: 缶コーヒー）" value={name} onChange={(e) => setName(e.target.value)} />
         <input className="input" placeholder="金額" type="number" value={price} onChange={(e) => setPrice(e.target.value)} required />
         <input className="input" placeholder="カテゴリ（任意）" value={category} onChange={(e) => setCategory(e.target.value)} />
+        <input className="input" type="date" value={date} onChange={(e) => setDate(e.target.value)} required />
         <button className="btn" type="submit">記録する</button>
       </form>
 
