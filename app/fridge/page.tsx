@@ -38,6 +38,8 @@ export default function FridgePage() {
 
   return (
     <main style={{ padding: 24, maxWidth: 480, margin: "0 auto" }}>
+        <Nav />
+        import Nav from "../components/Nav"; // fridge/page.tsx の場合
       <h1 style={{ fontSize: 20, marginBottom: 16 }}>冷蔵庫の中身</h1>
 
       {loading && <p>読み込み中...</p>}

@@ -70,6 +70,8 @@ export default function Home() {
 
   return (
     <main style={{ padding: 24, maxWidth: 480, margin: "0 auto" }}>
+      <Nav />
+      import Nav from "./components/Nav"; // app直下の page.tsx の場合
       <h1 style={{ fontSize: 20, marginBottom: 16 }}>レシート読み取りテスト</h1>
       <a href="/fridge" style={{ display: "block", marginBottom: 16 }}>冷蔵庫の中身を見る →</a>
 
