@@ -14,7 +14,6 @@ export default function Home() {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
     const reader = new FileReader();
     reader.onload = () => {
       const dataUrl = reader.result as string;
@@ -51,6 +50,7 @@ export default function Home() {
 
   const saveToSupabase = async (items: any[]) => {
     const today = new Date().toISOString().split("T")[0];
+    const receiptId = crypto.randomUUID();
     const rows = items.map((item) => ({
       name: item.name,
       category: item.category,
@@ -59,10 +59,10 @@ export default function Home() {
       quantity: item.quantity ?? 1,
       purchase_date: today,
       status: "未消費",
+      receipt_id: receiptId,
     }));
 
     const { error: insertError } = await supabase.from("products").insert(rows);
-
     if (insertError) {
       console.error(insertError);
       setError("Supabaseへの保存に失敗しました: " + insertError.message);
@@ -75,17 +75,13 @@ export default function Home() {
     <main className="page">
       <Nav />
       <h1>レシート撮影</h1>
-
       <div className="upload">
         <input type="file" accept="image/*" capture="environment" onChange={handleFileChange} />
       </div>
-
       {preview && <img src={preview} alt="preview" className="preview-img" />}
-
       {loading && <p className="status-msg">解析中...</p>}
       {error && <p className="status-msg error">{error}</p>}
       {saved && <p className="status-msg success">冷蔵庫に保存しました</p>}
-
       {result && <pre className="result-json">{JSON.stringify(result, null, 2)}</pre>}
     </main>
   );

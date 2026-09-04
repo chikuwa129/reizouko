@@ -202,3 +202,30 @@ h2 {
 .summary-box .value.warn {
   color: var(--warn);
 }
+
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.input {
+  font-family: var(--font-body);
+  font-size: 14px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  background: var(--surface);
+  color: var(--ink);
+}
+
+.month-nav {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  font-family: var(--font-mono), monospace;
+  font-size: 13px;
+}
