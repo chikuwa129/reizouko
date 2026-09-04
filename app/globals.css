@@ -181,3 +181,24 @@ h2 {
   font-size: 12px;
   white-space: pre-wrap;
 }
+
+.summary-box {
+  border: 1px solid var(--line);
+  padding: 16px;
+  margin-bottom: 20px;
+}
+
+.summary-box .label {
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+
+.summary-box .value {
+  font-family: var(--font-mono), monospace;
+  font-size: 28px;
+}
+
+.summary-box .value.warn {
+  color: var(--warn);
+}
