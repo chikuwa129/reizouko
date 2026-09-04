@@ -259,3 +259,11 @@ h2 {
   justify-content: space-between;
   padding: 4px 0;
 }
+
+
+.help-text {
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--ink);
+  margin: 0 0 8px;
+}

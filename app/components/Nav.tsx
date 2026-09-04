@@ -8,6 +8,7 @@ export default function Nav() {
       <Link href="/budget">家計簿</Link>
       <Link href="/manual">手動入力</Link>
       <Link href="/receipts">履歴</Link>
+      <Link href="/help">使い方</Link>
     </nav>
   );
 }
