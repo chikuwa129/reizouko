@@ -229,3 +229,24 @@ h2 {
   font-family: var(--font-mono), monospace;
   font-size: 13px;
 }
+
+.receipt-group {
+  border-bottom: 1px dashed var(--line);
+}
+
+.receipt-group .item {
+  border-bottom: none;
+}
+
+.receipt-detail {
+  padding: 0 0 14px 20px;
+  font-family: var(--font-mono), monospace;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.receipt-detail-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 4px 0;
+}
