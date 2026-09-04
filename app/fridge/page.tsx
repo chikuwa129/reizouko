@@ -37,6 +37,16 @@ export default function FridgePage() {
     fetchItems();
   };
 
+  const decreaseQuantity = async (item: any) => {
+  const newQuantity = item.quantity - 1;
+  if (newQuantity <= 0) {
+    await supabase.from("products").update({ status: "完食" }).eq("id", item.id);
+  } else {
+    await supabase.from("products").update({ quantity: newQuantity }).eq("id", item.id);
+  }
+  fetchItems();
+};
+
   return (
     <main style={{ padding: 24, maxWidth: 480, margin: "0 auto" }}>
       <Nav />
@@ -53,10 +63,16 @@ export default function FridgePage() {
         >
           <div>{item.name}{item.quantity > 1 ? ` × ${item.quantity}` : ""}</div>
           <div style={{ fontSize: 14, color: "#555", marginBottom: 8 }}>{getPriority(item)}</div>
-          <button onClick={() => markStatus(item.id, "完食")} style={{ marginRight: 8 }}>
-            完食
-          </button>
-          <button onClick={() => markStatus(item.id, "廃棄")}>廃棄</button>
+          {item.quantity > 1 ? (
+  <button onClick={() => decreaseQuantity(item)} style={{ marginRight: 8 }}>
+    1個消費（残り{item.quantity - 1}個）
+  </button>
+) : (
+  <button onClick={() => markStatus(item.id, "完食")} style={{ marginRight: 8 }}>
+    完食
+  </button>
+)}
+<button onClick={() => markStatus(item.id, "廃棄")}>廃棄</button>
         </div>
       ))}
 
@@ -68,10 +84,16 @@ export default function FridgePage() {
           style={{ border: "1px solid #ddd", borderRadius: 8, padding: 12, marginBottom: 8 }}
         >
           <div>{item.name}{item.quantity > 1 ? ` × ${item.quantity}` : ""}</div>
-          <button onClick={() => markStatus(item.id, "完食")} style={{ marginRight: 8 }}>
-            完食
-          </button>
-          <button onClick={() => markStatus(item.id, "廃棄")}>廃棄</button>
+          {item.quantity > 1 ? (
+  <button onClick={() => decreaseQuantity(item)} style={{ marginRight: 8 }}>
+    1個消費（残り{item.quantity - 1}個）
+  </button>
+) : (
+  <button onClick={() => markStatus(item.id, "完食")} style={{ marginRight: 8 }}>
+    完食
+  </button>
+)}
+<button onClick={() => markStatus(item.id, "廃棄")}>廃棄</button>
         </div>
       ))}
     </main>
