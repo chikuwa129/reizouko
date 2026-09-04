@@ -68,6 +68,13 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    if (error?.status === 429) {
+      return NextResponse.json(
+        { error: "本日のGemini無料枠の上限に達しました。日付が変わるまでお待ちください。" },
+        { status: 429 }
+      );
+    }
+
     return NextResponse.json({ error: "解析に失敗しました" }, { status: 500 });
   }
 }
