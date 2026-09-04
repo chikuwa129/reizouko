@@ -7,8 +7,34 @@ function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+// Gemini無料枠のリセット時刻（太平洋時間の深夜0時）を日本時間の文字列で返す
+function getResetTimeInJST(): string {
+  const now = new Date();
+
+  const offsetFormatter = new Intl.DateTimeFormat("en-US", {
+    timeZone: "America/Los_Angeles",
+    timeZoneName: "shortOffset",
+  });
+  const offsetPart = offsetFormatter.formatToParts(now).find((p) => p.type === "timeZoneName");
+  const offsetHours = parseInt(offsetPart?.value.replace("GMT", "") || "-8", 10);
+
+  const ptNow = new Date(now.getTime() + offsetHours * 60 * 60 * 1000);
+  const nextResetPT = new Date(
+    Date.UTC(ptNow.getUTCFullYear(), ptNow.getUTCMonth(), ptNow.getUTCDate() + 1, 0, 0, 0)
+  );
+  const nextResetUTC = new Date(nextResetPT.getTime() - offsetHours * 60 * 60 * 1000);
+
+  return nextResetUTC.toLocaleString("ja-JP", {
+    timeZone: "Asia/Tokyo",
+    month: "numeric",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
 async function generateWithRetry(base64Data: string, maxRetries = 3) {
-  const delays = [3000, 8000, 15000]; // 3秒→8秒→15秒と待ち時間を伸ばしながら再試行
+  const delays = [3000, 8000, 15000];
 
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {
@@ -61,17 +87,18 @@ export async function POST(req: NextRequest) {
   } catch (error: any) {
     console.error(error);
 
+    if (error?.status === 429) {
+      const resetTime = getResetTimeInJST();
+      return NextResponse.json(
+        { error: `本日のGemini無料枠の上限に達しました。次にリセットされるのは日本時間で${resetTime}ごろです。` },
+        { status: 429 }
+      );
+    }
+
     if (error?.status === 503) {
       return NextResponse.json(
         { error: "Geminiが混み合っています。5分ほど待ってからもう一度お試しください。" },
         { status: 503 }
-      );
-    }
-
-    if (error?.status === 429) {
-      return NextResponse.json(
-        { error: "本日のGemini無料枠の上限に達しました。日付が変わるまでお待ちください。" },
-        { status: 429 }
       );
     }
 
