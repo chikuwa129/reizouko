@@ -72,43 +72,21 @@ export default function Home() {
   };
 
   return (
-    <main style={{ padding: 24, maxWidth: 480, margin: "0 auto" }}>
+    <main className="page">
       <Nav />
-      <h1 style={{ fontSize: 20, marginBottom: 16 }}>レシート読み取りテスト</h1>
+      <h1>レシート撮影</h1>
 
-      <input
-        type="file"
-        accept="image/*"
-        capture="environment"
-        onChange={handleFileChange}
-        style={{ marginBottom: 16 }}
-      />
+      <div className="upload">
+        <input type="file" accept="image/*" capture="environment" onChange={handleFileChange} />
+      </div>
 
-      {preview && (
-        <img
-          src={preview}
-          alt="preview"
-          style={{ width: "100%", marginBottom: 16, borderRadius: 8 }}
-        />
-      )}
+      {preview && <img src={preview} alt="preview" className="preview-img" />}
 
-      {loading && <p>解析中...</p>}
-      {error && <p style={{ color: "red" }}>{error}</p>}
-      {saved && <p style={{ color: "green" }}>冷蔵庫に保存しました！</p>}
+      {loading && <p className="status-msg">解析中...</p>}
+      {error && <p className="status-msg error">{error}</p>}
+      {saved && <p className="status-msg success">冷蔵庫に保存しました</p>}
 
-      {result && (
-        <pre
-          style={{
-            background: "#f4f4f4",
-            padding: 12,
-            borderRadius: 8,
-            whiteSpace: "pre-wrap",
-            fontSize: 14,
-          }}
-        >
-          {JSON.stringify(result, null, 2)}
-        </pre>
-      )}
+      {result && <pre className="result-json">{JSON.stringify(result, null, 2)}</pre>}
     </main>
   );
 }
