@@ -19,8 +19,9 @@ export async function POST(req: NextRequest) {
               text: `このレシート画像から購入した商品情報を抽出してください。
 略称は正式名称に補正してください（例:「Cメシ」→「完全メシ」）。
 即食食材（肉・魚・惣菜・割引生鮮品）か保管食材（それ以外）かも判定してください。
+個数の記載があれば読み取り、なければ1としてください。
 説明文は一切つけず、次の形式のJSON配列だけを返してください。
-[{"name":"商品名","category":"カテゴリ","price":金額（数値）,"type":"immediate または stored"}]`,
+[{"name":"商品名","category":"カテゴリ","price":金額（数値）,"type":"immediate または stored","quantity":個数（数値）}]`,
             },
           ],
         },

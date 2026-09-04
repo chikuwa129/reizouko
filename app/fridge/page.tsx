@@ -49,7 +49,7 @@ export default function FridgePage() {
           key={item.id}
           style={{ border: "1px solid #ddd", borderRadius: 8, padding: 12, marginBottom: 8 }}
         >
-          <div>{item.name}</div>
+          <div>{item.name}{item.quantity > 1 ? ` × ${item.quantity}` : ""}</div>
           <div style={{ fontSize: 14, color: "#555", marginBottom: 8 }}>{getPriority(item)}</div>
           <button onClick={() => markStatus(item.id, "完食")} style={{ marginRight: 8 }}>
             完食
@@ -65,7 +65,7 @@ export default function FridgePage() {
           key={item.id}
           style={{ border: "1px solid #ddd", borderRadius: 8, padding: 12, marginBottom: 8 }}
         >
-          <div>{item.name}</div>
+          <div>{item.name}{item.quantity > 1 ? ` × ${item.quantity}` : ""}</div>
           <button onClick={() => markStatus(item.id, "完食")} style={{ marginRight: 8 }}>
             完食
           </button>

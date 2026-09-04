@@ -48,16 +48,15 @@ export default function Home() {
     }
   };
 
-  const saveToSupabase = async (items: any[]) => {
-    const today = new Date().toISOString().split("T")[0];
-    const rows = items.map((item) => ({
-      name: item.name,
-      category: item.category,
-      price: item.price,
-      type: item.type,
-      purchase_date: today,
-      status: "未消費",
-    }));
+  const rows = items.map((item) => ({
+  name: item.name,
+  category: item.category,
+  price: item.price,
+  type: item.type,
+  quantity: item.quantity ?? 1,
+  purchase_date: today,
+  status: "未消費",
+}));
 
     const { error: insertError } = await supabase.from("products").insert(rows);
 
