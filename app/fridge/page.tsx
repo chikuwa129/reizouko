@@ -8,6 +8,9 @@ import Nav from "../components/Nav";
 export default function FridgePage() {
   const [items, setItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [recipes, setRecipes] = useState<any[]>([]);
+  const [recipeLoading, setRecipeLoading] = useState(false);
+  const [recipeError, setRecipeError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchItems();
@@ -28,11 +31,15 @@ export default function FridgePage() {
   const immediate = items.filter((i) => i.type === "immediate");
 
   const getPriority = (item: any) => {
-    const remaining = getRemainingDays(item.purchase_date, item.category);
-    return remaining <= 1
-      ? { label: "そろそろ消費", cls: "warn" }
-      : { label: "まだ余裕あり", cls: "fresh" };
-  };
+  const remaining = getRemainingDays(item.purchase_date, item.category);
+  const remainingText =
+    remaining < 0 ? `期限切れの可能性（${Math.abs(remaining)}日超過）` : `あと${remaining}日`;
+  return remaining <= 1
+    ? { label: `そろそろ消費（${remainingText}）`, cls: "warn", isUrgent: true }
+    : { label: `まだ余裕あり（${remainingText}）`, cls: "fresh", isUrgent: false };
+};
+
+  const urgentItems = stored.filter((item) => getPriority(item).isUrgent);
 
   const markStatus = async (id: number, status: string) => {
     await supabase.from("products").update({ status }).eq("id", id);
@@ -47,6 +54,29 @@ export default function FridgePage() {
       await supabase.from("products").update({ quantity: newQuantity }).eq("id", item.id);
     }
     fetchItems();
+  };
+
+  const suggestRecipes = async () => {
+    setRecipeLoading(true);
+    setRecipeError(null);
+    setRecipes([]);
+    try {
+      const res = await fetch("/api/recipe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ items: urgentItems.map((i) => i.name) }),
+      });
+      const data = await res.json();
+      if (data.error) {
+        setRecipeError(data.error);
+      } else {
+        setRecipes(data.recipes);
+      }
+    } catch (e) {
+      setRecipeError("通信エラーが発生しました");
+    } finally {
+      setRecipeLoading(false);
+    }
   };
 
   const renderActions = (item: any) => (
@@ -100,6 +130,34 @@ export default function FridgePage() {
             {item.quantity > 1 ? <span className="item-qty"> × {item.quantity}</span> : ""}
           </div>
           {renderActions(item)}
+        </div>
+      ))}
+
+      <h2>使い切りレシピ</h2>
+      {urgentItems.length === 0 ? (
+        <p className="empty">今のところ、そろそろ消費が必要な食材はありません</p>
+      ) : (
+        <>
+          <p className="empty">
+            対象: {urgentItems.map((i) => i.name).join("、")}
+          </p>
+          <button className="btn" onClick={suggestRecipes} disabled={recipeLoading}>
+            {recipeLoading ? "提案中..." : "使い切りレシピを提案"}
+          </button>
+        </>
+      )}
+
+      {recipeError && <p className="status-msg error">{recipeError}</p>}
+
+      {recipes.map((recipe, i) => (
+        <div className="recipe-card" key={i}>
+          <div className="recipe-title">{recipe.title}</div>
+          <div className="item-qty">使う食材: {recipe.uses.join("、")}</div>
+          <ol className="recipe-steps">
+            {recipe.steps.map((step: string, j: number) => (
+              <li key={j}>{step}</li>
+            ))}
+          </ol>
         </div>
       ))}
     </main>
