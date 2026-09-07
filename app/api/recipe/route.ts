@@ -6,9 +6,9 @@ const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 export async function POST(req: NextRequest) {
   try {
-    const { items } = await req.json(); // 期限が近い食材名のリスト
+    const { urgentItems, otherItems } = await req.json();
 
-    if (!items || items.length === 0) {
+    if (!urgentItems || urgentItems.length === 0) {
       return NextResponse.json({ error: "対象の食材がありません" }, { status: 400 });
     }
 
@@ -21,15 +21,22 @@ export async function POST(req: NextRequest) {
           role: "user",
           parts: [
             {
-              text: `以下は冷蔵庫にある、賞味期限が近い食材のリストです。
-これらの食材をできるだけ多く使い切れる家庭料理のレシピを1〜3件提案してください。
-特別な調味料や入手困難な食材は使わず、家庭に常備されがちな調味料（醤油・塩・砂糖・油など）の使用は許容してください。
-説明文は一切つけず、次の形式のJSON配列だけを返してください。
+              text: `冷蔵庫の中身をもとに、家庭料理のレシピを1〜3件提案してください。
 
-[{"title":"レシピ名","uses":["使う食材名（リストの中から）"],"steps":["手順1","手順2","手順3"]}]
+【必ず使う食材（賞味期限が近い）】
+${urgentItems.join("、")}
 
-食材リスト：
-${items.join("、")}`,
+【余っていれば使ってよい食材（在庫あり、期限に余裕あり）】
+${otherItems.length > 0 ? otherItems.join("、") : "なし"}
+
+条件：
+・「必ず使う食材」は、提案するレシピの中で最低1品は必ず使ってください。
+・「余っていれば使ってよい食材」は、使っても使わなくても構いません。
+・上記のリストにない食材（買い足しが必要なもの）も、1〜2品までなら提案に含めて構いません。その場合、その食材は"missing"としてレシピごとに明記してください。
+・特別な調味料や入手困難な食材は使わず、家庭に常備されがちな調味料（醤油・塩・砂糖・油など）の使用は許容してください。
+・説明文は一切つけず、次の形式のJSON配列だけを返してください。
+
+[{"title":"レシピ名","uses":["リストの中から使う食材名"],"missing":["買い足しが必要な食材名（なければ空配列）"],"steps":["手順1","手順2","手順3"]}]`,
             },
           ],
         },

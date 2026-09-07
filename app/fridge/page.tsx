@@ -31,15 +31,18 @@ export default function FridgePage() {
   const immediate = items.filter((i) => i.type === "immediate");
 
   const getPriority = (item: any) => {
-  const remaining = getRemainingDays(item.purchase_date, item.category);
-  const remainingText =
-    remaining < 0 ? `期限切れの可能性（${Math.abs(remaining)}日超過）` : `あと${remaining}日`;
-  return remaining <= 1
-    ? { label: `そろそろ消費（${remainingText}）`, cls: "warn", isUrgent: true }
-    : { label: `まだ余裕あり（${remainingText}）`, cls: "fresh", isUrgent: false };
-};
+    const remaining = getRemainingDays(item.purchase_date, item.category);
+    const remainingText =
+      remaining < 0 ? `期限切れの可能性（${Math.abs(remaining)}日超過）` : `あと${remaining}日`;
+    return remaining <= 1
+      ? { label: `そろそろ消費（${remainingText}）`, cls: "warn", isUrgent: true }
+      : { label: `まだ余裕あり（${remainingText}）`, cls: "fresh", isUrgent: false };
+  };
 
   const urgentItems = stored.filter((item) => getPriority(item).isUrgent);
+  const otherItems = items.filter(
+    (item) => item.type !== "non_food" && !urgentItems.includes(item)
+  );
 
   const markStatus = async (id: number, status: string) => {
     await supabase.from("products").update({ status }).eq("id", id);
@@ -64,7 +67,10 @@ export default function FridgePage() {
       const res = await fetch("/api/recipe", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ items: urgentItems.map((i) => i.name) }),
+        body: JSON.stringify({
+          urgentItems: urgentItems.map((i) => i.name),
+          otherItems: otherItems.map((i) => i.name),
+        }),
       });
       const data = await res.json();
       if (data.error) {
@@ -79,22 +85,22 @@ export default function FridgePage() {
     }
   };
 
-const saveRecipe = async (recipe: any) => {
-  try {
-    await fetch("/api/recipe/save", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        title: recipe.title,
-        uses: recipe.uses,
-        steps: recipe.steps,
-      }),
-    });
-    alert("レシピを保存しました");
-  } catch (e) {
-    alert("保存に失敗しました");
-  }
-};
+  const saveRecipe = async (recipe: any) => {
+    try {
+      await fetch("/api/recipe/save", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: recipe.title,
+          uses: recipe.uses,
+          steps: recipe.steps,
+        }),
+      });
+      alert("レシピを保存しました");
+    } catch (e) {
+      alert("保存に失敗しました");
+    }
+  };
 
   const renderActions = (item: any) => (
     <div className="actions">
@@ -167,19 +173,24 @@ const saveRecipe = async (recipe: any) => {
       {recipeError && <p className="status-msg error">{recipeError}</p>}
 
       {recipes.map((recipe, i) => (
-  <div className="recipe-card" key={i}>
-    <div className="recipe-title">{recipe.title}</div>
-    <div className="item-qty">使う食材: {recipe.uses.join("、")}</div>
-    <ol className="recipe-steps">
-      {recipe.steps.map((step: string, j: number) => (
-        <li key={j}>{step}</li>
+        <div className="recipe-card" key={i}>
+          <div className="recipe-title">{recipe.title}</div>
+          <div className="item-qty">使う食材: {recipe.uses.join("、")}</div>
+          {recipe.missing && recipe.missing.length > 0 && (
+            <div className="item-qty" style={{ color: "var(--warn)" }}>
+              買い足しが必要: {recipe.missing.join("、")}
+            </div>
+          )}
+          <ol className="recipe-steps">
+            {recipe.steps.map((step: string, j: number) => (
+              <li key={j}>{step}</li>
+            ))}
+          </ol>
+          <button className="btn" onClick={() => saveRecipe(recipe)} style={{ marginTop: 8 }}>
+            レシピを保存
+          </button>
+        </div>
       ))}
-    </ol>
-    <button className="btn" onClick={() => saveRecipe(recipe)} style={{ marginTop: 8 }}>
-      レシピを保存
-    </button>
-  </div>
-))}
     </main>
   );
 }
