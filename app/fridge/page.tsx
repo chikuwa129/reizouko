@@ -102,6 +102,16 @@ export default function FridgePage() {
     }
   };
 
+  const addToShoppingMemo = async (missingItems: string[]) => {
+    try {
+      const rows = missingItems.map((name) => ({ name }));
+      await supabase.from("shopping_memo").insert(rows);
+      alert("買い物メモに追加しました");
+    } catch (e) {
+      alert("追加に失敗しました");
+    }
+  };
+
   const renderActions = (item: any) => (
     <div className="actions">
       {item.quantity > 1 ? (
@@ -123,6 +133,11 @@ export default function FridgePage() {
     <main className="page">
       <Nav />
       <h1>冷蔵庫の中身</h1>
+      {urgentItems.length > 0 && (
+  <div className="notice-banner">
+    ⚠️ そろそろ消費が必要な食材が{urgentItems.length}件あります：{urgentItems.map((i) => i.name).join("、")}
+  </div>
+)}
 
       {loading && <p className="status-msg">読み込み中...</p>}
 
@@ -177,8 +192,17 @@ export default function FridgePage() {
           <div className="recipe-title">{recipe.title}</div>
           <div className="item-qty">使う食材: {recipe.uses.join("、")}</div>
           {recipe.missing && recipe.missing.length > 0 && (
-            <div className="item-qty" style={{ color: "var(--warn)" }}>
-              買い足しが必要: {recipe.missing.join("、")}
+            <div style={{ marginTop: 4 }}>
+              <div className="item-qty" style={{ color: "var(--warn)" }}>
+                買い足しが必要: {recipe.missing.join("、")}
+              </div>
+              <button
+                className="btn"
+                onClick={() => addToShoppingMemo(recipe.missing)}
+                style={{ marginTop: 4 }}
+              >
+                買い物メモに追加
+              </button>
             </div>
           )}
           <ol className="recipe-steps">

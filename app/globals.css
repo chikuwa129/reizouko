@@ -295,3 +295,12 @@ h2 {
   font-size: 14px;
   line-height: 1.7;
 }
+
+
+.notice-banner {
+  background: var(--surface);
+  border-left: 3px solid var(--warn);
+  padding: 10px 12px;
+  font-size: 13px;
+  margin-bottom: 20px;
+}

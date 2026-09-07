@@ -9,6 +9,7 @@ export default function Nav() {
       <Link href="/manual">手動入力</Link>
       <Link href="/receipts">履歴</Link>
       <Link href="/recipes">保存レシピ</Link>
+      <Link href="/shopping">買い物メモ</Link>
       <Link href="/help">使い方</Link>
     </nav>
   );

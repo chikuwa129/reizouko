@@ -88,6 +88,22 @@ export default function Home() {
     setError("Supabaseへの保存に失敗しました: " + insertError.message);
   } else {
     setSaved(true);
+    await checkOffShoppingMemo(items);
+  }
+};
+
+const checkOffShoppingMemo = async (items: any[]) => {
+  const { data: memo } = await supabase.from("shopping_memo").select("*");
+  if (!memo || memo.length === 0) return;
+
+  for (const memoItem of memo) {
+    const matched = items.some(
+      (item) =>
+        item.name.includes(memoItem.name) || memoItem.name.includes(item.name)
+    );
+    if (matched) {
+      await supabase.from("shopping_memo").delete().eq("id", memoItem.id);
+    }
   }
 };
 
