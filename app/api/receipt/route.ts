@@ -1,29 +1,31 @@
 import { GoogleGenAI } from "@google/genai";
 import { NextRequest, NextResponse } from "next/server";
+import { supabase } from "../../lib/supabase";
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+const DAILY_LIMIT = 20;
 
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-// Gemini無料枠のリセット時刻（太平洋時間の深夜0時）を日本時間の文字列で返す
-function getResetTimeInJST(): string {
-  const now = new Date();
-
+function getPTOffsetHours(): number {
   const offsetFormatter = new Intl.DateTimeFormat("en-US", {
     timeZone: "America/Los_Angeles",
     timeZoneName: "shortOffset",
   });
-  const offsetPart = offsetFormatter.formatToParts(now).find((p) => p.type === "timeZoneName");
-  const offsetHours = parseInt(offsetPart?.value.replace("GMT", "") || "-8", 10);
+  const offsetPart = offsetFormatter.formatToParts(new Date()).find((p) => p.type === "timeZoneName");
+  return parseInt(offsetPart?.value.replace("GMT", "") || "-8", 10);
+}
 
+function getResetTimeInJST(): string {
+  const now = new Date();
+  const offsetHours = getPTOffsetHours();
   const ptNow = new Date(now.getTime() + offsetHours * 60 * 60 * 1000);
   const nextResetPT = new Date(
     Date.UTC(ptNow.getUTCFullYear(), ptNow.getUTCMonth(), ptNow.getUTCDate() + 1, 0, 0, 0)
   );
   const nextResetUTC = new Date(nextResetPT.getTime() - offsetHours * 60 * 60 * 1000);
-
   return nextResetUTC.toLocaleString("ja-JP", {
     timeZone: "Asia/Tokyo",
     month: "numeric",
@@ -33,10 +35,34 @@ function getResetTimeInJST(): string {
   });
 }
 
+function getStartOfTodayPTAsUTC(): Date {
+  const now = new Date();
+  const offsetHours = getPTOffsetHours();
+  const ptNow = new Date(now.getTime() + offsetHours * 60 * 60 * 1000);
+  const startOfDayPT = new Date(
+    Date.UTC(ptNow.getUTCFullYear(), ptNow.getUTCMonth(), ptNow.getUTCDate(), 0, 0, 0)
+  );
+  return new Date(startOfDayPT.getTime() - offsetHours * 60 * 60 * 1000);
+}
+
+async function logApiCall() {
+  await supabase.from("api_calls").insert({});
+}
+
+async function getRemainingQuota(): Promise<number> {
+  const startOfDay = getStartOfTodayPTAsUTC();
+  const { count } = await supabase
+    .from("api_calls")
+    .select("*", { count: "exact", head: true })
+    .gte("created_at", startOfDay.toISOString());
+  return Math.max(0, DAILY_LIMIT - (count ?? 0));
+}
+
 async function generateWithRetry(base64Data: string, maxRetries = 1) {
   const delays = [5000];
 
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    await logApiCall();
     try {
       const response = await ai.models.generateContent({
         model: "gemini-flash-latest",
@@ -62,7 +88,6 @@ async function generateWithRetry(base64Data: string, maxRetries = 1) {
     } catch (error: any) {
       const isLastAttempt = attempt === maxRetries;
       if (error?.status === 503 && !isLastAttempt) {
-        console.log(`503のため再試行します（${attempt + 1}回目）`);
         await sleep(delays[attempt]);
         continue;
       }
@@ -70,6 +95,11 @@ async function generateWithRetry(base64Data: string, maxRetries = 1) {
     }
   }
   throw new Error("リトライ上限に達しました");
+}
+
+export async function GET() {
+  const remaining = await getRemainingQuota();
+  return NextResponse.json({ remaining });
 }
 
 export async function POST(req: NextRequest) {
@@ -82,8 +112,9 @@ export async function POST(req: NextRequest) {
     const text = response.text ?? "";
     const jsonText = text.replace(/```json|```/g, "").trim();
     const items = JSON.parse(jsonText);
+    const remaining = await getRemainingQuota();
 
-    return NextResponse.json({ items });
+    return NextResponse.json({ items, remaining });
   } catch (error: any) {
     console.error(error);
 

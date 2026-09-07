@@ -267,3 +267,11 @@ h2 {
   color: var(--ink);
   margin: 0 0 8px;
 }
+
+
+.quota-text {
+  font-family: var(--font-mono), monospace;
+  font-size: 13px;
+  color: var(--muted);
+  margin: 0 0 16px;
+}
