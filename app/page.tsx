@@ -56,7 +56,7 @@ export default function Home() {
       } else {
         setResult(data.items);
         if (typeof data.remaining === "number") setRemaining(data.remaining);
-        await saveToSupabase(data.items);
+        await saveToSupabase(data.items, data.purchaseDate);
       }
     } catch (e) {
       setError("通信エラーが発生しました");
@@ -66,28 +66,28 @@ export default function Home() {
     }
   };
 
-  const saveToSupabase = async (items: any[]) => {
-    const today = new Date().toISOString().split("T")[0];
-    const receiptId = crypto.randomUUID();
-    const rows = items.map((item) => ({
-      name: item.name,
-      category: item.category,
-      price: item.price,
-      type: item.type,
-      quantity: item.quantity ?? 1,
-      purchase_date: today,
-      status: "未消費",
-      receipt_id: receiptId,
-    }));
+  const saveToSupabase = async (items: any[], purchaseDate: string | null) => {
+  const date = purchaseDate || new Date().toISOString().split("T")[0];
+  const receiptId = crypto.randomUUID();
+  const rows = items.map((item) => ({
+    name: item.name,
+    category: item.category,
+    price: item.price,
+    type: item.type,
+    quantity: item.quantity ?? 1,
+    purchase_date: date,
+    status: "未消費",
+    receipt_id: receiptId,
+  }));
 
-    const { error: insertError } = await supabase.from("products").insert(rows);
-    if (insertError) {
-      console.error(insertError);
-      setError("Supabaseへの保存に失敗しました: " + insertError.message);
-    } else {
-      setSaved(true);
-    }
-  };
+  const { error: insertError } = await supabase.from("products").insert(rows);
+  if (insertError) {
+    console.error(insertError);
+    setError("Supabaseへの保存に失敗しました: " + insertError.message);
+  } else {
+    setSaved(true);
+  }
+};
 
   return (
     <main className="page">

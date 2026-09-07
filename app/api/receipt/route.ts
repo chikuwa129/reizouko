@@ -18,13 +18,14 @@ async function generateWithRetry(base64Data: string, maxRetries = 1) {
             parts: [
               { inlineData: { mimeType: "image/jpeg", data: base64Data } },
               {
-                text: `このレシート画像から購入した商品情報を抽出してください。
-略称は正式名称に補正してください（例:「Cメシ」→「完全メシ」）。
+                text: `このレシート画像から情報を抽出してください。
+レシートに印字されている購入日（年月日）を読み取り、"YYYY-MM-DD"形式にしてください。年の記載がない場合は今年として補完してください。日付が読み取れない場合はnullにしてください。
+商品については、略称は正式名称に補正してください（例:「Cメシ」→「完全メシ」）。
 食材については、即食食材（肉・魚・惣菜・割引生鮮品）か保管食材（それ以外）かを判定してください。
 レジ袋・箸・スプーンなど食材ではない付帯品は、typeを"non_food"としてください。
 個数の記載があれば読み取り、なければ1としてください。
-説明文は一切つけず、次の形式のJSON配列だけを返してください。
-[{"name":"商品名","category":"カテゴリ","price":金額（数値）,"type":"immediate、stored、non_food のいずれか","quantity":個数（数値）}]`,
+説明文は一切つけず、次の形式のJSONオブジェクトだけを返してください。
+{"purchase_date":"YYYY-MM-DD または null","items":[{"name":"商品名","category":"カテゴリ","price":金額（数値）,"type":"immediate、stored、non_food のいずれか","quantity":個数（数値）}]}`,
               },
             ],
           },
@@ -57,10 +58,14 @@ export async function POST(req: NextRequest) {
 
     const text = response.text ?? "";
     const jsonText = text.replace(/```json|```/g, "").trim();
-    const items = JSON.parse(jsonText);
+    const parsed = JSON.parse(jsonText);
     const remaining = await getRemainingQuota();
 
-    return NextResponse.json({ items, remaining });
+    return NextResponse.json({
+      items: parsed.items,
+      purchaseDate: parsed.purchase_date ?? null,
+      remaining,
+    });
   } catch (error: any) {
     console.error(error);
 
