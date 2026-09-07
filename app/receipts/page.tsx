@@ -43,6 +43,18 @@ export default function ReceiptsPage() {
     fetchReceipts();
   };
 
+  const bulkUpdateStatus = async (receiptId: string | null, status: string) => {
+    if (!confirm(`このレシートの未消費の項目を全部「${status}」にしますか？`)) return;
+    if (receiptId) {
+      await supabase
+        .from("products")
+        .update({ status })
+        .eq("receipt_id", receiptId)
+        .eq("status", "未消費");
+    }
+    fetchReceipts();
+  };
+
   const toggleOpen = (key: string) => {
     setOpenIds((prev) => {
       const next = new Set(prev);
@@ -73,15 +85,17 @@ export default function ReceiptsPage() {
                 </div>
                 <div className="item-qty">¥{r.total.toLocaleString()}</div>
               </div>
-              <button
-                className="btn btn-danger"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  deleteReceipt(r.receipt_id);
-                }}
-              >
-                削除
-              </button>
+              <div className="actions" onClick={(e) => e.stopPropagation()}>
+                <button className="btn" onClick={() => bulkUpdateStatus(r.receipt_id, "完食")}>
+                  まとめて完食
+                </button>
+                <button className="btn btn-danger" onClick={() => bulkUpdateStatus(r.receipt_id, "廃棄")}>
+                  まとめて廃棄
+                </button>
+                <button className="btn btn-danger" onClick={() => deleteReceipt(r.receipt_id)}>
+                  削除
+                </button>
+              </div>
             </div>
 
             {isOpen && (
@@ -90,7 +104,7 @@ export default function ReceiptsPage() {
                   <div className="receipt-detail-row" key={item.id}>
                     <span>
                       {item.name}
-                      {item.quantity > 1 ? ` × ${item.quantity}` : ""}
+                      {item.quantity > 1 ? ` × ${item.quantity}` : ""}（{item.status}）
                     </span>
                     <span>¥{(item.price || 0).toLocaleString()}</span>
                   </div>
