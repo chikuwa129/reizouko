@@ -10,6 +10,7 @@ export default function Home() {
   const [result, setResult] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
+  const [purchaseDate, setPurchaseDate] = useState<string | null>(null);
   const [remaining, setRemaining] = useState<number | null>(null);
 
   useEffect(() => {
@@ -55,6 +56,7 @@ export default function Home() {
         setError(data.error);
       } else {
         setResult(data.items);
+        setPurchaseDate(data.purchaseDate ?? null);
         if (typeof data.remaining === "number") setRemaining(data.remaining);
         await saveToSupabase(data.items, data.purchaseDate);
       }
@@ -107,6 +109,7 @@ export default function Home() {
       {loading && <p className="status-msg">解析中...</p>}
       {error && <p className="status-msg error">{error}</p>}
       {saved && <p className="status-msg success">冷蔵庫に保存しました</p>}
+      {saved && <p className="status-msg">読み取った購入日: {result?.purchaseDate ?? "不明"}</p>}
 
       {result && <pre className="result-json">{JSON.stringify(result, null, 2)}</pre>}
     </main>
