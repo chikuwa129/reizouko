@@ -33,8 +33,8 @@ function getResetTimeInJST(): string {
   });
 }
 
-async function generateWithRetry(base64Data: string, maxRetries = 3) {
-  const delays = [3000, 8000, 15000];
+async function generateWithRetry(base64Data: string, maxRetries = 1) {
+  const delays = [5000];
 
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {
