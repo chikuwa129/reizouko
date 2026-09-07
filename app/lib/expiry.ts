@@ -1,4 +1,3 @@
-// カテゴリごとの目安の日持ち日数（キーワードが含まれていればマッチ）
 const CATEGORY_SHELF_LIFE: Record<string, number> = {
   肉: 3,
   魚: 2,
@@ -20,7 +19,6 @@ export function getShelfLifeDays(category: string): number {
   return DEFAULT_SHELF_LIFE;
 }
 
-// 購入日とカテゴリから「残り日数」を計算する
 export function getRemainingDays(purchaseDate: string, category: string): number {
   const shelfLife = getShelfLifeDays(category);
   const purchase = new Date(purchaseDate);
@@ -29,4 +27,21 @@ export function getRemainingDays(purchaseDate: string, category: string): number
     (today.getTime() - purchase.getTime()) / (1000 * 60 * 60 * 24)
   );
   return shelfLife - diffDays;
+}
+
+// 手動で期限を設定している場合はそちらを優先し、なければ自動推定を使う
+export function getRemainingDaysForItem(item: {
+  purchase_date: string;
+  category: string;
+  expiry_override?: string | null;
+}): number {
+  if (item.expiry_override) {
+    const expiry = new Date(item.expiry_override);
+    const today = new Date();
+    const diffDays = Math.floor(
+      (expiry.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
+    );
+    return diffDays;
+  }
+  return getRemainingDays(item.purchase_date, item.category);
 }

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
-import { getRemainingDays } from "../lib/expiry";
+import { getRemainingDaysForItem } from "../lib/expiry";
 import Nav from "../components/Nav";
 
 export default function FridgePage() {
@@ -11,6 +11,8 @@ export default function FridgePage() {
   const [recipes, setRecipes] = useState<any[]>([]);
   const [recipeLoading, setRecipeLoading] = useState(false);
   const [recipeError, setRecipeError] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editDate, setEditDate] = useState("");
 
   useEffect(() => {
     fetchItems();
@@ -31,12 +33,13 @@ export default function FridgePage() {
   const immediate = items.filter((i) => i.type === "immediate");
 
   const getPriority = (item: any) => {
-    const remaining = getRemainingDays(item.purchase_date, item.category);
+    const remaining = getRemainingDaysForItem(item);
     const remainingText =
       remaining < 0 ? `期限切れの可能性（${Math.abs(remaining)}日超過）` : `あと${remaining}日`;
+    const manualTag = item.expiry_override ? "（手動設定）" : "";
     return remaining <= 1
-      ? { label: `そろそろ消費（${remainingText}）`, cls: "warn", isUrgent: true }
-      : { label: `まだ余裕あり（${remainingText}）`, cls: "fresh", isUrgent: false };
+      ? { label: `そろそろ消費（${remainingText}）${manualTag}`, cls: "warn", isUrgent: true }
+      : { label: `まだ余裕あり（${remainingText}）${manualTag}`, cls: "fresh", isUrgent: false };
   };
 
   const urgentItems = stored.filter((item) => getPriority(item).isUrgent);
@@ -56,6 +59,27 @@ export default function FridgePage() {
     } else {
       await supabase.from("products").update({ quantity: newQuantity }).eq("id", item.id);
     }
+    fetchItems();
+  };
+
+  const startEdit = (item: any) => {
+    setEditingId(item.id);
+    setEditDate(item.expiry_override || "");
+  };
+
+  const cancelEdit = () => {
+    setEditingId(null);
+    setEditDate("");
+  };
+
+  const saveExpiry = async (id: number) => {
+    await supabase.from("products").update({ expiry_override: editDate || null }).eq("id", id);
+    setEditingId(null);
+    fetchItems();
+  };
+
+  const resetExpiry = async (id: number) => {
+    await supabase.from("products").update({ expiry_override: null }).eq("id", id);
     fetchItems();
   };
 
@@ -133,11 +157,12 @@ export default function FridgePage() {
     <main className="page">
       <Nav />
       <h1>冷蔵庫の中身</h1>
+
       {urgentItems.length > 0 && (
-  <div className="notice-banner">
-    ⚠️ そろそろ消費が必要な食材が{urgentItems.length}件あります：{urgentItems.map((i) => i.name).join("、")}
-  </div>
-)}
+        <div className="notice-banner">
+          ⚠️ そろそろ消費が必要な食材が{urgentItems.length}件あります：{urgentItems.map((i) => i.name).join("、")}
+        </div>
+      )}
 
       {loading && <p className="status-msg">読み込み中...</p>}
 
@@ -153,6 +178,33 @@ export default function FridgePage() {
                 {item.quantity > 1 ? <span className="item-qty"> × {item.quantity}</span> : ""}
               </div>
               <div className={`item-badge ${priority.cls}`}>{priority.label}</div>
+
+              {editingId === item.id ? (
+                <div style={{ marginTop: 6, display: "flex", gap: 6, alignItems: "center" }}>
+                  <input
+                    type="date"
+                    className="input"
+                    value={editDate}
+                    onChange={(e) => setEditDate(e.target.value)}
+                    style={{ width: "auto" }}
+                  />
+                  <button className="btn" onClick={() => saveExpiry(item.id)}>保存</button>
+                  <button className="btn" onClick={cancelEdit}>キャンセル</button>
+                </div>
+              ) : (
+                <div style={{ marginTop: 6 }}>
+                  <button className="btn" onClick={() => startEdit(item)}>期限を修正</button>
+                  {item.expiry_override && (
+                    <button
+                      className="btn"
+                      onClick={() => resetExpiry(item.id)}
+                      style={{ marginLeft: 6 }}
+                    >
+                      推定に戻す
+                    </button>
+                  )}
+                </div>
+              )}
             </div>
             {renderActions(item)}
           </div>
