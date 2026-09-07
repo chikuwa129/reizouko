@@ -79,6 +79,23 @@ export default function FridgePage() {
     }
   };
 
+const saveRecipe = async (recipe: any) => {
+  try {
+    await fetch("/api/recipe/save", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        title: recipe.title,
+        uses: recipe.uses,
+        steps: recipe.steps,
+      }),
+    });
+    alert("レシピを保存しました");
+  } catch (e) {
+    alert("保存に失敗しました");
+  }
+};
+
   const renderActions = (item: any) => (
     <div className="actions">
       {item.quantity > 1 ? (
@@ -150,16 +167,19 @@ export default function FridgePage() {
       {recipeError && <p className="status-msg error">{recipeError}</p>}
 
       {recipes.map((recipe, i) => (
-        <div className="recipe-card" key={i}>
-          <div className="recipe-title">{recipe.title}</div>
-          <div className="item-qty">使う食材: {recipe.uses.join("、")}</div>
-          <ol className="recipe-steps">
-            {recipe.steps.map((step: string, j: number) => (
-              <li key={j}>{step}</li>
-            ))}
-          </ol>
-        </div>
+  <div className="recipe-card" key={i}>
+    <div className="recipe-title">{recipe.title}</div>
+    <div className="item-qty">使う食材: {recipe.uses.join("、")}</div>
+    <ol className="recipe-steps">
+      {recipe.steps.map((step: string, j: number) => (
+        <li key={j}>{step}</li>
       ))}
+    </ol>
+    <button className="btn" onClick={() => saveRecipe(recipe)} style={{ marginTop: 8 }}>
+      レシピを保存
+    </button>
+  </div>
+))}
     </main>
   );
 }
