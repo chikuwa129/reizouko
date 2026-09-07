@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
 
@@ -11,6 +11,15 @@ const plexMono = IBM_Plex_Mono({
 export const metadata: Metadata = {
   title: "冷蔵庫の中身",
   description: "レシートを撮るだけの冷蔵庫管理アプリ",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "冷蔵庫",
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#22271d",
 };
 
 export default function RootLayout({
