@@ -52,6 +52,7 @@ export default function Nav() {
             <Link href="/manual" className="more-sheet-item" onClick={() => setMoreOpen(false)}>手動入力</Link>
             <Link href="/receipts" className="more-sheet-item" onClick={() => setMoreOpen(false)}>履歴</Link>
             <Link href="/recipes" className="more-sheet-item" onClick={() => setMoreOpen(false)}>保存レシピ</Link>
+            <Link href="/timer" className="more-sheet-item" onClick={() => setMoreOpen(false)}>4分半タイマー</Link>
             <Link href="/help" className="more-sheet-item" onClick={() => setMoreOpen(false)}>使い方</Link>
           </div>
         </div>
