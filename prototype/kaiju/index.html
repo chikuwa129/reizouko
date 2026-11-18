@@ -371,28 +371,28 @@ const DEFS_BG = () => `<defs>
 const kaijuTail = () => `<path d="M505 545 C 430 600 360 630 280 612 C 330 600 390 575 470 500 Z" fill="${LOOK.skin}" stroke="${INK}" stroke-width="5" stroke-linejoin="round"/>`;
 const tailSpikes = `<path d="M440 548 Q 412 540 418 572 Z"/><path d="M372 590 Q 350 580 352 605 Z"/>`;
 
-function spikeSet(noTail) {
-  if (LOOK.base === 'aqua' || LOOK.base === 'space') return '';
+function spikeSet(noTail, P = LOOK, shape = LOOK.spikes) {
+  if (LOOK.base === 'space') return '';
   const back = [[528, 246, -35], [503, 314, -20], [486, 384, -8], [482, 455, 4]];
   const tail = noTail ? [] : [[430, 556, 30], [364, 596, 40]];
   const one = (x, y, a, k) => {
     const th = (200 + a) * D2R, dx = Math.cos(th), dy = Math.sin(th), px = -dy, py = dx;
-    if (LOOK.spikes === 'crystal') {
+    if (shape === 'crystal') {
       const L = 74 * k, w = 15 * k;
       return `<path d="M${x + px * w} ${y + py * w} L${x + dx * L} ${y + dy * L} L${x - px * w} ${y - py * w} Z"/>
         <path d="M${x} ${y} L${x + dx * L * 0.8} ${y + dy * L * 0.8}" stroke="#fff" stroke-width="3" opacity="0.6"/>`;
     }
-    if (LOOK.spikes === 'plate') {
+    if (shape === 'plate') {
       return `<ellipse cx="${x + dx * 26 * k}" cy="${y + dy * 26 * k}" rx="${36 * k}" ry="${17 * k}" transform="rotate(${200 + a} ${x + dx * 26 * k} ${y + dy * 26 * k})"/>`;
     }
     const L = 50 * k, w = 20 * k;
     return `<path d="M${x + px * w} ${y + py * w} Q ${x + dx * L * 1.2 + px * w} ${y + dy * L * 1.2 + py * w} ${x + dx * L} ${y + dy * L} Q ${x + dx * L * 0.5 - px * w} ${y + dy * L * 0.5 - py * w} ${x - px * w} ${y - py * w} Z"/>`;
   };
-  return `<g fill="${LOOK.spike}" stroke="${INK}" stroke-width="4" stroke-linejoin="round">${back.map(([x, y, a]) => one(x, y, a, 1)).join('')}${tail.map(([x, y, a]) => one(x, y, a, 0.6)).join('')}</g>`;
+  return `<g fill="${P.spike}" stroke="${INK}" stroke-width="4" stroke-linejoin="round">${back.map(([x, y, a]) => one(x, y, a, 1)).join('')}${tail.map(([x, y, a]) => one(x, y, a, 0.6)).join('')}</g>`;
 }
-function patternSvg() {
-  if (LOOK.pattern === 'spots') return `<g fill="${LOOK.dark}" opacity="0.85"><circle cx="512" cy="410" r="15"/><circle cx="498" cy="478" r="11"/><circle cx="520" cy="560" r="14"/><circle cx="545" cy="345" r="10"/><circle cx="708" cy="405" r="10"/></g>`;
-  if (LOOK.pattern === 'stripes') return `<g stroke="${LOOK.dark}" stroke-width="10" fill="none" stroke-linecap="round" opacity="0.9"><path d="M484 400 q 26 6 44 -6"/><path d="M478 450 q 30 6 50 -6"/><path d="M482 500 q 30 6 50 -6"/><path d="M492 550 q 26 6 44 -6"/></g>`;
+function patternSvg(P = LOOK) {
+  if (LOOK.pattern === 'spots') return `<g fill="${P.dark}" opacity="0.85"><circle cx="512" cy="410" r="15"/><circle cx="498" cy="478" r="11"/><circle cx="520" cy="560" r="14"/><circle cx="545" cy="345" r="10"/><circle cx="708" cy="405" r="10"/></g>`;
+  if (LOOK.pattern === 'stripes') return `<g stroke="${P.dark}" stroke-width="10" fill="none" stroke-linecap="round" opacity="0.9"><path d="M484 400 q 26 6 44 -6"/><path d="M478 450 q 30 6 50 -6"/><path d="M482 500 q 30 6 50 -6"/><path d="M492 550 q 26 6 44 -6"/></g>`;
   return '';
 }
 function eyeSvg() {
@@ -426,23 +426,88 @@ function headParts() {
   if (P.includes('nightcap')) o += `<path d="M540 230 Q 600 150 680 215 Q 640 120 560 140 Q 520 170 540 230 Z" fill="#5c7fd1" stroke="${INK}" stroke-width="4"/><circle cx="560" cy="140" r="12" fill="#fff" stroke="${INK}" stroke-width="3"/>`;
   return o;
 }
-function torso(opts = {}) {
-  return `${baseBack()}${backParts()}${opts.noTail ? '' : kaijuTail() + baseTail()}
-  ${spikeSet(opts.noTail)}
-  <g fill="${LOOK.skin}" stroke="${INK}" stroke-width="5"><ellipse cx="545" cy="625" rx="50" ry="34"/><ellipse cx="665" cy="628" rx="50" ry="34"/></g>
-  <g fill="#f4f0e2" stroke="${INK}" stroke-width="3">
-    <circle cx="515" cy="650" r="8"/><circle cx="537" cy="655" r="8"/><circle cx="559" cy="655" r="8"/>
-    <circle cx="645" cy="655" r="8"/><circle cx="667" cy="658" r="8"/><circle cx="689" cy="655" r="8"/>
-  </g>
-  <ellipse cx="600" cy="470" rx="125" ry="160" fill="${LOOK.skin}" stroke="${INK}" stroke-width="5"/>${patternSvg()}${baseBody()}
-  <ellipse cx="618" cy="505" rx="78" ry="112" fill="${LOOK.belly}" stroke="${INK}" stroke-width="3"/>
-  <g stroke="${LOOK.line}" stroke-width="3">
-    <line x1="560" y1="450" x2="676" y2="450"/><line x1="548" y1="490" x2="688" y2="490"/>
-    <line x1="550" y1="530" x2="686" y2="530"/><line x1="562" y1="570" x2="674" y2="570"/>
-  </g>`;
+/* ---------- four base suits, each with its own silhouette ----------
+   Every body keeps the same anchor points (shoulder ~672,410 / neck ~600,360 / feet ~y655)
+   so the same arm, head and animations work on all of them. */
+const COMP = { head: 'green', bird: 'red', aqua: 'blue', rock: 'gray' };
+const palOf = id => PALETTES.find(p => p.id === id);
+const stroke5 = `stroke="${INK}" stroke-width="5" stroke-linejoin="round"`;
+
+// --- dinosaur (the original Zungura) ---
+const dino = {
+  back: (P, noTail) => spikeSet(noTail, P, LOOK.base === 'dino' || LOOK.base === 'space' ? LOOK.spikes : 'round'),
+  tail: P => `<path d="M505 545 C 430 600 360 630 280 612 C 330 600 390 575 470 500 Z" fill="${P.skin}" ${stroke5}/>`,
+  legs: P => `<g fill="${P.skin}" stroke="${INK}" stroke-width="5"><ellipse cx="545" cy="625" rx="50" ry="34"/><ellipse cx="665" cy="628" rx="50" ry="34"/></g>
+    <g fill="#f4f0e2" stroke="${INK}" stroke-width="3"><circle cx="515" cy="650" r="8"/><circle cx="537" cy="655" r="8"/><circle cx="559" cy="655" r="8"/>
+    <circle cx="645" cy="655" r="8"/><circle cx="667" cy="658" r="8"/><circle cx="689" cy="655" r="8"/></g>`,
+  body: P => `<ellipse cx="600" cy="470" rx="125" ry="160" fill="${P.skin}" stroke="${INK}" stroke-width="5"/>${patternSvg(P)}
+    <ellipse cx="618" cy="505" rx="78" ry="112" fill="${P.belly}" stroke="${INK}" stroke-width="3"/>
+    <g stroke="${P.line}" stroke-width="3"><line x1="560" y1="450" x2="676" y2="450"/><line x1="548" y1="490" x2="688" y2="490"/><line x1="550" y1="530" x2="686" y2="530"/><line x1="562" y1="570" x2="674" y2="570"/></g>`,
+};
+// --- bird: slim egg body, big wings, fan tail, thin legs with talons ---
+const bird = {
+  back: P => {
+    const wing = (dx, col) => `<g transform="translate(${dx} 0)"><path d="M520 330 C 440 240 330 140 220 110 C 250 170 240 200 210 230 C 260 240 270 270 240 300 C 290 310 300 345 270 375 C 340 385 400 420 510 440 Z" fill="${col}" ${stroke5}/>
+      <path d="M245 165 Q 380 250 490 350 M255 260 Q 380 320 490 390 M290 345 Q 390 380 480 420" stroke="${INK}" stroke-width="3" fill="none" opacity="0.55"/></g>`;
+    return wing(50, P.dark) + wing(0, P.skin);
+  },
+  tail: P => `<g fill="${P.spike}" stroke="${INK}" stroke-width="4">${[-34, -17, 0, 17, 34].map(a => `<path d="M520 560 Q 420 ${560 + a * 1.6} 320 ${585 + a * 2.4} Q 360 ${600 + a * 2} 520 600 Z" />`).join('')}</g>
+    <g stroke="${P.dark}" stroke-width="5" fill="none">${[-34, 0, 34].map(a => `<path d="M440 ${575 + a * 1.4} q -30 ${a * 0.3} -60 ${a * 0.6}"/>`).join('')}</g>`,
+  legs: P => {
+    const leg = (x) => `<path d="M${x} 590 L ${x - 6} 650" stroke="${INK}" stroke-width="22" stroke-linecap="round"/><path d="M${x} 590 L ${x - 6} 650" stroke="#e0a030" stroke-width="13" stroke-linecap="round"/>
+      <g stroke="${INK}" stroke-width="10" stroke-linecap="round"><path d="M${x - 6} 650 l -30 12 M${x - 6} 650 l 4 16 M${x - 6} 650 l 34 10"/></g>
+      <g stroke="#e0a030" stroke-width="5" stroke-linecap="round"><path d="M${x - 6} 650 l -30 12 M${x - 6} 650 l 4 16 M${x - 6} 650 l 34 10"/></g>`;
+    return leg(560) + leg(660);
+  },
+  body: P => `<path d="M600 300 C 705 300 725 420 712 520 C 700 600 650 615 600 615 C 545 615 500 590 490 520 C 478 420 500 300 600 300 Z" fill="${P.skin}" ${stroke5}/>${patternSvg(P)}
+    <path d="M610 360 C 670 370 690 450 676 530 C 662 585 620 600 590 596 C 560 560 560 420 610 360 Z" fill="${P.belly}" stroke="${INK}" stroke-width="3"/>
+    <g fill="none" stroke="${P.line}" stroke-width="3">${[400, 440, 480, 520, 560].map(y => `<path d="M585 ${y} q 12 10 24 0 q 12 10 24 0 q 12 10 24 0"/>`).join('')}</g>`,
+};
+// --- aquatic: low wide body, dorsal sail, fish tail, flipper feet, scales ---
+const aqua = {
+  back: P => `<path d="M560 300 Q 380 300 400 440 Q 410 520 470 545 L 500 500 Q 470 420 560 340 Z" fill="${P.spike}" ${stroke5}/>
+    <path d="M540 320 L 430 360 M520 380 L 420 400 M505 440 L 425 450 M495 490 L 445 505" stroke="${INK}" stroke-width="3" opacity="0.6"/>`,
+  tail: P => `<path d="M520 520 C 430 560 380 620 300 640 C 330 600 330 590 300 560 C 360 570 420 540 480 480 Z" fill="${P.skin}" ${stroke5}/>
+    <path d="M305 600 L 210 530 Q 240 600 200 690 Z" fill="${P.spike}" ${stroke5}/>`,
+  legs: P => `<g fill="${P.skin}" stroke="${INK}" stroke-width="5"><rect x="520" y="585" width="50" height="55" rx="20"/><rect x="640" y="585" width="50" height="55" rx="20"/></g>
+    <g fill="${P.spike}" stroke="${INK}" stroke-width="4"><path d="M480 640 Q 545 620 600 645 L 590 665 Q 540 672 478 662 Z"/><path d="M610 640 Q 670 620 730 645 L 722 665 Q 670 672 612 662 Z"/></g>
+    <g stroke="${INK}" stroke-width="2.5" opacity="0.6"><path d="M505 655 l 0 -14 M530 657 l 0 -16 M555 658 l 0 -16 M635 655 l 0 -14 M660 657 l 0 -16 M685 658 l 0 -16"/></g>`,
+  body: P => `<ellipse cx="600" cy="500" rx="150" ry="130" fill="${P.skin}" stroke="${INK}" stroke-width="5"/>${patternSvg(P)}
+    <g fill="none" stroke="${P.dark}" stroke-width="3" opacity="0.8">${[430, 470, 510, 550].map((y, i) => `<path d="M${470 + i * 4} ${y} q 12 -12 24 0 q 12 -12 24 0" />`).join('')}</g>
+    <ellipse cx="625" cy="525" rx="100" ry="92" fill="${P.belly}" stroke="${INK}" stroke-width="3"/>
+    <g stroke="${P.line}" stroke-width="3"><line x1="545" y1="490" x2="705" y2="490"/><line x1="535" y1="530" x2="715" y2="530"/><line x1="548" y1="570" x2="702" y2="570"/></g>`,
+};
+// --- mineral: angular boulder body, crystal back, block feet, club tail ---
+const rock = {
+  back: (P, noTail) => spikeSet(noTail, P, 'crystal'),
+  tail: P => `<path d="M500 560 L 420 590 L 380 600 L 384 630 L 430 626 L 510 600 Z" fill="${P.skin}" ${stroke5}/>
+    <path d="M384 580 L 330 570 L 300 610 L 320 650 L 376 650 L 396 612 Z" fill="${P.dark}" ${stroke5}/>`,
+  legs: P => `<g fill="${P.skin}" stroke="${INK}" stroke-width="5"><path d="M500 600 L 590 600 L 595 665 L 495 665 Z"/><path d="M610 600 L 700 600 L 705 665 L 605 665 Z"/></g>
+    <g stroke="${INK}" stroke-width="3" opacity="0.6"><path d="M520 625 l 20 10 l 10 -12 M640 630 l 18 -8 l 14 12"/></g>`,
+  body: P => `<path d="M520 300 L 680 300 L 735 385 L 728 560 L 680 625 L 520 625 L 470 560 L 465 385 Z" fill="${P.skin}" ${stroke5}/>${patternSvg(P)}
+    <g fill="${P.dark}" stroke="${INK}" stroke-width="3" stroke-linejoin="round"><path d="M478 390 L 520 365 L 538 410 L 495 432 Z"/><path d="M472 470 L 512 452 L 528 500 L 486 515 Z"/><path d="M490 560 L 528 548 L 540 592 L 505 600 Z"/>
+      <path d="M700 380 L 728 402 L 712 440 L 690 420 Z"/><path d="M712 476 L 726 506 L 704 534 L 694 504 Z"/></g>
+    <path d="M560 380 L 680 380 L 700 470 L 680 590 L 580 595 L 555 470 Z" fill="${P.belly}" stroke="${INK}" stroke-width="3"/>
+    <path d="M600 410 L 618 450 L 600 470 L 630 520" stroke="#9fe3ff" stroke-width="5" fill="none" stroke-linecap="round"/>`,
+};
+const BODIES = { dino, bird, aqua, rock, space: dino };
+
+function seams() {
+  const st = (d) => `<path d="${d}" stroke="${INK}" stroke-width="6" fill="none"/><path d="${d}" stroke="#f4f0e2" stroke-width="2.5" stroke-dasharray="7 6" fill="none"/>`;
+  return st('M520 360 Q 600 380 680 360') + st('M500 595 Q 600 615 700 595') + st('M505 330 Q 520 380 500 430') + st('M480 520 Q 500 555 520 575');
 }
+function torso(opts = {}) {
+  const b = LOOK.base || 'dino';
+  if (b === 'composite') {
+    const R = palOf(COMP.rock), B = palOf(COMP.bird), A = palOf(COMP.aqua);
+    return `${bird.back(B)}${rock.back(R, true)}${backParts()}${opts.noTail ? '' : aqua.tail(A)}${aqua.legs(A)}${rock.body(R)}${seams()}`;
+  }
+  const K = BODIES[b] || dino;
+  return `${baseBack()}${K.back(LOOK, opts.noTail)}${backParts()}${opts.noTail ? '' : K.tail(LOOK)}${K.legs(LOOK)}${K.body(LOOK)}${baseBody()}`;
+}
+
 const backArmStub = () => `<path d="M520 420 Q 490 460 508 490" stroke="${INK}" stroke-width="30" stroke-linecap="round" fill="none"/>
-  <path d="M520 420 Q 490 460 508 490" stroke="${LOOK.dark}" stroke-width="22" stroke-linecap="round" fill="none"/>`;
+  <path d="M520 420 Q 490 460 508 490" stroke="${LOOK.armDark || LOOK.dark}" stroke-width="22" stroke-linecap="round" fill="none"/>`;
 const kb = () => torso() + backArmStub();
 
 function head(expr = 'serious', tilt = 0) {
@@ -472,9 +537,16 @@ function head(expr = 'serious', tilt = 0) {
     eyes = `<path d="M602 272 q 10 -12 20 0" stroke="${INK}" stroke-width="4" fill="none" stroke-linecap="round"/><path d="M645 266 q 10 -12 20 0" stroke="${INK}" stroke-width="4" fill="none" stroke-linecap="round"/>`;
     mouth = `<path d="M664 334 Q 680 352 696 332" stroke="${INK}" stroke-width="4" fill="#7a2f2f" stroke-linecap="round"/>`;
   }
-  return `<g transform="rotate(${tilt} 600 330)">
-    <ellipse cx="600" cy="292" rx="92" ry="84" fill="${LOOK.skin}" stroke="${INK}" stroke-width="5"/>
-    <ellipse cx="660" cy="316" rx="62" ry="46" fill="${LOOK.snout}" stroke="${INK}" stroke-width="4"/>
+  const hb = LOOK.base;
+  const HT = hb === 'bird' ? 'translate(600 300) scale(0.86) translate(-600 -300) translate(24 -34)'
+    : hb === 'aqua' ? 'translate(600 330) scale(1.1 0.9) translate(-600 -330) translate(0 30)' : '';
+  const skull = hb === 'rock'
+    ? `<path d="M515 255 L 560 205 L 650 198 L 692 240 L 694 330 L 642 374 L 560 374 L 508 330 Z" fill="${LOOK.skin}" stroke="${INK}" stroke-width="5" stroke-linejoin="round"/>
+       <path d="M610 282 L 726 288 L 738 340 L 702 362 L 618 352 Z" fill="${LOOK.snout}" stroke="${INK}" stroke-width="4" stroke-linejoin="round"/>`
+    : `<ellipse cx="600" cy="292" rx="92" ry="84" fill="${LOOK.skin}" stroke="${INK}" stroke-width="5"/>
+       <ellipse cx="660" cy="316" rx="62" ry="46" fill="${LOOK.snout}" stroke="${INK}" stroke-width="4"/>`;
+  return `<g transform="rotate(${tilt} 600 330) ${HT}">
+    ${skull}
     <circle cx="700" cy="300" r="3.5" fill="${INK}"/><circle cx="712" cy="306" r="3.5" fill="${INK}"/>
     ${eyes}${mouth}
     <ellipse cx="596" cy="300" rx="14" ry="7" fill="#e88f86" opacity="0.55"/>${extra}${baseHead()}${headParts()}
@@ -483,14 +555,14 @@ function head(expr = 'serious', tilt = 0) {
 function arm(hx, hy, sx = 672, sy = 410) {
   const cx = (sx + hx) / 2 + 20, cy = (sy + hy) / 2 + 10;
   return `<path d="M${sx} ${sy} Q ${cx} ${cy} ${hx} ${hy}" stroke="${INK}" stroke-width="36" stroke-linecap="round" fill="none"/>
-    <path d="M${sx} ${sy} Q ${cx} ${cy} ${hx} ${hy}" stroke="${LOOK.skin}" stroke-width="27" stroke-linecap="round" fill="none"/>
-    <circle cx="${hx}" cy="${hy}" r="27" fill="${LOOK.skin}" stroke="${INK}" stroke-width="5"/>
+    <path d="M${sx} ${sy} Q ${cx} ${cy} ${hx} ${hy}" stroke="${LOOK.armSkin || LOOK.skin}" stroke-width="27" stroke-linecap="round" fill="none"/>
+    <circle cx="${hx}" cy="${hy}" r="27" fill="${LOOK.armSkin || LOOK.skin}" stroke="${INK}" stroke-width="5"/>
     <path d="M${hx - 18} ${hy - 6} q 18 -9 36 1" stroke="${INK}" stroke-width="3" fill="none"/>`;
 }
 function backArm(hx, hy) {
   return `<path d="M520 420 Q ${(520 + hx) / 2 - 20} ${(420 + hy) / 2} ${hx} ${hy}" stroke="${INK}" stroke-width="32" stroke-linecap="round" fill="none"/>
-    <path d="M520 420 Q ${(520 + hx) / 2 - 20} ${(420 + hy) / 2} ${hx} ${hy}" stroke="${LOOK.dark}" stroke-width="24" stroke-linecap="round" fill="none"/>
-    <circle cx="${hx}" cy="${hy}" r="24" fill="${LOOK.dark}" stroke="${INK}" stroke-width="5"/>`;
+    <path d="M520 420 Q ${(520 + hx) / 2 - 20} ${(420 + hy) / 2} ${hx} ${hy}" stroke="${LOOK.armDark || LOOK.dark}" stroke-width="24" stroke-linecap="round" fill="none"/>
+    <circle cx="${hx}" cy="${hy}" r="24" fill="${LOOK.armDark || LOOK.dark}" stroke="${INK}" stroke-width="5"/>`;
 }
 function carBetween(ax, ay, bx, by, opts = {}) {
   const dx = bx - ax, dy = by - ay, len = Math.hypot(dx, dy);
@@ -797,36 +869,18 @@ const BASES = {
 };
 const hasB = b => LOOK.base === b || (LOOK.base === 'composite' && ['bird', 'aqua', 'rock'].includes(b));
 function baseBack() {
-  let o = '';
-  if (hasB('bird')) {
-    const wing = (dx, col) => `<g transform="translate(${dx} 0)"><path d="M510 330 C 440 250 360 170 280 150 C 300 200 290 230 270 250 C 310 260 320 290 300 320 C 340 330 350 360 330 390 C 380 400 420 420 500 430 Z" fill="${col}" stroke="${INK}" stroke-width="5" stroke-linejoin="round"/>
-      <path d="M300 205 Q 400 260 480 340 M310 285 Q 400 320 480 380 M340 360 Q 410 380 470 410" stroke="${INK}" stroke-width="3" fill="none" opacity="0.6"/></g>`;
-    o += wing(40, LOOK.dark) + wing(0, LOOK.skin);
-  }
-  if (LOOK.base === 'aqua') o += `<path d="M535 225 Q 380 250 400 390 Q 410 480 475 505 L 498 470 Q 465 380 540 265 Z" fill="${LOOK.spike}" stroke="${INK}" stroke-width="5" stroke-linejoin="round"/>
-    <path d="M520 260 L 430 300 M500 330 L 420 350 M495 400 L 425 410 M490 450 L 440 460" stroke="${INK}" stroke-width="3" opacity="0.6"/>`;
-  if (LOOK.base === 'space') o += `<path d="M520 330 Q 420 520 360 700 L 840 700 Q 780 520 690 330 Z" fill="#3a1f5c" stroke="#7a4cff" stroke-width="5"/>`;
-  return o;
-}
-function baseTail() {
-  if (hasB('aqua')) return `<path d="M300 612 L 230 560 Q 250 612 220 670 Z" fill="${LOOK.spike}" stroke="${INK}" stroke-width="4" stroke-linejoin="round"/>`;
-  if (LOOK.base === 'bird') return `<g fill="${LOOK.spike}" stroke="${INK}" stroke-width="3">${[-30, -10, 10, 30].map(a => `<ellipse cx="270" cy="612" rx="40" ry="11" transform="rotate(${180 + a} 300 612)"/>`).join('')}</g>`;
-  return '';
+  return LOOK.base === 'space' ? `<path d="M520 330 Q 420 520 360 700 L 840 700 Q 780 520 690 330 Z" fill="#3a1f5c" stroke="#7a4cff" stroke-width="5"/>` : '';
 }
 function baseBody() {
-  let o = '';
-  if (hasB('rock')) o += `<g fill="${LOOK.dark}" stroke="${INK}" stroke-width="3" stroke-linejoin="round" opacity="0.95">
-    <path d="M482 380 L 520 360 L 535 400 L 498 420 Z"/><path d="M478 470 L 515 452 L 530 495 L 490 510 Z"/><path d="M500 560 L 535 548 L 545 590 L 510 598 Z"/>
-    <path d="M700 370 L 728 392 L 712 430 L 690 410 Z"/><path d="M710 470 L 726 500 L 705 530 L 694 500 Z"/></g>`;
-  if (LOOK.base === 'space') o += `<circle cx="600" cy="420" r="26" fill="#ff5a5a" stroke="${INK}" stroke-width="4"/><circle cx="592" cy="412" r="8" fill="#fff" opacity="0.7"/>`;
-  return o;
+  return LOOK.base === 'space' ? `<circle cx="600" cy="420" r="26" fill="#ff5a5a" stroke="${INK}" stroke-width="4"/><circle cx="592" cy="412" r="8" fill="#fff" opacity="0.7"/>` : '';
 }
 function baseHead() {
   let o = '';
   if (LOOK.base === 'bird') o += `<path d="M640 296 L 752 318 L 648 350 Z" fill="#f0b030" stroke="${INK}" stroke-width="4" stroke-linejoin="round"/>
     <g fill="${LOOK.spike}" stroke="${INK}" stroke-width="3">${[[560, 214, -40], [585, 206, -20], [612, 208, 0]].map(([x, y, a]) => `<ellipse cx="${x}" cy="${y - 22}" rx="10" ry="30" transform="rotate(${a} ${x} ${y})"/>`).join('')}</g>`;
-  if (hasB('aqua')) o += `<g stroke="${INK}" stroke-width="3" fill="none" opacity="0.7"><path d="M560 300 q -10 18 0 36"/><path d="M546 296 q -10 20 0 40"/><path d="M532 294 q -10 22 0 44"/></g>`;
-  if (hasB('rock')) o += `<path d="M592 246 L 630 236 L 676 236 L 680 250 L 594 258 Z" fill="${LOOK.dark}" stroke="${INK}" stroke-width="3"/><path d="M610 214 L 622 170 L 640 212 Z" fill="#9fe3ff" stroke="${INK}" stroke-width="3"/>`;
+  if (LOOK.base === 'aqua') o += `<g stroke="${INK}" stroke-width="3" fill="none" opacity="0.7"><path d="M560 300 q -10 18 0 36"/><path d="M546 296 q -10 20 0 40"/><path d="M532 294 q -10 22 0 44"/></g>
+    <path d="M520 262 Q 466 222 470 300 Q 500 300 522 290 Z" fill="${LOOK.spike}" stroke="${INK}" stroke-width="4"/>`;
+  if (LOOK.base === 'rock') o += `<path d="M600 205 L 614 150 L 632 202 Z" fill="#9fe3ff" stroke="${INK}" stroke-width="3"/><path d="M636 202 L 652 168 L 660 204 Z" fill="#9fe3ff" stroke="${INK}" stroke-width="3"/>`;
   if (LOOK.base === 'space') o += `<path d="M560 222 Q 500 120 440 90 Q 510 120 580 200 Z" fill="#1b1430" stroke="#7a4cff" stroke-width="4"/>
     <path d="M650 214 Q 720 130 790 110 Q 720 150 660 205 Z" fill="#1b1430" stroke="#7a4cff" stroke-width="4"/><circle cx="628" cy="232" r="10" fill="#ff5a5a" stroke="${INK}" stroke-width="3"/>`;
   return o;
@@ -857,6 +911,32 @@ function heroArtP(pose = 'stand', P = HPAL.justia) {
     <path d="M-44 -462 Q 0 -438 40 -462 L 38 -446 Q 0 -426 -42 -446 Z" fill="${P.body}" stroke="${INK}" stroke-width="3"/>
     <path d="M-36 -456 L -10 -452" stroke="${P.eye}" stroke-width="6" stroke-linecap="round"/>
     <path d="M0 -514 L -10 -560 L 14 -520 Z" fill="${P.gold}" stroke="${INK}" stroke-width="4"/>
+  </g>`;
+}
+
+// second hero: a heavier build, horned helmet with one wide visor, big shoulder guards and a long scarf
+function blazerArt(pose = 'stand') {
+  const R = '#b3262b', S = '#d9dde4', D = '#5a0f14', V = '#ffe066';
+  const limb = (x1, y1, x2, y2, c, w = 46) => `<path d="M${x1} ${y1} L ${x2} ${y2}" stroke="${INK}" stroke-width="${w + 10}" stroke-linecap="round"/><path d="M${x1} ${y1} L ${x2} ${y2}" stroke="${c}" stroke-width="${w}" stroke-linecap="round"/>`;
+  const fist = (x, y) => `<rect x="${x - 26}" y="${y - 24}" width="52" height="48" rx="14" fill="${S}" stroke="${INK}" stroke-width="5"/>`;
+  const arms = pose === 'beam' ? limb(-60, -390, -170, -370, R) + limb(50, -390, -170, -350, R) + `<circle cx="-185" cy="-360" r="30" fill="#ffe9a8" stroke="${INK}" stroke-width="4"/>`
+    : pose === 'fly' ? limb(-60, -390, -150, -490, R) + fist(-150, -500) + limb(60, -390, 110, -300, R) + fist(116, -290)
+    : pose === 'down' ? limb(-60, -390, -140, -330, R) + limb(60, -390, 140, -330, R)
+    : limb(-70, -390, -100, -260, R) + fist(-100, -250) + limb(70, -390, 100, -260, R) + fist(100, -250);
+  const wave = pose === 'fly' ? 40 : 14;
+  return `<g>
+    <path d="M30 -440 C 120 -420 170 -${380 - wave} 230 -${330 + wave} C 200 -${300 - wave} 150 -330 60 -370 Z" fill="#e8b23a" stroke="${INK}" stroke-width="4"/>
+    <path d="M-48 -250 L -60 -10 L -8 -10 L -4 -250 Z" fill="${R}" stroke="${INK}" stroke-width="5"/><path d="M48 -250 L 60 -10 L 8 -10 L 4 -250 Z" fill="${R}" stroke="${INK}" stroke-width="5"/>
+    <path d="M-66 -90 L -4 -90 L -2 0 L -72 0 Z" fill="${S}" stroke="${INK}" stroke-width="5"/><path d="M66 -90 L 4 -90 L 2 0 L 72 0 Z" fill="${S}" stroke="${INK}" stroke-width="5"/>
+    <path d="M-92 -420 L 92 -420 L 64 -250 L -64 -250 Z" fill="${R}" stroke="${INK}" stroke-width="5"/>
+    <path d="M-60 -410 L 60 -410 L 40 -300 L -40 -300 Z" fill="${S}" stroke="${INK}" stroke-width="4"/>
+    <path d="M0 -392 Q 22 -360 0 -318 Q -22 -360 0 -392 Z" fill="#ff8a3d" stroke="${INK}" stroke-width="3"/>
+    <rect x="-66" y="-272" width="132" height="24" fill="${D}" stroke="${INK}" stroke-width="4"/>
+    ${arms}
+    <path d="M-120 -440 Q -110 -390 -60 -390 L -50 -440 Z" fill="${S}" stroke="${INK}" stroke-width="5"/><path d="M120 -440 Q 110 -390 60 -390 L 50 -440 Z" fill="${S}" stroke="${INK}" stroke-width="5"/>
+    <path d="M-48 -430 L -52 -490 Q 0 -540 52 -490 L 48 -430 Z" fill="${R}" stroke="${INK}" stroke-width="5"/>
+    <rect x="-40" y="-484" width="80" height="18" rx="6" fill="${V}" stroke="${INK}" stroke-width="3"/>
+    <path d="M-30 -510 L -62 -580 L -12 -522 Z" fill="${S}" stroke="${INK}" stroke-width="4"/><path d="M30 -510 L 62 -580 L 12 -522 Z" fill="${S}" stroke="${INK}" stroke-width="4"/>
   </g>`;
 }
 const RPAL = {
@@ -2337,13 +2417,14 @@ function setupKaiju(i) {
   } else if (base !== prev.base) {
     G.parts = [];
     const palId = pick(BASES[base].pal, prev.id);
-    G.look = { ...PALETTES.find(p => p.id === palId), base,
+    G.look = { ...PALETTES.find(p => p.id === (base === 'composite' ? COMP.head : palId)), base,
+      ...(base === 'composite' ? { armSkin: palOf(COMP.bird).skin, armDark: palOf(COMP.bird).dark } : {}),
       eyes: pick(Object.keys(EYES), prev.eyes),
       spikes: base === 'rock' ? 'crystal' : base === 'bird' ? 'plate' : pick(Object.keys(SPIKES), prev.spikes),
-      pattern: base === 'composite' ? 'spots' : pick(Object.keys(PATTERNS), prev.pattern) };
+      pattern: base === 'composite' ? 'none' : pick(Object.keys(PATTERNS), prev.pattern) };
     G.kaiju = BASES[base].first;
     G.lookChanges = base === 'composite'
-      ? ['これまでの着ぐるみのパーツを寄せ集め', '翼・ヒレ・岩の甲羅を移植', 'まだら模様で継ぎ目をごまかす']
+      ? ['頭＝恐竜型、翼と腕＝鳥型、脚としっぽ＝水棲型、胴＝鉱物型', '各パーツは元の色のまま', '継ぎ目は縫ってごまかした']
       : [`新しい素体：${BASES[base].name}`, `${PALETTES.find(p => p.id === palId).name}の新規塗装`, `目は${EYES[G.look.eyes]}`];
   } else {
     const order = ['eat', 'swim', 'rope', 'nunchaku', 'sandbag', 'run', 'skip', 'sleep', 'move'];
@@ -2353,7 +2434,8 @@ function setupKaiju(i) {
     if (G.parts.includes(part)) part = ['horn', 'fins', 'coil', 'chimney', 'nightcap'].find(p => !G.parts.includes(p)) || part;
     G.parts.push(part);
     const palId = pick(PALETTES.map(x => x.id), prev.id);
-    G.look = { ...PALETTES.find(x => x.id === palId), base, eyes: pick(Object.keys(EYES), prev.eyes),
+    G.look = { ...PALETTES.find(x => x.id === (base === 'composite' ? COMP.head : palId)), base, eyes: pick(Object.keys(EYES), prev.eyes),
+      ...(base === 'composite' ? { armSkin: palOf(COMP.bird).skin, armDark: palOf(COMP.bird).dark } : {}),
       spikes: base === 'rock' ? 'crystal' : pick(Object.keys(SPIKES), prev.spikes), pattern: pick(Object.keys(PATTERNS), prev.pattern) };
     G.kaiju = base === 'composite' ? 'ゴッタマゼラ改' : PREFIX[part] + BASES[base].stem;
     G.lookChanges = [`${PART_NAME[part]}を追加`, `${PALETTES.find(x => x.id === palId).name}に塗り直し`, `目を${EYES[G.look.eyes]}に`, PATTERNS[G.look.pattern] !== '無地' ? `${PATTERNS[G.look.pattern]}を追加` : '模様を塗りつぶし'];
@@ -2442,7 +2524,7 @@ const FOES = {
   blazer: { name: 'ブレイザー', pal: 'blazer', hp: 1.1, atk: 1.15, moves: ['ブレイザーパンチ', '回し蹴り', 'フライングアタック'], fin: 'ブレイザーフラッシュ', col: ['#c0392b', '#ffe066'] },
   robot: { name: 'ガードロン', robot: true, hp: 0.85, atk: 0.9, moves: ['ロケットパンチ', 'ドリルアーム', 'ミサイル一斉発射'], fin: 'ガードロン・メガキャノン', col: ['#7d7a72', '#ffd34d'] },
 };
-function foeArt(key, pose) { return FOES[key].robot ? robotArt(pose, RPAL.robot) : heroArtP(pose, HPAL[FOES[key].pal]); }
+function foeArt(key, pose) { return FOES[key].robot ? robotArt(pose, RPAL.robot) : key === 'blazer' ? blazerArt(pose) : heroArtP(pose, HPAL[FOES[key].pal]); }
 function battleMoves() {
   const E = G.ever || {}, b = LOOK.base;
   const all = [
@@ -2794,7 +2876,7 @@ function sceneBossFall(next) {
       const drop = clamp(f / 30, 0, 1), up = clamp((f - 62) / 30, 0, 1);
       const by = -380 + 360 * easeOut(drop) - 500 * up, bs = 0.62 - 0.3 * up;
       let o = `<g transform="translate(${600 - 600 * bs} ${by}) scale(${bs})" opacity="${1 - up * 0.6}">${bossArt(f, f > 30 && f < 56)}</g>`;
-      o += `<g transform="translate(860 700) scale(0.75)">${heroArtP(f > 40 ? 'beam' : 'stand', HPAL.justia)}</g><g transform="translate(1040 690) scale(0.7)">${heroArtP(f > 40 ? 'beam' : 'stand', HPAL.blazer)}</g>`;
+      o += `<g transform="translate(860 700) scale(0.75)">${heroArtP(f > 40 ? 'beam' : 'stand', HPAL.justia)}</g><g transform="translate(1040 690) scale(0.7)">${blazerArt(f > 40 ? 'beam' : 'stand')}</g>`;
       if (f > 40 && f < 66) {
         const T = [600, by + 260 * bs + 160];
         const beam = (a, c1, c2) => `<path d="M${a[0]} ${a[1]} L ${T[0]} ${T[1]}" stroke="${c1}" stroke-width="34" stroke-linecap="round" opacity="0.85"/><path d="M${a[0]} ${a[1]} L ${T[0]} ${T[1]}" stroke="${c2}" stroke-width="18" stroke-linecap="round"/><path d="M${a[0]} ${a[1]} L ${T[0]} ${T[1]}" stroke="#fff" stroke-width="6" stroke-linecap="round"/>`;
