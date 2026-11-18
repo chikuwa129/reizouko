@@ -684,6 +684,52 @@ function mountainBg() {
   ${ropewayBg('mountain')}
   <rect x="0" y="640" width="1200" height="110" fill="#6b8a5a"/>${smokeIf('mountain')}${todTint()}`;
 }
+
+function metroBg() {
+  const sb = gstock('metro', 'sandbag'), tw = gstock('metro', 'pullup');
+  const cols = ['#c8d6d9', '#dfe3d2', '#cfc6e0', '#e7d9b8', '#d9c3c0'];
+  let towers = '';
+  [[20, 90, 300], [120, 70, 380], [200, 110, 260], [330, 80, 420], [430, 100, 330], [760, 90, 360], [870, 120, 300], [1000, 80, 400], [1090, 100, 280]].forEach(([x, w, hh], i) => {
+    const st = sb >= 2 ? 0 : sb === 1 ? (i % 2 ? 1 : 0) : (i % 3 === 0 ? 1 : 2);
+    towers += bldArt(x, 560, w, hh, cols[i % 5], st);
+  });
+  const tower = tw > 0 ? `<path d="M590 560 L 612 160 L 628 160 L 650 560 Z" fill="#c9c5ba" stroke="${INK}" stroke-width="4"/><circle cx="620" cy="150" r="14" fill="#d33a2c" stroke="${INK}" stroke-width="3"/>`
+    : `<path d="M590 560 L 606 380 L 700 300 L 712 316 L 634 400 L 650 560 Z" fill="#c9c5ba" stroke="${INK}" stroke-width="4"/>`;
+  return DEFS_BG() + `<rect width="1200" height="750" fill="url(#sky)"/>${skyDeco()}
+  <g filter="url(#blurFar)" fill="#8fa3ad">${[0, 1, 2, 3, 4, 5, 6].map(i => `<rect x="${i * 180}" y="${250 + (i % 3) * 40}" width="120" height="330"/>`).join('')}</g>
+  ${tower}${towers}
+  <rect x="0" y="560" width="1200" height="190" fill="#7d7a72"/><rect x="0" y="610" width="1200" height="8" fill="#f4f0e2" opacity="0.5"/>
+  ${[0, 1, 2, 3, 4].map(i => `<rect x="${80 + i * 240}" y="580" width="60" height="22" rx="6" fill="#ffd34d" stroke="${INK}" stroke-width="2"/>`).join('')}
+  <g filter="url(#blurNear)"><rect x="-20" y="690" width="1240" height="80" fill="#5f5c55"/></g>${smokeIf('metro')}${todTint()}`;
+}
+function desertBg() {
+  const oil = gstock('desert', 'eat'), wires = gstock('desert', 'rope'), hw = gstock('desert', 'run');
+  const derrick = (x, ok) => ok
+    ? `<g stroke="${INK}" stroke-width="4" fill="none"><path d="M${x - 40} 560 L ${x} 380 L ${x + 40} 560 M${x - 30} 500 L ${x + 30} 500 M${x - 20} 440 L ${x + 20} 440"/></g><rect x="${x - 14}" y="366" width="28" height="18" fill="#d33a2c" stroke="${INK}" stroke-width="3"/>`
+    : `<g stroke="${INK}" stroke-width="4" fill="none"><path d="M${x - 40} 560 L ${x + 60} 500 M${x - 10} 560 L ${x + 80} 530"/></g><path d="M${x - 20} 560 q 20 -70 40 0 q 20 -50 40 0 Z" fill="#ff8a3d"/><circle cx="${x + 10}" cy="430" r="40" fill="#333" opacity="0.6"/>`;
+  return DEFS_BG() + `<rect width="1200" height="750" fill="url(#sky)"/>${skyDeco()}
+  <path d="M0 470 Q 200 400 420 460 Q 640 520 860 440 Q 1040 380 1200 450 L 1200 750 L 0 750 Z" fill="#e2c387"/>
+  <path d="M0 560 Q 300 520 600 560 Q 900 600 1200 540 L 1200 750 L 0 750 Z" fill="#d4ad69"/>
+  ${derrick(150, oil > 2)}${derrick(330, oil > 1)}${derrick(1060, oil > 0)}
+  <g stroke="#7d7a72" stroke-width="10" fill="none"><path d="M880 300 L880 240 L1180 240"/></g><rect x="846" y="296" width="30" height="18" rx="3" fill="#d33a2c" stroke="${INK}" stroke-width="3"/>
+  <g stroke="#6e6a64" stroke-width="4" fill="none">${[480, 760].map(x => `<path d="M${x - 30} 560 L ${x - 6} 380 L ${x + 6} 380 L ${x + 30} 560"/><path d="M${x - 45} 410 L ${x + 45} 410"/>`).join('')}</g>
+  ${wires > 0 ? `<path d="M0 420 Q 240 450 480 410 Q 620 440 760 410 Q 980 450 1200 420" stroke="#4b4b4b" stroke-width="3" fill="none"/>` : `<path d="M480 410 Q 500 480 490 540 M760 410 Q 740 480 750 540" stroke="#4b4b4b" stroke-width="3" fill="none"/>`}
+  <rect x="0" y="640" width="1200" height="40" fill="${hw > 0 ? '#5f6168' : '#8a7a62'}"/>${hw > 0 ? [0, 1, 2, 3, 4, 5].map(i => `<rect x="${40 + i * 200}" y="657" width="90" height="6" fill="#f4f0e2"/>`).join('') : '<path d="M300 640 l 60 40 M700 640 l -50 40" stroke="#2a2a2a" stroke-width="10"/>'}
+  ${smokeIf('desert')}${todTint()}`;
+}
+function iceBg() {
+  const tw = gstock('ice', 'pullup'), boats = gstock('ice', 'juggle'), cars = gstock('ice', 'nunchaku');
+  const aur = TOD === 'night' ? `<path d="M0 160 Q 300 60 600 150 Q 900 240 1200 120" stroke="#7fffb8" stroke-width="40" fill="none" opacity="0.35"/><path d="M0 200 Q 300 110 600 190 Q 900 270 1200 160" stroke="#9f7bff" stroke-width="26" fill="none" opacity="0.3"/>` : '';
+  return DEFS_BG() + `<rect width="1200" height="750" fill="url(#sky)"/>${skyDeco()}${aur}
+  <path d="M0 430 L 140 300 L 260 420 L 420 280 L 560 430 Z" fill="#eef6fb" stroke="#9fc4d8" stroke-width="4"/>
+  <rect x="0" y="470" width="1200" height="280" fill="#3f86ac"/>
+  <path d="M0 430 L 620 430 L 700 520 L 0 560 Z" fill="#f4fafd" stroke="#9fc4d8" stroke-width="4"/>
+  ${[[820, 520], [1000, 560], [1120, 500]].map(([x, y]) => `<path d="M${x - 50} ${y} L ${x - 20} ${y - 60} L ${x + 30} ${y - 40} L ${x + 50} ${y} Z" fill="#eef6fb" stroke="#9fc4d8" stroke-width="3"/>`).join('')}
+  ${tw > 0 ? `<g stroke="${INK}" stroke-width="4"><rect x="300" y="250" width="30" height="190" fill="#e9e6dc"/><circle cx="315" cy="240" r="26" fill="#bfe6f5"/></g>` : `<path d="M300 440 L 330 440 L 360 330 L 330 320 Z" fill="#e9e6dc" stroke="${INK}" stroke-width="4"/>`}
+  ${[0, 1].map(i => i < boats ? `<g transform="translate(${760 + i * 160} 600)"><path d="M-48 -6 L48 -6 L36 14 L-36 14 Z" fill="#f4f0e2" stroke="${INK}" stroke-width="3"/><rect x="-16" y="-24" width="30" height="18" fill="#3f7fc0" stroke="${INK}" stroke-width="3"/></g>` : '').join('')}
+  ${[0, 1].map(i => i < cars ? `<use href="#freightB" transform="translate(${120 + i * 170} 500) scale(0.55)"/>` : '').join('')}
+  ${smokeIf('ice')}${todTint()}`;
+}
 function cityBg(o = {}) {
   const trains = o.trains ?? 0;
   let parked = '';
@@ -798,6 +844,14 @@ function worldMap(x, y, w, h, opts = {}) {
   const jp = [842, 196];
   let marks = '';
   for (let i = 0; i < puffs; i++) marks += `<circle cx="${jp[0] - 30 + (i * 23) % 60}" cy="${jp[1] - 20 - (i * 17) % 50}" r="${10 + (i % 3) * 5}" fill="#555" opacity="0.6"/>`;
+  // overseas regions glow and smoke by how much has been used up there
+  if (typeof G !== 'undefined' && G.stock) for (const [k, L] of Object.entries(LOCS)) {
+    if (!L.world) continue;
+    const tot = Object.values(L.acts).reduce((a, d) => a + d.n, 0), used = tot - Object.values(G.stock[k]).reduce((a, n) => a + n, 0);
+    const r = used / tot;
+    if (r > 0) marks += `<circle cx="${L.world[0]}" cy="${L.world[1]}" r="${14 + r * 50}" fill="#ff5a3d" opacity="${0.25 + r * 0.4}"/>` + Array.from({ length: Math.ceil(r * 5) }, (_, i) => `<circle cx="${L.world[0] - 20 + i * 12}" cy="${L.world[1] - 20 - i * 9}" r="${9 + (i % 2) * 5}" fill="#555" opacity="0.6"/>`).join('');
+    else if (opts.pins !== false && G.ep >= L.unlock) marks += `<circle cx="${L.world[0]}" cy="${L.world[1]}" r="6" fill="#ffd34d"/>`;
+  }
   return `<svg x="${x}" y="${y}" width="${w}" height="${h}" viewBox="0 0 1000 500" preserveAspectRatio="xMidYMid slice">
     <rect width="1000" height="500" fill="${opts.sea || '#123a5c'}"/>
     <g stroke="#2a5a80" stroke-width="1.5" opacity="0.7">${[100, 200, 300, 400].map(v => `<line x1="0" y1="${v}" x2="1000" y2="${v}"/>`).join('')}${[125, 250, 375, 500, 625, 750, 875].map(v => `<line x1="${v}" y1="0" x2="${v}" y2="500"/>`).join('')}</g>
@@ -1070,6 +1124,9 @@ const LOCS = {
   dam: { name: '山あいのダム', acts: { juggle: { n: 2, thing: 'ダム湖のボート', unit: '回' }, swim: { n: 2, thing: 'ダム湖', unit: '回' }, nunchaku: { n: 2, thing: 'ロープウェイのゴンドラ', unit: '台', href: 'gondola' } } },
   airport: { name: '空港', unlock: 3, acts: { run: { n: 2, thing: '滑走路', unit: '回' }, sandbag: { n: 2, thing: 'ターミナルビル', unit: '回' }, pullup: { n: 2, thing: '管制塔', unit: '回' } } },
   mountain: { name: '山岳地帯', unlock: 7, acts: { pullup: { n: 2, thing: '送電鉄塔', unit: '回' }, rope: { n: 2, thing: '山の送電線', unit: '本' }, nunchaku: { n: 2, thing: 'ロープウェイのゴンドラ', unit: '台', href: 'gondola' } } },
+  metro: { name: '大陸の大都市', world: [200, 175], unlock: 4, acts: { sandbag: { n: 2, thing: '摩天楼街', unit: '回' }, run: { n: 2, thing: '大通り', unit: '回' }, pullup: { n: 2, thing: '電波塔', unit: '回' }, nunchaku: { n: 2, thing: '地下鉄の車両', unit: '両', href: 'car' } } },
+  desert: { name: '砂漠の油田', world: [505, 300], unlock: 6, acts: { eat: { n: 3, thing: '油田の原油', unit: '杯' }, run: { n: 2, thing: '砂漠のハイウェイ', unit: '回' }, rope: { n: 2, thing: '砂漠の送電線', unit: '本' } } },
+  ice: { name: '氷の大地', world: [610, 70], unlock: 8, acts: { juggle: { n: 2, thing: '流氷の漁船', unit: '回' }, pullup: { n: 2, thing: 'オーロラ観測塔', unit: '回' }, nunchaku: { n: 2, thing: '雪上車', unit: '台', href: 'freight' } } },
   port: { name: '臨海コンビナート', acts: { juggle: { n: 1, thing: '港の漁船', unit: '回' }, eat: { n: 3, thing: 'コンビナートの石油', unit: '杯' }, skip: { n: 2, thing: 'コンテナ船', unit: '隻' }, nunchaku: { n: 2, thing: '貨物列車', unit: '両', href: 'freight' } } },
 };
 // action names only: what gets used is a surprise until the minigame/news
@@ -1120,11 +1177,15 @@ const failRate = base => clamp(Math.round(base + (100 - G.hp) * 0.45 - G.tec * 0
 const here = () => LOCS[G.loc];
 const thingHere = id => here().acts[id];
 const left = id => (G.stock[G.loc][id] ?? 0);
+const isWorld = l => !!LOCS[l].world;
 function bgFor(loc = G.loc, tod) {
   TOD = tod || ['morning', 'noon', 'night'][clamp(G.turn, 0, 2)];
   if (loc === 'dam') return DEFS_BG() + (G.flags.damBroken ? damBg(570, 1, 1) : damBg(420, 0, 0));
   if (loc === 'port') return portBg();
   if (loc === 'airport') return airportBg();
+  if (loc === 'metro') return metroBg();
+  if (loc === 'desert') return desertBg();
+  if (loc === 'ice') return iceBg();
   if (loc === 'mountain') return mountainBg();
   return cityBg({ trains: G.stock.city.nunchaku, wires: G.stock.city.rope, blackout: G.flags.blackout, cracks: G.flags.cracks });
 }
@@ -1375,27 +1436,44 @@ function runCommand(id) {
 const MAP_PINS = {
   dam: [250, 250], city: [430, 430], port: [610, 570], airport: [640, 250], mountain: [170, 560],
 };
-function sceneMap() {
+function sceneMap(view) {
   const locs = Object.keys(LOCS);
   const locked = l => (LOCS[l].unlock || 0) > G.ep;
-  let sel = locs.find(l => l !== G.loc && !locked(l) && G.ruin[l].at === null) || G.loc;
+  const worldOpen = locs.some(l => isWorld(l) && !locked(l));
+  view = view || (isWorld(G.loc) ? 'world' : 'japan');
+  const inView = l => view === 'world' ? isWorld(l) : !isWorld(l);
+  let sel = locs.find(l => inView(l) && l !== G.loc && !locked(l) && G.ruin[l].at === null) || (inView(G.loc) ? G.loc : locs.find(l => inView(l) && !locked(l)) || G.loc);
   const statusOf = l => l === G.loc ? 'here' : locked(l) ? 'locked' : G.ruin[l].at !== null ? 'ruin' : 'ok';
+  // world map coordinates (1000x500) -> panel coordinates
+  const W = ([mx, my]) => [30 + mx * 0.7, 225 + my * 0.7];
+  const pins = () => view === 'world'
+    ? Object.fromEntries(locs.filter(isWorld).map(l => [l, W(LOCS[l].world)]))
+    : Object.fromEntries(Object.entries(MAP_PINS).map(([k, v]) => [k, v]));
   setScene({
     bg: () => `<rect width="1200" height="750" fill="#0f2a4a"/>`,
     noTod: true,
     draw() {
       const tod = ['morning', 'noon', 'night'][clamp(G.turn, 0, 2)];
-      let o = `<rect x="30" y="80" width="700" height="640" rx="18" fill="#7fb8d6" stroke="#2c4a6e" stroke-width="6"/>
+      let o;
+      if (view === 'world') {
+        const jp = W([842, 196]);
+        o = `<rect x="30" y="80" width="700" height="640" rx="18" fill="#123a5c" stroke="#2c4a6e" stroke-width="6"/>${worldMap(30, 225, 700, 350, { label: false, pins: false })}
+          <text x="60" y="122" font-family="'M PLUS 1p',sans-serif" font-weight="800" font-size="26" fill="#bfe6f5">世界地図：どこを壊しに行く？</text>
+          <text x="60" y="690" font-family="'M PLUS 1p',sans-serif" font-weight="800" font-size="22" fill="#ffd34d">世界の更地率 ${flattenRate()}%</text>
+          <circle cx="${jp[0]}" cy="${jp[1]}" r="26" fill="#d9cfa6" stroke="#fff" stroke-width="4"/><text x="${jp[0]}" y="${jp[1] + 48}" font-family="'M PLUS 1p',sans-serif" font-weight="800" font-size="20" fill="#fff" text-anchor="middle">島へもどる</text>`;
+      } else {
+        o = `<rect x="30" y="80" width="700" height="640" rx="18" fill="#7fb8d6" stroke="#2c4a6e" stroke-width="6"/>
         <g stroke="#a9d3e6" stroke-width="2" opacity="0.6">${[160, 290, 420, 550, 680].map(y => `<line x1="34" y1="${y}" x2="726" y2="${y}"/>`).join('')}${[150, 300, 450, 600].map(x => `<line x1="${x}" y1="84" x2="${x}" y2="716"/>`).join('')}</g>
         <path d="M120 160 C 260 110 420 150 560 190 C 680 230 700 330 650 420 C 720 520 690 640 560 680 C 430 710 300 660 200 620 C 110 580 90 470 130 390 C 80 300 70 210 120 160 Z" fill="#d9cfa6" stroke="#8a7a52" stroke-width="5"/>
         <path d="M180 220 C 260 200 330 230 300 290 C 260 330 190 300 180 220 Z" fill="#9fb98a"/>
         <g stroke="#8a7a52" stroke-width="6" stroke-dasharray="10 10" fill="none"><path d="M250 250 Q 330 360 430 430"/><path d="M430 430 Q 520 500 610 570"/><path d="M430 430 Q 540 330 640 250"/><path d="M430 430 Q 280 500 170 560"/></g>
-        <text x="60" y="122" font-family="'M PLUS 1p',sans-serif" font-weight="800" font-size="26" fill="#0f2a4a">どこへ探しに行く？</text>`;
-      for (const [k, v] of Object.entries(MAP_PINS)) {
-        const [x, y, label] = v;
+        <text x="60" y="122" font-family="'M PLUS 1p',sans-serif" font-weight="800" font-size="26" fill="#0f2a4a">島の地図：どこへ探しに行く？</text>`;
+      }
+      for (const [k, [x, y]] of Object.entries(pins())) {
+        const nameCol = view === 'world' ? '#fff' : '#0f2a4a', halo = view === 'world' ? '#123a5c' : '#d9cfa6';
         if (statusOf(k) === 'locked') {
           o += `<circle cx="${x}" cy="${y}" r="30" fill="#9aa3ad" stroke="#5d6670" stroke-width="5"/><text x="${x}" y="${y + 10}" font-family="${SFX_FONT}" font-size="30" fill="#fff" text-anchor="middle">?</text>
-            <text x="${x}" y="${y + 58}" font-family="'M PLUS 1p',sans-serif" font-weight="800" font-size="20" fill="#5d6670" text-anchor="middle">${LOCS[k].name}（予算待ち）</text>`;
+            <text x="${x}" y="${y + 58}" font-family="'M PLUS 1p',sans-serif" font-weight="800" font-size="20" fill="#9aa3ad" stroke="${halo}" stroke-width="5" paint-order="stroke" text-anchor="middle">${LOCS[k].name}（予算待ち）</text>`;
           continue;
         }
         const st = statusOf(k), on = k === sel;
@@ -1404,9 +1482,8 @@ function sceneMap() {
         if (st === 'ruin') o += `<path d="M${x - 16} ${y - 16} L${x + 16} ${y + 16} M${x + 16} ${y - 16} L${x - 16} ${y + 16}" stroke="#fff" stroke-width="8" stroke-linecap="round"/><g fill="#555" opacity="0.7"><circle cx="${x + 20}" cy="${y - 50}" r="16"/><circle cx="${x + 34}" cy="${y - 76}" r="12"/></g>`;
         if (st === 'here') o += `<g transform="translate(${x} ${y + 6}) scale(0.32) translate(-640 -290)">${head('serious')}</g>`;
         if (st === 'ok') o += `<text x="${x}" y="${y + 12}" font-family="${SFX_FONT}" font-size="34" fill="#fff" text-anchor="middle">!</text>`;
-        o += `<text x="${x}" y="${y + 66}" font-family="'M PLUS 1p',sans-serif" font-weight="800" font-size="24" fill="#0f2a4a" stroke="#d9cfa6" stroke-width="6" paint-order="stroke" text-anchor="middle">${LOCS[k].name}</text>`;
+        o += `<text x="${x}" y="${y + 66}" font-family="'M PLUS 1p',sans-serif" font-weight="800" font-size="24" fill="${nameCol}" stroke="${halo}" stroke-width="6" paint-order="stroke" text-anchor="middle">${LOCS[k].name}</text>`;
       }
-      // preview of the selected place as it looks right now
       const ruin = statusOf(sel) === 'ruin';
       o += `<rect x="756" y="80" width="420" height="270" rx="12" fill="#0a1626" stroke="#2c4a6e" stroke-width="6"/>
         <svg x="766" y="90" width="400" height="250" viewBox="0 0 1200 750" preserveAspectRatio="xMidYMid slice">${bgFor(sel, tod)}</svg>`;
@@ -1422,12 +1499,18 @@ function sceneMap() {
       let msg, btn = '';
       if (st === 'here') msg = 'ここが現在地。';
       else if (st === 'ruin') msg = `もう壊れていて、使えるものが何もない。人間たちが復旧中（あと${Math.max(1, repairLeft(sel))}話）。`;
-      else { msg = have ? `${L.name}には、まだ使えそうなものが${have}種類ありそう。` : '何もなさそう。'; btn = `<button class="btn" id="go">${L.name}へ行く</button>`; }
-      h(`${Object.entries(MAP_PINS).filter(([k]) => statusOf(k) !== 'locked').map(([k, [x, y]]) =>
-          `<button class="pinbtn" data-k="${k}" style="left:calc(var(--u)*${x - 50});top:calc(var(--u)*${y - 50})" aria-label="${LOCS[k].name}"></button>`).join('')}
+      else if (st === 'locked') msg = '番組予算が増えたら行けるようになる。';
+      else { msg = (isWorld(sel) !== isWorld(G.loc) ? '海を渡って行く。' : '') + (have ? `${L.name}には、まだ使えそうなものが${have}種類ありそう。` : '何もなさそう。'); btn = `<button class="btn" id="go">${L.name}へ行く</button>`; }
+      const P = pins();
+      const sw = view === 'world' ? `<button class="pinbtn" id="toJapan" style="left:calc(var(--u)*${W([842, 196])[0] - 50});top:calc(var(--u)*${W([842, 196])[1] - 50})" aria-label="島の地図"></button>`
+        : worldOpen ? `<button class="btn" id="toWorld" style="position:absolute;left:calc(var(--u)*470);top:calc(var(--u)*96);font-size:calc(var(--u)*20)">世界地図へ</button>` : '';
+      h(`${Object.entries(P).filter(([k]) => statusOf(k) !== 'locked').map(([k, [x, y]]) =>
+          `<button class="pinbtn" data-k="${k}" style="left:calc(var(--u)*${x - 50});top:calc(var(--u)*${y - 50})" aria-label="${LOCS[k].name}"></button>`).join('')}${sw}
         <div class="mapinfo"><strong>${L.name}</strong><p>${msg}</p><div class="row">${btn}<button class="btn back" id="back">もどる</button></div></div>`);
-      $ui.querySelectorAll('.pinbtn').forEach(b => b.onclick = () => { sel = b.dataset.k; dirty = true; this.ui(); });
+      $ui.querySelectorAll('.pinbtn[data-k]').forEach(b => b.onclick = () => { sel = b.dataset.k; dirty = true; this.ui(); });
       const go = document.getElementById('go'); if (go) { go.onclick = () => sceneMove(sel); go.focus(); }
+      const tw = document.getElementById('toWorld'); if (tw) tw.onclick = () => sceneMap('world');
+      const tj = document.getElementById('toJapan'); if (tj) tj.onclick = () => sceneMap('japan');
       document.getElementById('back').onclick = () => sceneMenu();
     },
   });
@@ -1453,7 +1536,7 @@ function sceneMove(dest) {
       G.epLog.push('move');
       showNews({
         loc: dest, ok: true,
-        head: `怪獣、${from}を離れ${LOCS[dest].name}方面へ`,
+        head: isWorld(dest) !== isWorld(G.loc === dest ? dest : G.loc) || isWorld(dest) ? `怪獣、海を渡り${LOCS[dest].name}へ` : `怪獣、${from}を離れ${LOCS[dest].name}方面へ`,
         lines: ['「何かを探しているようだった」と目撃者', '移動ルートの国道が足あとで陥没', `${LOCS[dest].name}の周辺に注意が呼びかけられている`],
         gains: { hp: -5 }, dmg: 0.4e9, alert: 4, kpop: 1, cat: '道路',
       });
@@ -1803,7 +1886,7 @@ function sceneSandbag() {
   for (let i = 0; i < 14; i++) {
     const gas = i === 6;
     const w = gas ? 150 : 110 + (i * 37) % 70, h = gas ? 150 : 180 + (i * 53) % 170;
-    blds.push({ x, w, h, col: cols[i % cols.length], hp: gas ? 1 : Math.ceil(h / 110), max: gas ? 1 : Math.ceil(h / 110), gas, down: -1, val: gas ? 8e9 : (h * w) * 0.9e5, sign: i === 3 });
+    blds.push({ x, w, h, col: cols[i % cols.length], hp: gas ? 1 : Math.ceil(h / 110), max: gas ? 1 : Math.ceil(h / 110), gas, down: -1, val: gas ? 8e9 : (h * w) * 0.9e5, sign: i === 3 && G.loc === 'city' });
     x += w + 36;
   }
   const power = 1 + G.pow / 40;
@@ -2059,7 +2142,7 @@ function sceneRun() {
   const GOAL = 2900, OBST = [760, 1240, 1700, 2150, 2560];
   const JT = Math.round(15 * (0.75 + 0.25 * G.hp / 100) * (1 + G.sta / 200));
   const S = { mode: 'run', d: 0, v: 0, jumpT: -1, passed: new Set(), smashed: new Set(), smashAt: -99, doneAt: 0, phase: 0, lastLand: -99, why: '', debris: [] };
-  const GATE = G.loc === 'airport' ? '給油車' : '料金所';
+  const GATE = G.loc === 'airport' ? '給油車' : G.loc === 'desert' ? '検問所' : G.loc === 'metro' ? '屋台' : '料金所';
   const takeoffX = () => KX - 10 + S.v * JT / 2;   // tap when a gate reaches this line
   const KX = 470;  // kaiju's front foot on screen
   const top = 10 + G.sta / 12;
@@ -2292,7 +2375,7 @@ function sceneSkip() {
 // ---- eat: a mug of crude straight from the refinery ----
 function sceneEat() {
   setScene({
-    bg: () => bgFor('port'),
+    bg: () => bgFor(),
     tick(f) { if (f > 54) this.finish(); },
     onTap() { if (frame > 12) this.finish(); },
     draw(f) {
@@ -2314,15 +2397,15 @@ function sceneEat() {
       if (f < 16) out += sfx(940, 200, 'ドボドボ', 44, -6);
       if (f >= 22 && f < 40) out += sfx(820, 200, 'ゴクゴク', 54, -6);
       if (f >= 40) out += sfx(760, 230, 'ぷはー', 60, -4);
-      return out + liveBadge('中継：' + LOCS.port.name);
+      return out + liveBadge('中継：' + here().name);
     },
     finish() {
       if (this.ended) return; this.ended = true;
-      G.oil += 1; G.stock.port.eat -= 1;
+      G.oil += 1; G.stock[G.loc].eat -= 1;
       G.epLog.push('eat');
       showNews({
-        loc: 'port', ok: true,
-        head: '怪獣、コンビナートの原油をジョッキで一気飲み',
+        loc: G.loc, ok: true,
+        head: `怪獣、${thingHere('eat') ? thingHere('eat').thing : '原油'}をジョッキで一気飲み`,
         lines: ['貯蔵タンクの配管から直接ジョッキに注いだ模様', '専門家「体内に石油がたまると、倒された時が心配」', `お腹の中の石油：${G.oil}杯`],
         gains: { pow: 4, hp: 25 }, dmg: 3.4e9, alert: 8, kpop: 4, cat: '燃料',
       });
@@ -2545,7 +2628,8 @@ function setupKaiju(i) {
   const base = baseOf(i), prev = G.look;
   const pick = (arr, cur) => { const c = arr.filter(x => x !== cur); return c.length ? c[Math.floor(Math.random() * c.length)] : arr[0]; };
   G.boss = false;
-  if (i === 12 && (G.dmg >= 1.2e12 || flattenRate() >= 45)) {
+  const abroad = Object.keys(LOCS).filter(l => isWorld(l) && Object.entries(G.stock[l]).some(([id, n]) => n < LOCS[l].acts[id].n)).length;
+  if (i === 12 && ((abroad >= 2 && flattenRate() >= 30) || G.dmg >= 1.5e12)) {
     G.boss = true; G.parts = [];
     G.look = { ...SPACE_PAL, base: 'space', eyes: 'slant', spikes: 'crystal', pattern: 'none' };
     G.kaiju = BASES.space.first;
@@ -2610,11 +2694,14 @@ function openersFor(i) {
   if (i === 9) L.push(say(['光の巨人が、二人に増えたか。', `大地の底から、岩の怪獣${G.kaiju}を呼び覚ました。`]));
   if (i === 11) L.push(say(['これまでの怪獣たちの体を、すべて寄せ集めた。', `合体怪獣${G.kaiju}。この星の育成を、仕上げるのだ。`]));
   if (i === 12) L.push(say(G.boss
-    ? ['……もう待てん。', 'この星は、十分に平らになった。最後の仕上げは、わし自らが行う。', 'わしの名は、ガルバドス。宇宙総帥ガルバドスだ。']
+    ? ['……もう待てん。', `世界の${flattenRate()}%が、すでに平らになった。最後の仕上げは、わし自らが行う。`, 'わしの名は、ガルバドス。宇宙総帥ガルバドスだ。']
     : ['最後の戦いだ。', `${G.kaiju}よ。お前が鍛えた全てを、見せてやれ。`]));
   if (i > 0) L.push(card());
   L.push(repair());
   if (i === 3) L.push(news({ head: '番組予算が増え、空港のセットが完成', lines: ['視聴率の好調を受け、新しいミニチュアセットが作られた', '滑走路とターミナルビルが、移動先に加わった'], dmg: 0, cat: '番組' }));
+  if (i === 4) L.push(news({ head: '番組予算が増え、海外ロケが決定：大陸の大都市', lines: ['摩天楼が並ぶ大都市のセットが完成した', '移動の地図から「世界地図」へ行けるようになった'], dmg: 0, cat: '番組' }));
+  if (i === 6) L.push(news({ head: '海外ロケ第2弾：砂漠の油田', lines: ['油田と砂漠のハイウェイのセットが完成した'], dmg: 0, cat: '番組' }));
+  if (i === 8) L.push(news({ head: '海外ロケ第3弾：氷の大地', lines: ['流氷とオーロラ観測塔のセットが完成した'], dmg: 0, cat: '番組' }));
   if (i === 7) L.push(news({ head: '番組予算がさらに増え、山岳地帯のセットが完成', lines: ['送電線とロープウェイのある山岳地帯が、移動先に加わった'], dmg: 0, cat: '番組' }));
   if (i === 5) L.push(news({ head: '防衛隊、巨大ロボ「ガードロン」を完成', lines: ['総工費は国家予算の3%', '「怪獣には怪獣サイズで対抗する」と防衛隊長'], dmg: 0, hpop: 4, cat: '防衛' }));
   if (i === 6) L.push(news(G.flags.robotDown
@@ -2935,7 +3022,8 @@ function sceneBattle() {
 function bossWord() {
   const epDmg = G.dmg - G.epStartDmg;
   if (G.epLog.includes('won')) return 'よくやった。光の巨人も、鉄の巨人も、お前の前では器具にすぎん。';
-  if (epDmg > 1e11) return '……見事だ。この星が、少し平らになった。';
+  const abroad = Object.keys(LOCS).some(l => isWorld(l) && Object.entries(G.stock[l]).some(([id, n]) => n < LOCS[l].acts[id].n));
+  if (epDmg > 1e11) return abroad ? `……見事だ。世界の${flattenRate()}%が平らになった。` : '……見事だ。まずはこの島が、少し平らになった。次は世界だ。';
   if (G.survived > 6) return `あの光線を${G.survived.toFixed(1)}秒。悪くない。`;
   return 'まだまだだ。この星には、鍛える道具がいくらでもある。';
 }
