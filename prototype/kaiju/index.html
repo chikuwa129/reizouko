@@ -1067,10 +1067,10 @@ const HERO = 'ジャスティア';
 const TIMES = ['朝', '昼', '晩'];
 const LOCS = {
   city: { name: '駅前', acts: { nunchaku: { n: 3, thing: '電車', unit: '両', href: 'car' }, rope: { n: 2, thing: '電線', unit: '本' }, run: { n: 2, thing: '高速道路', unit: '回' }, sandbag: { n: 2, thing: 'ビル街', unit: '回' } } },
-  dam: { name: '山あいのダム', acts: { swim: { n: 2, thing: 'ダム湖', unit: '回' }, nunchaku: { n: 2, thing: 'ロープウェイのゴンドラ', unit: '台', href: 'gondola' } } },
-  airport: { name: '空港', unlock: 3, acts: { run: { n: 2, thing: '滑走路', unit: '回' }, sandbag: { n: 2, thing: 'ターミナルビル', unit: '回' } } },
-  mountain: { name: '山岳地帯', unlock: 7, acts: { rope: { n: 2, thing: '山の送電線', unit: '本' }, nunchaku: { n: 2, thing: 'ロープウェイのゴンドラ', unit: '台', href: 'gondola' } } },
-  port: { name: '臨海コンビナート', acts: { eat: { n: 3, thing: 'コンビナートの石油', unit: '杯' }, skip: { n: 2, thing: 'コンテナ船', unit: '隻' }, nunchaku: { n: 2, thing: '貨物列車', unit: '両', href: 'freight' } } },
+  dam: { name: '山あいのダム', acts: { juggle: { n: 2, thing: 'ダム湖のボート', unit: '回' }, swim: { n: 2, thing: 'ダム湖', unit: '回' }, nunchaku: { n: 2, thing: 'ロープウェイのゴンドラ', unit: '台', href: 'gondola' } } },
+  airport: { name: '空港', unlock: 3, acts: { run: { n: 2, thing: '滑走路', unit: '回' }, sandbag: { n: 2, thing: 'ターミナルビル', unit: '回' }, pullup: { n: 2, thing: '管制塔', unit: '回' } } },
+  mountain: { name: '山岳地帯', unlock: 7, acts: { pullup: { n: 2, thing: '送電鉄塔', unit: '回' }, rope: { n: 2, thing: '山の送電線', unit: '本' }, nunchaku: { n: 2, thing: 'ロープウェイのゴンドラ', unit: '台', href: 'gondola' } } },
+  port: { name: '臨海コンビナート', acts: { juggle: { n: 1, thing: '港の漁船', unit: '回' }, eat: { n: 3, thing: 'コンビナートの石油', unit: '杯' }, skip: { n: 2, thing: 'コンテナ船', unit: '隻' }, nunchaku: { n: 2, thing: '貨物列車', unit: '両', href: 'freight' } } },
 };
 // action names only: what gets used is a surprise until the minigame/news
 const ACTIONS = [
@@ -1078,13 +1078,15 @@ const ACTIONS = [
   { id: 'nunchaku', name: 'ヌンチャク', what: '技術・腕力が上がる　体力−25', base: 18 },
   { id: 'rope', name: '縄跳び', what: '持久力・技術が上がる　体力−25', base: 15 },
   { id: 'swim', name: '水泳', what: '持久力が上がる　体力−30', base: 20 },
+  { id: 'pullup', name: '懸垂', what: '持久力が大きく上がる　体力−25', base: 15 },
+  { id: 'juggle', name: 'ジャグリング', what: '技術が大きく上がる　体力−20', base: 15 },
   { id: 'run', name: 'ランニング', what: '持久力・腕力が上がる　体力−25', base: 16 },
   { id: 'skip', name: '水切り', what: '技術・腕力が上がる　体力−20', base: 18 },
   { id: 'eat', name: '食事', what: '腕力が上がる　体力回復', safe: true },
   { id: 'sleep', name: '寝る', what: '体力が全回復', safe: true, always: true },
   { id: 'move', name: '移動して探す', what: '別の場所に、新しい道具があるかも', safe: true, always: true },
 ];
-const PART_OF = { eat: 'chimney', swim: 'fins', nunchaku: 'horn', rope: 'coil', sleep: 'nightcap', move: 'horn', run: 'horn', skip: 'fins', sandbag: 'horn' };
+const PART_OF = { eat: 'chimney', swim: 'fins', nunchaku: 'horn', rope: 'coil', sleep: 'nightcap', move: 'horn', run: 'horn', skip: 'fins', sandbag: 'horn', pullup: 'coil', juggle: 'fins' };
 const PART_NAME = { chimney: '背中の煙突', fins: 'ヒレ', horn: 'ツノ', coil: 'アンテナ', nightcap: 'ナイトキャップ' };
 const KAIJU_NAME = { chimney: 'モクモクドン', fins: 'ザブングラ', horn: 'ツノグラー', coil: 'ビリビリンガ', nightcap: 'ネムグラ' };
 
@@ -1365,7 +1367,7 @@ function sceneMenu(view = 'main') {
 function countAct(id) { G.actCount[id] = (G.actCount[id] || 0) + 1; G.ever = G.ever || {}; G.ever[id] = true; G.counts[id] = (G.counts[id] || 0) + 1; }
 function runCommand(id) {
   countAct(id);
-  ({ sandbag: sceneSandbag, nunchaku: sceneNunchaku, rope: sceneRope, swim: sceneSwim, run: sceneRun, skip: sceneSkip, eat: sceneEat, sleep: sceneSleep })[id]();
+  ({ pullup: scenePullup, juggle: sceneJuggle, sandbag: sceneSandbag, nunchaku: sceneNunchaku, rope: sceneRope, swim: sceneSwim, run: sceneRun, skip: sceneSkip, eat: sceneEat, sleep: sceneSleep })[id]();
 }
 
 
@@ -1557,7 +1559,7 @@ function sceneNunchaku() {
           loc: G.loc, ok: true,
           head: perfect ? `怪獣、${th.thing}でヌンチャクの型を完璧に披露` : `怪獣、${locName}で${th.thing}をヌンチャクにしてトレーニング`,
           lines: [`${th.thing}を1${th.unit}使用、周辺の地面に深いひび`, perfect ? '専門家「持ち替えの所作が美しい。教本に載せたい」' : '近隣の住民「朝から地響きで目が覚めた」', restTxt],
-          gains: { tec: perfect ? 9 : 6, pow: 5, hp: -25 }, dmg: 1.2e9 + greats * 0.1e9, alert: 12, kpop: perfect ? 8 : 4,
+          gains: { tec: perfect ? 9 : 6, pow: 3, hp: -25 }, dmg: 1.2e9 + greats * 0.1e9, alert: 12, kpop: perfect ? 8 : 4,
           cat: '交通', flags: G.loc === 'city' ? { cracks: true } : null,
         });
       } else {
@@ -1644,7 +1646,7 @@ function sceneRope() {
           loc: G.loc, ok: true,
           head: `怪獣、${thingHere('rope').thing}を引き抜いて縄跳び　8回連続`,
           lines: ['跳ぶたびに火花、一帯で瞬間的な停電が8回', '電力会社「縄跳びは想定していなかった」', `使える送電線：残り${G.stock[G.loc].rope}本`],
-          gains: { sta: 6, tec: 4, hp: -25 }, dmg: 0.8e9, alert: 10, kpop: 5, cat: '電力',
+          gains: { sta: 8, tec: 5, hp: -25 }, dmg: 0.8e9, alert: 10, kpop: 5, cat: '電力',
         });
       } else {
         G.stock[G.loc].rope = 0; G.flags.blackout = true;
@@ -1776,7 +1778,7 @@ function sceneSwim() {
           loc: 'dam', ok: true,
           head: '怪獣、ダム湖で本格クロール　ターンも完璧',
           lines: ['息継ぎは4かきに1回、教科書どおりのフォーム', '大波でボート乗り場が流される', 'ダム管理事務所「壁を蹴る瞬間は生きた心地がしなかった」'],
-          gains: { sta: 8, hp: -30 }, dmg: 0.25e9, alert: 6, kpop: 5, cat: '水道・観光',
+          gains: { sta: 9, tec: 3, hp: -30 }, dmg: 0.25e9, alert: 6, kpop: 5, cat: '水道・観光',
         });
       } else {
         G.stock.dam.swim = 0; G.flags.damBroken = true;
@@ -1912,7 +1914,141 @@ function sceneSandbag() {
           S.gas ? 'ガスタンクも殴られ、大爆発が起きた' : '避難はすでに完了しており、けが人はいなかった',
           `駅前のビル街：残り${G.stock[G.loc].sandbag ? 'わずか' : 'ほぼ更地'}`,
         ],
-        gains: { pow: 5 + Math.min(4, Math.floor(S.count / 3)), tec: 2, hp: S.gas ? -30 : -20 }, dmg: S.dmg, alert: 14, kpop: 3 + S.count, cat: '建物', extra: { blueSign: !!S.blue },
+        gains: { pow: 4 + Math.min(4, Math.floor(S.count / 3)), tec: 2 + Math.min(3, S.count >= 6 ? 2 : 0), sta: 2, hp: S.gas ? -30 : -20 }, dmg: S.dmg, alert: 14, kpop: 3 + S.count, cat: '建物', extra: { blueSign: !!S.blue },
+      });
+    },
+  });
+}
+
+// ---- minigame: pull-ups on a tower (stamina) ----
+function scenePullup() {
+  const GOAL = 10;
+  const th = thingHere('pullup');
+  const S = { mode: 'play', reps: 0, miss: 0, lift: 0, t0: 0, flash: null, endAt: 0, zone: 0.16 + G.sta / 900 };
+  setScene({
+    bg: () => bgFor(),
+    enter() { h(`<div class="prompt" id="pr">針が黄色に入ったらタップで体を引き上げる！（${GOAL}回）</div>`); },
+    needle(f) { return (1 - Math.cos((f - S.t0) * (0.16 + S.reps * 0.008))) / 2; },
+    onTap() {
+      if (S.mode !== 'play') return;
+      const n = this.needle(frame), z = Math.max(0.07, S.zone - S.reps * 0.008);
+      if (Math.abs(n - 0.75) <= z) { S.reps++; S.lift = 1; S.flash = { f: frame, t: Math.abs(n - 0.75) <= z / 2 ? 'カンペキ' : 'よし' }; if (S.reps >= GOAL) { S.mode = 'done'; S.endAt = frame; } }
+      else { S.miss++; S.flash = { f: frame, t: 'ずるっ' }; if (S.miss >= 3) { S.mode = 'bend'; S.endAt = frame; } }
+      S.t0 = frame;
+    },
+    tick(f) {
+      if (f === 60) { const pr = document.getElementById('pr'); if (pr) pr.remove(); }
+      S.lift = Math.max(0, S.lift - 0.08);
+      if (S.mode === 'done' && f - S.endAt > 30) this.finish(true);
+      if (S.mode === 'bend' && f - S.endAt > 56) this.finish(false);
+    },
+    shake(f) { const j = f - S.endAt; return S.mode === 'bend' && j >= 18 && j < 24 ? [[0, 14], [0, -10], [8, 6], [-4, -2], [2, 1], [0, 0]][j - 18] : null; },
+    draw(f) {
+      let o = '';
+      const bend = S.mode === 'bend' ? clamp((f - S.endAt) / 18, 0, 1) : 0;
+      // the tower and its top bar
+      o += `<g transform="rotate(${bend * 28} 600 700)"><path d="M560 700 L 585 310 L 615 310 L 640 700 Z" fill="#c9c5ba" stroke="${INK}" stroke-width="5"/>
+        <g stroke="#9b978d" stroke-width="4">${[380, 460, 540, 620].map(y => `<line x1="${578 + (y - 310) * 0.05}" y1="${y}" x2="${622 - (y - 310) * 0.05}" y2="${y}"/>`).join('')}</g>
+        <rect x="420" y="290" width="360" height="22" rx="10" fill="#8d8f93" stroke="${INK}" stroke-width="5"/></g>`;
+      // the kaiju hangs below the bar and pulls itself up
+      const up = S.mode === 'done' ? 1 : S.lift, fall = S.mode === 'bend' ? clamp((f - S.endAt - 14) / 20, 0, 1) : 0;
+      // hangs (scaled 0.8) with the head below the bar; a rep lifts the chin over it. Hands stay on the bar.
+      const dy = 100 - 170 * up + 420 * fall, hy = 300 - dy / 0.8;
+      if (fall < 1) o += `<g transform="translate(0 ${dy}) translate(600 300) scale(0.8) translate(-600 -300) rotate(${fall * 60} 600 470)">${torso({ noTail: false })}${backArm(500, hy)}${arm(712, hy)}${head(S.mode === 'bend' ? 'surprised' : up > 0.4 ? 'roar' : 'serious')}</g>`;
+      if (S.mode === 'bend' && f - S.endAt > 30) o += sfx(380, 360, 'ぐにゃ〜', 56, -6) + `<g fill="#e8e1cf" opacity="0.8"><ellipse cx="760" cy="680" rx="200" ry="40"/></g>`;
+      // gauge
+      if (S.mode === 'play') {
+        const z = Math.max(0.07, S.zone - S.reps * 0.008), n = this.needle(f);
+        o += `<g><rect x="250" y="146" width="700" height="72" rx="14" fill="#0f2a4a" opacity="0.88" stroke="#fff" stroke-width="3"/><rect x="300" y="170" width="600" height="24" rx="12" fill="#3a4a63"/>
+          <rect x="${300 + 600 * (0.75 - z)}" y="170" width="${1200 * z}" height="24" fill="#ffd34d"/>
+          <rect x="${300 + 600 * n - 5}" y="160" width="10" height="44" rx="3" fill="#fff" stroke="${INK}" stroke-width="3"/></g>`;
+      }
+      if (S.flash && f - S.flash.f < 8) o += sfx(780, 300, S.flash.t, 40, -4);
+      o += `<text x="1160" y="110" font-family="${SFX_FONT}" font-size="56" fill="#fff" stroke="${INK}" stroke-width="8" paint-order="stroke" text-anchor="end">${S.reps} / ${GOAL}</text>`;
+      if (S.mode === 'done') o += sfx(360, 320, 'フンッ！', 60, -6);
+      return o + liveBadge('中継：' + here().name);
+    },
+    finish(ok) {
+      if (this.ended) return; this.ended = true;
+      G.stock[G.loc].pullup = ok ? G.stock[G.loc].pullup - 1 : 0;
+      G.epLog.push(ok ? 'pullup' : 'pullupFail');
+      showNews(ok ? {
+        loc: G.loc, ok: true, head: `怪獣、${th.thing}で懸垂${GOAL}回`,
+        lines: ['一回ごとに塔がきしみ、周辺の窓ガラスが割れた', '専門家「肩甲骨の寄せ方が完璧」', `${th.thing}：残り${G.stock[G.loc].pullup}回`],
+        gains: { sta: 8 + Math.max(0, 3 - S.miss), tec: 2, hp: -25 }, dmg: 0.9e9, alert: 8, kpop: 4, cat: '建物',
+      } : {
+        loc: G.loc, ok: false, head: `${th.thing}、懸垂の重みで折れ曲がる`,
+        lines: [`${S.reps}回目のあたりで手がすべり、${th.thing}ごとぐにゃりと曲がった`, '倒れた塔の下敷きになった建物が多数', '怪獣は「まだいけた」という顔をしていた'],
+        gains: { sta: 3 + S.reps, hp: -25 }, dmg: 14.6e9, alert: 18, kpop: 3, hpop: 3, cat: '建物',
+      });
+    },
+  });
+}
+
+// ---- minigame: juggling boats (technique) ----
+function sceneJuggle() {
+  const LV = 420, P = 18;            // a catch every P frames
+  const LIMIT = 220;
+  const W = clamp(2.6 * (0.6 + 0.4 * G.hp / 100) * (1 + G.tec / 120), 1.6, 4.6);
+  const th = thingHere('juggle');
+  const S = { mode: 'play', t0: 24, balls: 3, catches: 0, combo: 0, best: 0, judged: {}, drops: [], endAt: 0, flash: null };
+  const beat = k => S.t0 + k * P;
+  setScene({
+    bg: () => bgFor(),
+    enter() { h(`<div class="prompt" id="pr">${th.thing}が手に落ちてくる瞬間にタップ！（落としても続く）</div>`); },
+    onTap() {
+      if (S.mode !== 'play') return;
+      const k = Math.round((frame - S.t0) / P);
+      if (k < 0 || S.judged[k]) return;
+      if (Math.abs(frame - beat(k)) <= W) { S.judged[k] = 'hit'; S.catches++; S.combo++; S.best = Math.max(S.best, S.combo); S.flash = { f: frame, t: S.combo >= 5 ? `${S.combo}れんぞく` : 'キャッチ' }; }
+    },
+    tick(f) {
+      if (f === 60) { const pr = document.getElementById('pr'); if (pr) pr.remove(); }
+      if (S.mode !== 'play') { if (f - S.endAt > 34) this.finish(); return; }
+      const k = Math.floor((f - S.t0 - W - 1) / P);
+      if (k >= 0 && !S.judged[k]) {     // missed: that boat falls into the lake (or onto the town)
+        S.judged[k] = 'miss'; S.combo = 0; S.balls--;
+        S.drops.push({ f, x: k % 2 ? 760 : 440, town: Math.random() < 0.4 });
+        if (S.balls <= 0) { S.mode = 'end'; S.endAt = f; }
+      }
+      if (f - S.t0 >= LIMIT) { S.mode = 'end'; S.endAt = f; }
+    },
+    draw(f) {
+      let o = '';
+      const t = f - S.t0;
+      o += `<g transform="translate(0 30)">${kb()}${backArm(470, 380)}${arm(735, 380)}${head(S.mode === 'end' && S.balls <= 0 ? 'surprised' : 'serious')}</g>`;
+      // boats in the air: each one flies from one hand to the other in 2P frames
+      if (S.mode === 'play') for (let i = 0; i < S.balls; i++) {
+        const ph = ((t / P + i * (2 / S.balls)) % 2 + 2) % 2, dir = ph < 1 ? 1 : -1, u = ph % 1;
+        const x = dir > 0 ? 470 + 265 * u : 735 - 265 * u, y = 400 - 300 * Math.sin(Math.PI * u);
+        o += `<g transform="translate(${x} ${y}) rotate(${(t * 25 + i * 90) % 360}) scale(1.5)"><path d="M-48 -6 L48 -6 L36 14 L-36 14 Z" fill="#f4f0e2" stroke="${INK}" stroke-width="3"/><rect x="-16" y="-24" width="30" height="18" fill="#3f7fc0" stroke="${INK}" stroke-width="3"/></g>`;
+      }
+      // catch ring on the hand that receives next
+      if (S.mode === 'play') {
+        const k = Math.ceil((t - W) / P), d = beat(k) - f, hx = k % 2 ? 735 : 470;
+        if (d >= 0 && d < 12) o += `<circle cx="${hx}" cy="410" r="${30 + d * 5}" fill="none" stroke="#fff" stroke-width="5"/><circle cx="${hx}" cy="410" r="30" fill="none" stroke="#ffd34d" stroke-width="6"/>`;
+      }
+      for (const dr of S.drops) {
+        const k = f - dr.f;
+        if (k < 24) {
+          const y = 400 + k * k * 1.2;
+          if (y < 640) o += `<g transform="translate(${dr.x + (dr.town ? k * 12 : 0)} ${y}) rotate(${k * 30})"><path d="M-48 -6 L48 -6 L36 14 L-36 14 Z" fill="#f4f0e2" stroke="${INK}" stroke-width="3"/></g>`;
+          else o += dr.town ? star(Math.min(1100, dr.x + 260), 600, 50) + sfx(dr.x + 140, 520, 'ガシャーン', 40, 0) : `<ellipse cx="${dr.x}" cy="${LV + 230}" rx="${40 + k * 4}" ry="14" fill="#fff" opacity="0.8"/>` + sfx(dr.x - 40, 560, 'ドボン', 40, 0);
+        }
+      }
+      if (S.flash && f - S.flash.f < 8) o += sfx(560, 140, S.flash.t, 44, -4);
+      o += `<g font-family="${SFX_FONT}" fill="#fff" stroke="${INK}" stroke-width="7" paint-order="stroke" text-anchor="end"><text x="1160" y="110" font-size="48">${Math.max(0, (LIMIT - Math.max(0, t)) / 20).toFixed(1)}秒</text><text x="1160" y="170" font-size="40">${S.catches}回</text></g>`;
+      return o + liveBadge('中継：' + here().name);
+    },
+    finish() {
+      if (this.ended) return; this.ended = true;
+      G.stock[G.loc].juggle -= 1;
+      const dropped = 3 - S.balls, town = S.drops.filter(d => d.town).length;
+      G.epLog.push(dropped === 0 ? 'juggle' : 'juggleDrop');
+      showNews({
+        loc: G.loc, ok: dropped === 0, head: dropped === 0 ? `怪獣、${th.thing}で${S.catches}回ジャグリング　一度も落とさず` : `怪獣、${th.thing}でジャグリング　${dropped}隻を落とす`,
+        lines: [S.best >= 8 ? '専門家「大道芸人として食べていけるレベル」' : '観光客が対岸から拍手を送っていた', town ? `落ちたボートが${town}隻、ふもとの町に直撃` : '落ちたボートは湖に沈んだ', `${th.thing}：残り${G.stock[G.loc].juggle}回`],
+        gains: { tec: 3 + Math.min(9, Math.round(S.catches / 2)), sta: 2, hp: -20 }, dmg: 0.4e9 + dropped * 1.1e9 + town * 6e9, alert: 6 + town * 6, kpop: 3 + Math.round(S.best / 2), cat: '観光',
       });
     },
   });
@@ -2188,7 +2324,7 @@ function sceneEat() {
         loc: 'port', ok: true,
         head: '怪獣、コンビナートの原油をジョッキで一気飲み',
         lines: ['貯蔵タンクの配管から直接ジョッキに注いだ模様', '専門家「体内に石油がたまると、倒された時が心配」', `お腹の中の石油：${G.oil}杯`],
-        gains: { pow: 6, hp: 25 }, dmg: 3.4e9, alert: 8, kpop: 4, cat: '燃料',
+        gains: { pow: 4, hp: 25 }, dmg: 3.4e9, alert: 8, kpop: 4, cat: '燃料',
       });
     },
   });
@@ -2536,8 +2672,8 @@ function battleMoves() {
     { id: 'bthrow', name: 'ビルぶん投げ', stat: 'pow', ok: E.sandbag, sfx: 'ドガシャーン', bonus: () => 4 },
     { id: 'nunchaku', name: 'ヌンチャク打ち', stat: 'tec', ok: E.nunchaku, sfx: 'バシィ' },
     { id: 'fire', name: '火炎放射', stat: 'pow', ok: G.oil > 0, sfx: 'ゴオォ', bonus: () => G.oil * 6 },
-    { id: 'throw', name: '投げ飛ばし', stat: 'tec', ok: E.skip, sfx: 'ガシャーン' },
-    { id: 'stomp', name: 'ジャンプ踏みつけ', stat: 'sta', ok: E.run || E.rope, sfx: 'ズシン' },
+    { id: 'throw', name: '投げ飛ばし', stat: 'tec', ok: E.skip || E.juggle, sfx: 'ガシャーン' },
+    { id: 'stomp', name: 'ジャンプ踏みつけ', stat: 'sta', ok: E.run || E.rope || E.pullup, sfx: 'ズシン' },
     { id: 'tail', name: 'しっぽビンタ', stat: 'sta', ok: E.swim, sfx: 'ビターン' },
   ];
   return all.filter(m => m.ok).slice(0, 4);
