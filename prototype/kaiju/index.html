@@ -377,6 +377,9 @@ function head(expr = 'serious', tilt = 0) {
   } else if (expr === 'sleep') {
     eyes = `<path d="M602 270 q 10 7 20 0" stroke="${INK}" stroke-width="4" fill="none" stroke-linecap="round"/><path d="M645 264 q 10 7 20 0" stroke="${INK}" stroke-width="4" fill="none" stroke-linecap="round"/>`;
     mouth = `<ellipse cx="682" cy="338" rx="5" ry="6" fill="#7a2f2f"/>`;
+  } else if (expr === 'roar') {
+    eyes = `<circle cx="612" cy="268" r="9" fill="#1f2a24"/><circle cx="655" cy="262" r="9" fill="#1f2a24"/>` + browSerious;
+    mouth = `<path d="M655 330 Q 690 318 722 322 Q 712 372 668 360 Z" fill="#7a2f2f" stroke="${INK}" stroke-width="4"/>`;
   } else if (expr === 'happy') {
     eyes = `<path d="M602 272 q 10 -12 20 0" stroke="${INK}" stroke-width="4" fill="none" stroke-linecap="round"/><path d="M645 266 q 10 -12 20 0" stroke="${INK}" stroke-width="4" fill="none" stroke-linecap="round"/>`;
     mouth = `<path d="M664 334 Q 680 352 696 332" stroke="${INK}" stroke-width="4" fill="#7a2f2f" stroke-linecap="round"/>`;
@@ -1423,7 +1426,7 @@ function sceneHero() {
     tick(f) {
       if (S.mode === 'arrive' && f >= 36) {
         S.mode = 'beam'; S.t0 = f;
-        h(`<div class="prompt">連打で光線を押し返せ！</div><div class="pads" style="justify-content:center"><button class="pad next" id="padP">踏んばる</button></div>`);
+        h(`<div class="prompt">連打で火を吹いて、${HERO}の光線を押し返せ！</div><div class="pads" style="justify-content:center"><button class="pad next" id="padP">火を吹く</button></div>`);
         document.getElementById('padP').onpointerdown = e => { e.stopPropagation(); this.onTap(); };
       } else if (S.mode === 'beam') {
         const sec = (f - S.t0) / 20;
@@ -1431,27 +1434,40 @@ function sceneHero() {
         if (S.p <= 0) { S.mode = 'boom'; S.endAt = f; G.survived = sec; $ui.innerHTML = ''; }
       } else if (S.mode === 'boom' && f - S.endAt > 64) this.finish();
     },
-    onTap() { if (S.mode === 'beam') { S.p = Math.min(0.95, S.p + push); S.taps++; } },
+    onTap() { if (S.mode === 'beam') { S.p = Math.min(0.95, S.p + push); S.taps++; S.lastTap = frame; } },
     shake(f) { if (S.mode === 'boom') { const j = f - S.endAt; if (j < 10) return [[16, -8], [-14, 10], [12, -6], [-10, 6], [8, -4], [-6, 3], [4, -2], [-3, 1], [2, -1], [0, 0]][j]; } return null; },
     draw(f) {
       const KX = 340, HX = 960;
       let out = '';
       const heroY = S.mode === 'arrive' ? Math.max(0, 600 - f * 20) : 0;
-      const kaiju = `<g transform="translate(${KX - 600} 0)">${kb()}${arm(760, 380)}${head(S.mode === 'beam' && S.p < 0.3 ? 'surprised' : 'serious')}</g>`;
+      const kaiju = `<g transform="translate(${KX - 600} 0)">${kb()}${arm(735, 470)}${head(S.mode === 'beam' ? 'roar' : 'serious')}</g>`;
       const hero = `<g transform="translate(${HX} ${690 - heroY}) scale(0.9)">${heroArt(S.mode === 'arrive' && heroY > 0 ? 'fly' : S.mode === 'beam' ? 'beam' : 'stand')}</g>`;
       if (S.mode === 'arrive') {
         out += kaiju + hero;
         if (f > 20) out += sfx(820, 140, 'ジャスティア！', 52, -4);
       } else if (S.mode === 'beam') {
-        const hand = [HX - 146, 690 - 0.9 * 350];
-        const kfront = [KX + 170, 380];
-        const cx = kfront[0] + (hand[0] - kfront[0]) * (1 - S.p);
-        const cy = kfront[1] + (hand[1] - kfront[1]) * (1 - S.p);
-        out += kaiju + hero +
-          `<path d="M${hand[0]} ${hand[1]} L ${cx} ${cy}" stroke="#fff6a8" stroke-width="34" stroke-linecap="round" opacity="0.9"/>
-           <path d="M${hand[0]} ${hand[1]} L ${cx} ${cy}" stroke="#fff" stroke-width="12" stroke-linecap="round"/>
-           <path d="M${kfront[0]} ${kfront[1]} L ${cx} ${cy}" stroke="#7fe3ff" stroke-width="26" stroke-linecap="round" opacity="0.7"/>` +
-          star(cx, cy, 46 + 8 * Math.sin(f), '#fff6a8') + (f % 6 < 3 ? sfx(KX - 60, 200, 'ぐぬぬ', 44, -6) : '');
+        const H = [HX - 146, 690 - 0.9 * 350];          // hero's hands
+        const M = [KX - 600 + 712, 336];                 // kaiju's mouth
+        const C = [M[0] + (H[0] - M[0]) * S.p, M[1] + (H[1] - M[1]) * S.p];   // clash point
+        const pulse = frame - (S.lastTap ?? -99) < 3 ? 1.35 : 1;
+        const flame = `<path d="M${M[0]} ${M[1]} L ${C[0]} ${C[1]}" stroke="#d33a2c" stroke-width="${46 * pulse}" stroke-linecap="round" opacity="0.85"/>
+          <path d="M${M[0]} ${M[1]} L ${C[0]} ${C[1]}" stroke="#ff8a3d" stroke-width="${30 * pulse}" stroke-linecap="round"/>
+          <path d="M${M[0]} ${M[1]} L ${C[0]} ${C[1]}" stroke="#ffd34d" stroke-width="${12 * pulse}" stroke-linecap="round"/>`;
+        const beam = `<path d="M${H[0]} ${H[1]} L ${C[0]} ${C[1]}" stroke="#2f7fd8" stroke-width="40" stroke-linecap="round" opacity="0.8"/>
+          <path d="M${H[0]} ${H[1]} L ${C[0]} ${C[1]}" stroke="#7fe3ff" stroke-width="24" stroke-linecap="round"/>
+          <path d="M${H[0]} ${H[1]} L ${C[0]} ${C[1]}" stroke="#fff" stroke-width="8" stroke-linecap="round"/>`;
+        out += kaiju + hero + flame + beam + star(C[0], C[1], 50 + 8 * Math.sin(f), '#fff6a8');
+        // labels on each side of the clash
+        const lab = (x, y, t, col) => `<text x="${x}" y="${y}" font-family="'M PLUS 1p',sans-serif" font-weight="800" font-size="24" fill="${col}" stroke="#0f2a4a" stroke-width="6" paint-order="stroke" text-anchor="middle">${t}</text>`;
+        out += lab((M[0] + C[0]) / 2, Math.min(M[1], C[1]) - 40, `${G.kaiju}の火炎`, '#ffd34d') + lab((H[0] + C[0]) / 2, Math.min(H[1], C[1]) - 40, `${HERO}光線`, '#7fe3ff');
+        // tug-of-war gauge
+        out += `<g font-family="'M PLUS 1p',sans-serif" font-weight="800" font-size="22">
+          <rect x="300" y="198" width="600" height="26" rx="13" fill="#2f7fd8" stroke="#0f2a4a" stroke-width="4"/>
+          <rect x="300" y="198" width="${600 * S.p}" height="26" rx="13" fill="#ff8a3d"/>
+          <rect x="${300 + 600 * S.p - 5}" y="190" width="10" height="42" rx="3" fill="#fff" stroke="#0f2a4a" stroke-width="3"/>
+          <text x="292" y="220" fill="#ffd34d" stroke="#0f2a4a" stroke-width="6" paint-order="stroke" text-anchor="end">${G.kaiju}</text>
+          <text x="908" y="220" fill="#7fe3ff" stroke="#0f2a4a" stroke-width="6" paint-order="stroke">${HERO}</text></g>`;
+        if (f % 8 < 4) out += sfx(KX - 230, 250, 'ぐぬぬ', 40, -6);
         const sec = ((f - S.t0) / 20).toFixed(1);
         out += `<text x="1160" y="110" font-family="${SFX_FONT}" font-size="48" fill="#fff" stroke="${INK}" stroke-width="7" paint-order="stroke" text-anchor="end">${sec}秒</text>`;
       } else {
@@ -1533,7 +1549,7 @@ function sceneEpisodeEnd() {
         <div style="color:#c8b6ff">悪の総帥より：「${bossWord()}」</div>
         <div class="foot"><button class="btn" id="next">${G.ep >= 2 ? '請求書を見る' : '次回予告へ'}</button></div>
       </div>`);
-      focusBtn('next').onclick = () => G.ep >= 2 ? sceneBill() : scenePreview();
+      focusBtn('next').onclick = () => { if (G.ep >= 2) return sceneBill(); const prev = G.kaiju; evolve(); scenePreview(prev); };
     },
   });
 }
@@ -1549,10 +1565,11 @@ function evolve() {
   G.actCount = {};
   G.hp = 100; G.alert = Math.max(0, G.alert - 25);
 }
-function scenePreview() {
+function scenePreview(prev) {
+  // a preview speaks to the viewers: the new monster comes first, the countermeasure follows
   const texts = [
-    `次回、防衛隊の<em>新兵器</em>がついに出動！<br>そして、<em>改造怪獣</em>が街を襲う！`,
-    `次回、<em>${HERO}</em>が来ない！？<br>街の運命やいかに！`,
+    `次回、${prev}を上回る新たな怪獣<em>${G.kaiju}</em>が出現！<br>防衛隊は<em>新兵器</em>で迎え撃つ！`,
+    `次回、怪獣<em>${G.kaiju}</em>が街を襲う！<br>だが、<em>${HERO}</em>が現場に来られない！？`,
   ];
   setScene({
     bg: undefined, draw: () => '', bgClass: 'dim',
@@ -1563,7 +1580,6 @@ function scenePreview() {
         <div class="foot" style="margin-top:calc(var(--u)*20)"><button class="btn" id="next">次の話へ</button></div></div>`);
       focusBtn('next').onclick = () => {
         G.ep++; G.turn = 0; G.epLog = []; G.epStartDmg = G.dmg; G.survived = 0;
-        evolve();
         if (!G.titled) { G.titled = true; sceneGreenlight(); } else sceneEpisodeTitle();
       };
     },
@@ -1612,7 +1628,7 @@ function sceneSneezeGag() {
       showNews({
         loc: G.loc, ok: true,
         head: '新兵器「メガ放水砲」、怪獣のくしゃみで5秒で全損',
-        lines: ['先週の予告で大きく宣伝された新兵器', '出動から5秒、怪獣のくしゃみで空のかなたへ', '防衛隊「次回作に期待してほしい」'],
+        lines: [`${G.kaiju}の出現にそなえて、先週の予告で大きく宣伝された新兵器`, '出動から5秒、怪獣のくしゃみで空のかなたへ', '防衛隊「次回作に期待してほしい」'],
         gains: {}, dmg: 30e9, alert: 6, kpop: 4, hpop: -2, cat: '防衛',
       });
     },
