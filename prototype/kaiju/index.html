@@ -252,6 +252,9 @@ body {
 .kcard .kname { font-family: var(--f-display); font-size: calc(var(--u) * 80); color: #fff; -webkit-text-stroke: calc(var(--u) * 3) var(--ink); paint-order: stroke fill; line-height: 1.1; animation: zoomIn 0.4s ease-out both; }
 .kcard .kpart { margin-top: calc(var(--u) * 6); display: inline-block; background: var(--panel); padding: calc(var(--u) * 6) calc(var(--u) * 18); border-radius: calc(var(--u) * 8); font-size: calc(var(--u) * 22); }
 .cmds .back { align-self: flex-start; }
+.moves { position: absolute; left: calc(var(--u) * 20); right: calc(var(--u) * 20); bottom: calc(var(--u) * 18); display: grid; grid-template-columns: repeat(auto-fit, minmax(calc(var(--u) * 260), 1fr)); gap: calc(var(--u) * 10); }
+.moves .cmd { grid-template-columns: 1fr; }
+.moves .cmd .what { white-space: normal; }
 .cmds .note { font-size: calc(var(--u) * 19); color: var(--gold); background: var(--panel); border-radius: calc(var(--u) * 10); padding: calc(var(--u) * 6) calc(var(--u) * 14); }
 .reveal { font-size: calc(var(--u) * 26); margin: 0; }
 .reveal b { color: var(--red); }
@@ -759,7 +762,7 @@ function newGame() {
     pow: 10, sta: 10, tec: 10, hp: 100,
     dmg: 0, alert: 0, kpop: 10, hpop: 10, oil: 0,
     stock, flags: { blackout: false, cracks: false, damBroken: false },
-    log: [], epLog: [], actCount: {}, epStartDmg: 0, titled: false, survived: 0,
+    log: [], epLog: [], actCount: {}, ever: {}, epStartDmg: 0, titled: false, survived: 0,
   };
 }
 let G = newGame();
@@ -1005,7 +1008,7 @@ function sceneMenu(view = 'main') {
     },
   });
 }
-function countAct(id) { G.actCount[id] = (G.actCount[id] || 0) + 1; }
+function countAct(id) { G.actCount[id] = (G.actCount[id] || 0) + 1; G.ever = G.ever || {}; G.ever[id] = true; }
 function runCommand(id) {
   countAct(id);
   ({ nunchaku: sceneNunchaku, rope: sceneRope, swim: sceneSwim, run: sceneRun, skip: sceneSkip, eat: sceneEat, sleep: sceneSleep })[id]();
@@ -1236,38 +1239,33 @@ function sceneRope() {
 function sceneSwim() {
   const LV = 420;
   const tw = 0.075 * (0.6 + 0.4 * G.hp / 100) * (1 + G.tec / 150);
-  const S = { mode: 'swim', x: 170, vx: 0, beta: 180, betaT: 180, last: null, strokes: 0, breatheT: -1, turnAt: 0, p: 0, endAt: 0, wrong: -10 };
+  const P = 12, FIRST = 24;                      // a stroke every P frames; arms enter the water on the beat
+  const W = clamp(2.4 * (0.6 + 0.4 * G.hp / 100) * (1 + G.tec / 150), 1.4, 3.6);
+  const base = 2.4 + G.sta / 60;
+  const S = { mode: 'swim', x: 170, vx: base, beta: 30, judged: {}, flash: null, turnAt: 0, p: 0, endAt: 0, startF: 0 };
+  const beatAt = k => FIRST + k * P;
   setScene({
     bg: () => bgFor('dam'),
-    wantsTap: false,
-    enter() {
-      h(`<div class="prompt">左右を交互に押してクロール！</div>
-        <div class="pads"><button class="pad" id="padL">左腕 ←</button><button class="pad" id="padR">右腕 →</button></div>`);
-      document.getElementById('padL').onpointerdown = e => { e.stopPropagation(); this.onSide('L'); };
-      document.getElementById('padR').onpointerdown = e => { e.stopPropagation(); this.onSide('R'); };
-    },
-    onSide(side) {
+    enter() { h(`<div class="prompt" id="pr">手が水に入る瞬間にタップで加速！（外しても泳ぎ続ける）</div>`); },
+    onTap() {
       if (S.mode === 'swim') {
-        if (side === 'T') return;
-        if (S.last === side) { S.vx *= 0.4; S.wrong = frame; }
-        else { S.vx += 3.1 * (1 + G.sta / 140); S.betaT += 180; S.strokes++; if (S.strokes % 4 === 0) S.breatheT = 0; }
-        S.last = side;
-        const b = document.getElementById(side === 'L' ? 'padL' : 'padR');
-        if (b) { b.classList.add('lit'); setTimeout(() => b.classList.remove('lit'), 90); }
+        const k = Math.round((frame - FIRST) / P);
+        if (k < 0 || S.judged[k]) return;
+        const d = Math.abs(frame - beatAt(k));
+        if (d <= W) { S.judged[k] = 'hit'; S.vx += 2.6 * (1 + G.sta / 160); S.flash = { f: frame, text: d <= W / 2 ? 'ナイス' : 'よし' }; }
+        else S.judged[k] = 'miss';
       } else if (S.mode === 'turn') {
         S.mode = Math.abs(S.p - 0.7) <= tw ? 'good' : 'bad'; S.endAt = frame;
       }
     },
     tick(f) {
+      if (f === 50) { const pr = document.getElementById('pr'); if (pr) pr.remove(); }
       if (S.mode === 'swim') {
-        S.x += S.vx; S.vx *= 0.9;
-        S.beta += Math.min(32, (S.betaT - S.beta) * 0.45);
-        if (S.breatheT >= 0) { S.breatheT++; if (S.breatheT > 10) S.breatheT = -1; }
+        S.x += S.vx; S.vx = Math.max(base, S.vx * 0.93);
+        S.beta = 30 + 180 * (f - FIRST) / P;
         if (S.x >= 620) {
-          S.mode = 'turn'; S.turnAt = f; this.wantsTap = true;
-          h(`<div class="prompt">ターン！　針が黄色に入った瞬間にタップ</div>
-            <div class="pads" style="justify-content:center"><button class="pad next" id="padT">ターン</button></div>`);
-          document.getElementById('padT').onpointerdown = e => { e.stopPropagation(); this.onSide('T'); };
+          S.mode = 'turn'; S.turnAt = f;
+          h(`<div class="prompt">ターン！　針が黄色に入った瞬間にタップ</div>`);
         }
       } else if (S.mode === 'turn') {
         S.p = (f - S.turnAt) / 34;
@@ -1282,14 +1280,25 @@ function sceneSwim() {
     draw(f) {
       let out = '';
       if (S.mode === 'swim' || S.mode === 'turn') {
-        const br = S.breatheT >= 0 ? Math.sin(S.breatheT / 10 * Math.PI) : 0;
+        const sp = ((f - FIRST) / P) % 4, br = sp > 2.2 && sp < 3.4 ? Math.sin((sp - 2.2) / 1.2 * Math.PI) : 0;   // breathe every 4th stroke
         const sw = swimmer(S.x, LV + 2 + 4 * Math.sin(f * 0.9), 0.5, 90, S.beta, { breathe: br, wag: 25 * Math.sin(f * (0.6 + S.vx * 0.15)) });
         const [hx, hy] = sw.hand;
         out += waterClip(sw.far + sw.body + sw.near, LV);
         if (S.vx > 0.8) out += `<g fill="#fff" opacity="0.9"><ellipse cx="${S.x - 175}" cy="${LV - 4 - 8 * Math.abs(Math.sin(f * 1.3))}" rx="${16 + 6 * Math.sin(f * 1.3)}" ry="8"/><ellipse cx="${S.x - 150}" cy="${LV - 2}" rx="12" ry="6"/></g>`;
         if (hy > LV - 10 && hy < LV + 30 && hx > S.x && S.vx > 1) out += `<ellipse cx="${hx}" cy="${LV}" rx="26" ry="9" fill="#fff" opacity="0.95"/>` + sfx(hx - 30, LV - 50, 'バシャ', 32, -6);
         if (br > 0.6) out += sfx(S.x + 40, LV - 90, 'ぷはっ', 34, 0);
-        if (f - S.wrong < 10) out += sfx(S.x - 60, LV - 110, 'フォームが乱れた', 30, 0);
+        if (S.flash && f - S.flash.f < 8) out += sfx(S.x + 60, LV - 130, S.flash.text, 36, -4);
+        if (S.mode === 'swim') {
+          out += `<rect x="0" y="650" width="1200" height="100" fill="#0f2a4a" opacity="0.8"/>
+            <circle cx="170" cy="700" r="${30 + W * 4}" fill="#ffd34d" opacity="0.25"/><circle cx="170" cy="700" r="34" fill="none" stroke="#ffd34d" stroke-width="6"/>`;
+          const k0 = Math.max(0, Math.floor((f - FIRST) / P) - 1);
+          for (let k = k0; k < k0 + 8; k++) {
+            const x = 170 + (beatAt(k) - f) * 16;
+            if (x < 110 || x > 1240) continue;
+            const j = S.judged[k];
+            out += `<circle cx="${x}" cy="700" r="20" fill="${j === 'hit' ? '#7fd18b' : j === 'miss' ? '#888' : '#fff'}" stroke="${INK}" stroke-width="5"/>`;
+          }
+        }
         const prog = clamp((S.x - 170) / 450, 0, 1);
         out += `<rect x="300" y="160" width="600" height="14" rx="7" fill="#0f2a4a" opacity="0.7"/><rect x="300" y="160" width="${600 * prog}" height="14" rx="7" fill="#ffd34d"/>
           <text x="910" y="174" font-family="'M PLUS 1p',sans-serif" font-weight="800" font-size="20" fill="#fff" stroke="${INK}" stroke-width="4" paint-order="stroke">壁まで</text>`;
@@ -1359,33 +1368,22 @@ function sceneSwim() {
 
 // ---- minigame: highway running (alternate steps, jump the toll gates) ----
 function sceneRun() {
-  const GOAL = 1600, OBST = [560, 1140];
-  const JT = Math.round(15 * (0.75 + 0.25 * G.hp / 100));
-  const S = { mode: 'run', d: 0, v: 0, last: null, jumpT: -1, passed: new Set(), failAt: 0, doneAt: 0, phase: 0, wrong: -10, failObs: 0 };
+  const GOAL = 2600, OBST = [520, 980, 1420, 1900, 2300];
+  const JT = Math.round(15 * (0.75 + 0.25 * G.hp / 100) * (1 + G.sta / 200));
+  const S = { mode: 'run', d: 0, v: 0, jumpT: -1, passed: new Set(), failAt: 0, doneAt: 0, phase: 0, failObs: 0 };
   const KX = 470;  // kaiju's front foot on screen
+  const top = 10 + G.sta / 12;
   setScene({
     bg: DEFS_BG + `<rect width="1200" height="750" fill="url(#sky)"/>
       <g fill="#fff" opacity="0.8"><ellipse cx="190" cy="120" rx="90" ry="26"/><ellipse cx="1040" cy="90" rx="80" ry="22"/></g>`,
-    wantsTap: true,
-    enter() {
-      h(`<div class="prompt" id="pr">左右交互で走る！ 料金所はジャンプ</div>
-        <div class="pads"><button class="pad" id="padL">左足 ←</button><button class="pad next" id="padJ">ジャンプ ↑</button><button class="pad" id="padR">右足 →</button></div>`);
-      [['padL', 'L'], ['padR', 'R'], ['padJ', 'T']].forEach(([id, sd]) => { document.getElementById(id).onpointerdown = e => { e.stopPropagation(); this.onSide(sd); }; });
-    },
+    enter() { h(`<div class="prompt" id="pr">料金所の手前でタップしてジャンプ！</div>`); },
     yoff() { return S.jumpT >= 0 ? -160 * Math.sin(Math.PI * S.jumpT / JT) : 0; },
-    onSide(side) {
-      if (S.mode !== 'run') return;
-      if (side === 'T') { if (S.jumpT < 0) S.jumpT = 0; return; }
-      if (S.last === side) { S.v *= 0.5; S.wrong = frame; }
-      else { S.v += 4.4 * (1 + G.sta / 150); S.phase++; }
-      S.last = side;
-      const b = document.getElementById(side === 'L' ? 'padL' : 'padR');
-      if (b) { b.classList.add('lit'); setTimeout(() => b.classList.remove('lit'), 90); }
-    },
+    onTap() { if (S.mode === 'run' && S.jumpT < 0) S.jumpT = 0; },
     tick(f) {
       if (f === 40) { const pr = document.getElementById('pr'); if (pr) pr.remove(); }
       if (S.mode === 'run') {
-        S.d += S.v; S.v *= 0.9;
+        S.v = Math.min(top + S.d / 600, S.v + 0.6);
+        S.d += S.v; S.phase += S.v / 40;
         if (S.jumpT >= 0) { S.jumpT++; if (S.jumpT >= JT) S.jumpT = -1; }
         for (const o of OBST) {
           const x = KX + 60 + (o - S.d);
@@ -1428,10 +1426,9 @@ function sceneRun() {
         if (j > 10 && j < 30) out += sfx(560, 360, 'ズデーン', 64, -6);
         if (j > 24) out += `<g stroke="${INK}" stroke-width="3" fill="#7d7a72"><path d="M700 600 l40 30 l-30 20 Z"/><path d="M820 600 l-20 40 l40 10 Z"/></g>` + sfx(760, 480, 'ガラガラ', 40, 6);
       } else {
-        const bob = S.v > 0.8 ? -Math.abs(Math.sin(S.phase * Math.PI / 2 + f * 0.0)) * 12 : 0;
+        const bob = -Math.abs(Math.sin(S.phase * Math.PI)) * 12;
         out += `<g transform="translate(${KX - 600 - 60} ${y + bob - 40}) rotate(6 560 640)">${kb()}${arm(780, 440)}${head(S.mode === 'done' ? 'happy' : 'serious')}</g>`;
-        if (S.v > 3 && y === 0) out += `<g fill="#e8e1cf" opacity="0.8"><ellipse cx="${KX - 160}" cy="598" rx="${20 + S.v * 2}" ry="10"/></g>` + (S.phase % 2 ? sfx(KX - 260, 560, 'ドスドス', 36, -4) : '');
-        if (f - S.wrong < 10) out += sfx(KX - 120, 200, 'つまずきそう', 30, 0);
+        if (y === 0) out += `<g fill="#e8e1cf" opacity="0.8"><ellipse cx="${KX - 160}" cy="598" rx="${20 + S.v * 2}" ry="10"/></g>` + (Math.floor(S.phase) % 2 ? sfx(KX - 260, 560, 'ドスドス', 36, -4) : '');
         if (S.mode === 'done') out += sfx(700, 240, 'ゴール！', 64, -6);
       }
       const prog = clamp(S.d / GOAL, 0, 1);
@@ -1446,7 +1443,7 @@ function sceneRun() {
         G.epLog.push('run');
         showNews({
           loc: 'city', ok: true,
-          head: '怪獣、高速道路をランニング　料金所を2か所とび越える',
+          head: `怪獣、高速道路をランニング　料金所を${OBST.length}か所とび越える`,
           lines: ['料金は払っていない模様', '足あとで路面が波打ち、あちこちで段差', `走れる高速道路：残り${G.stock.city.run}回`],
           gains: { sta: 7, pow: 3, hp: -25 }, dmg: 2.2e9, alert: 10, kpop: 5, cat: '道路',
         });
@@ -1695,65 +1692,169 @@ function nextTurn() {
   else sceneMenu();
 }
 
-// ---- the hero arrives: hold out against the beam, then go out with a bang ----
+function battleMoves() {
+  const E = G.ever || {};
+  const all = [
+    { id: 'tackle', name: '体当たり', stat: 'pow', ok: true, sfx: 'ドスン' },
+    { id: 'nunchaku', name: 'ヌンチャク打ち', stat: 'tec', ok: E.nunchaku, sfx: 'バシィ' },
+    { id: 'fire', name: '火炎放射', stat: 'pow', ok: G.oil > 0, sfx: 'ゴオォ', bonus: () => G.oil * 6 },
+    { id: 'throw', name: '投げ飛ばし', stat: 'tec', ok: E.skip, sfx: 'ガシャーン' },
+    { id: 'stomp', name: 'ジャンプ踏みつけ', stat: 'sta', ok: E.run || E.rope, sfx: 'ズシン' },
+    { id: 'tail', name: 'しっぽビンタ', stat: 'sta', ok: E.swim, sfx: 'ビターン' },
+  ];
+  return all.filter(m => m.ok).slice(0, 4);
+}
+const STAT_NAME = { pow: '腕力', sta: '持久力', tec: '技術' };
+
+// ---- the hero arrives: a few rounds of a proper fight, then the finishing beam ----
 function sceneHero() {
-  const S = { mode: 'arrive', p: 0.75, t0: 0, endAt: 0, taps: 0 };
-  const push = 0.05 * (1 + (G.pow + G.sta) / 160);
+  const KX = 340, HX = 960;
+  const heroMax = 100 + G.ep * 25;
+  const kMax = Math.round(60 + G.sta * 0.8 + G.hp * 0.3);
+  const S = { mode: 'arrive', round: 0, heroHp: heroMax, kHp: kMax, at: 0, move: null, crit: false, dealt: 0, pop: null, p: 0.75, t0: 0, endAt: 0, collateral: 0, heroMove: '' };
+  const ROUNDS = 3;
+  const moves = battleMoves();
   setScene({
     bg: () => bgFor(),
     enter() { h(`<div class="prompt">${HERO}が現れた！</div>`); },
+    choose() {
+      S.mode = 'choose';
+      h(`<div class="prompt">第${S.round + 1}ラウンド　技を選べ</div>
+        <div class="moves">${moves.map(m => {
+          const est = Math.round(12 * (0.6 + G[m.stat] / 25) + (m.bonus ? m.bonus() : 0));
+          return `<button class="cmd move" data-m="${m.id}"><strong>${m.name}</strong><span class="what">${STAT_NAME[m.stat]}で威力アップ　威力 約${est}</span></button>`;
+        }).join('')}</div>`);
+      $ui.querySelectorAll('.move').forEach(b => b.onclick = () => this.act(moves.find(m => m.id === b.dataset.m)));
+      const fb = $ui.querySelector('.move'); if (fb) fb.focus();
+    },
+    act(m) {
+      S.mode = 'kaiju'; S.at = frame; S.move = m; S.crit = false; S.pop = null;
+      h(`<div class="prompt">輪が重なった瞬間にタップで会心！</div>`);
+    },
+    onTap() {
+      if (S.mode === 'kaiju') { const t = frame - S.at; if (!S.critTried && t >= 3 && t <= 11) { S.critTried = true; S.crit = Math.abs(t - 9) <= 1.5; } }
+      else if (S.mode === 'beam') { S.p = Math.min(0.95, S.p + this.push); S.lastTap = frame; }
+      else if (S.mode === 'arrive' && frame > 12) { S.mode = 'pre'; this.choose(); }
+    },
+    push: 0.05 * (1 + (G.pow + G.sta) / 160),
     tick(f) {
-      if (S.mode === 'arrive' && f >= 36) {
+      if (S.mode === 'arrive' && f >= 40) this.choose();
+      else if (S.mode === 'kaiju') {
+        const t = f - S.at;
+        if (t === 10) {
+          const m = S.move, st = G[m.stat];
+          const dmg = Math.round(12 * (0.6 + st / 25) * (S.crit ? 1.5 : 1) * (0.85 + Math.random() * 0.3) + (m.bonus ? m.bonus() : 0));
+          S.heroHp = Math.max(1, S.heroHp - dmg); S.dealt += dmg; S.collateral += 0.7e9;
+          S.pop = { f, text: `${S.crit ? '会心！ ' : ''}-${dmg}`, x: HX - 40, y: 300 };
+          $ui.innerHTML = '';
+        }
+        if (t >= 20) { S.mode = 'hero'; S.at = f; S.critTried = false; S.heroMove = ['ジャスティアチョップ', 'ジャスティアキック', '巴投げ'][Math.floor(Math.random() * 3)]; }
+      } else if (S.mode === 'hero') {
+        const t = f - S.at;
+        if (t === 8) {
+          const dmg = Math.max(6, Math.round(18 + G.ep * 4 - G.sta * 0.15 + Math.random() * 5));
+          S.kHp = Math.max(0, S.kHp - dmg); S.collateral += 0.5e9;
+          S.pop = { f, text: `-${dmg}`, x: KX, y: 260 };
+        }
+        if (t >= 20) {
+          S.round++;
+          if (S.round >= ROUNDS || S.kHp <= 0) { S.mode = 'finisher'; S.at = f; h(`<div class="prompt">${HERO}、とどめの光線！</div>`); }
+          else this.choose();
+        }
+      } else if (S.mode === 'finisher' && f - S.at >= 26) {
         S.mode = 'beam'; S.t0 = f;
-        h(`<div class="prompt">連打で火を吹いて、${HERO}の光線を押し返せ！</div><div class="pads" style="justify-content:center"><button class="pad next" id="padP">火を吹く</button></div>`);
+        S.p = 0.55 + 0.25 * (S.kHp / kMax);
+        h(`<div class="prompt">連打で火を吹いて、光線を押し返せ！</div><div class="pads" style="justify-content:center"><button class="pad next" id="padP">火を吹く</button></div>`);
         document.getElementById('padP').onpointerdown = e => { e.stopPropagation(); this.onTap(); };
       } else if (S.mode === 'beam') {
         const sec = (f - S.t0) / 20;
-        S.p -= 0.012 + Math.max(0, sec - 5) * 0.012;  // hero gets serious after a while
+        S.p -= 0.014 + Math.max(0, sec - 4) * 0.014;
         if (S.p <= 0) { S.mode = 'boom'; S.endAt = f; G.survived = sec; $ui.innerHTML = ''; }
       } else if (S.mode === 'boom' && f - S.endAt > 64) this.finish();
     },
-    onTap() { if (S.mode === 'beam') { S.p = Math.min(0.95, S.p + push); S.taps++; S.lastTap = frame; } },
-    shake(f) { if (S.mode === 'boom') { const j = f - S.endAt; if (j < 10) return [[16, -8], [-14, 10], [12, -6], [-10, 6], [8, -4], [-6, 3], [4, -2], [-3, 1], [2, -1], [0, 0]][j]; } return null; },
+    shake(f) {
+      if (S.mode === 'kaiju' && f - S.at >= 10 && f - S.at < 13) return [[12, -6], [-9, 5], [5, -2]][f - S.at - 10];
+      if (S.mode === 'hero' && f - S.at >= 8 && f - S.at < 11) return [[-12, 6], [9, -5], [-5, 2]][f - S.at - 8];
+      if (S.mode === 'boom') { const j = f - S.endAt; if (j < 10) return [[16, -8], [-14, 10], [12, -6], [-10, 6], [8, -4], [-6, 3], [4, -2], [-3, 1], [2, -1], [0, 0]][j]; }
+      return null;
+    },
     draw(f) {
-      const KX = 340, HX = 960;
       let out = '';
-      const heroY = S.mode === 'arrive' ? Math.max(0, 600 - f * 20) : 0;
-      const kaiju = `<g transform="translate(${KX - 600} 0)">${kb()}${arm(735, 470)}${head(S.mode === 'beam' ? 'roar' : 'serious')}</g>`;
-      const hero = `<g transform="translate(${HX} ${690 - heroY}) scale(0.9)">${heroArt(S.mode === 'arrive' && heroY > 0 ? 'fly' : S.mode === 'beam' ? 'beam' : 'stand')}</g>`;
-      if (S.mode === 'arrive') {
-        out += kaiju + hero;
-        if (f > 20) out += sfx(820, 140, 'ジャスティア！', 52, -4);
-      } else if (S.mode === 'beam') {
-        const H = [HX - 146, 690 - 0.9 * 350];          // hero's hands
-        const M = [KX - 600 + 712, 336];                 // kaiju's mouth
-        const C = [M[0] + (H[0] - M[0]) * S.p, M[1] + (H[1] - M[1]) * S.p];   // clash point
+      const t = f - S.at;
+      // hero position/pose
+      let hx = HX, hy = 690, hpose = 'stand', hrot = 0;
+      if (S.mode === 'arrive') { hy = 690 - Math.max(0, 600 - f * 20); hpose = hy < 690 ? 'fly' : 'stand'; }
+      if (S.mode === 'kaiju' && t >= 10 && t < 16) { hx += 50 * Math.sin((t - 10) / 6 * Math.PI); hrot = 8; }
+      if (S.mode === 'hero') { const u = t < 8 ? easeOut(t / 8) : 1 - (t - 8) / 12; hx = HX - 380 * clamp(u, 0, 1); hpose = 'fly'; }
+      if (S.mode === 'finisher' || S.mode === 'beam') hpose = 'beam';
+      // kaiju position/pose
+      let kx = KX - 600, ky = 0, krot = 0, kexpr = 'serious', kextra = '', handPose = [735, 470], body = null;
+      if (S.mode === 'hero' && t >= 8 && t < 14) { kexpr = 'surprised'; kx -= 40 * Math.sin((t - 8) / 6 * Math.PI); }
+      if (S.mode === 'kaiju') {
+        const m = S.move.id, u = clamp(t / 10, 0, 1), back = t > 10 ? clamp((t - 10) / 10, 0, 1) : 0;
+        kexpr = 'roar';
+        if (m === 'tackle') kx += 360 * easeOut(u) * (1 - back);
+        if (m === 'stomp') { kx += 420 * u * (1 - back); ky = -260 * Math.sin(Math.PI * u) * (1 - back); }
+        if (m === 'tail') { kx += 300 * u * (1 - back); krot = 360 * u; }
+        if (m === 'nunchaku') {
+          kx += 240 * easeOut(u) * (1 - back);
+          body = kataAt(clamp(Math.round(4 + t * 0.8), 0, 13), { href: 'car' });
+        }
+        if (m === 'throw') {
+          handPose = t < 6 ? [700, 300] : [820, 420];
+          if (t < 6) kextra = `<use href="#cship" transform="translate(720 240) rotate(-10) scale(0.7)"/>`;
+        }
+      }
+      const kaijuSvg = `<g transform="translate(${kx} ${ky}) rotate(${krot} 600 470)">${body || (kb() + kextra + arm(handPose[0], handPose[1]) + head(kexpr))}</g>`;
+      const heroSvg = `<g transform="translate(${hx} ${hy}) rotate(${hrot}) scale(0.9)">${heroArt(hpose)}</g>`;
+
+      if (S.mode !== 'boom') out += kaijuSvg + heroSvg;
+      // move effects
+      if (S.mode === 'kaiju') {
+        const m = S.move.id;
+        if (m === 'fire' && t >= 3 && t < 16) {
+          const M = [KX - 600 + 712, 336], H = [HX - 20, 420];
+          const u = clamp((t - 3) / 6, 0, 1), E = [M[0] + (H[0] - M[0]) * u, M[1] + (H[1] - M[1]) * u];
+          const w = 1 + G.oil * 0.15;
+          out += `<path d="M${M[0]} ${M[1]} L ${E[0]} ${E[1]}" stroke="#d33a2c" stroke-width="${46 * w}" stroke-linecap="round" opacity="0.85"/><path d="M${M[0]} ${M[1]} L ${E[0]} ${E[1]}" stroke="#ff8a3d" stroke-width="${30 * w}" stroke-linecap="round"/><path d="M${M[0]} ${M[1]} L ${E[0]} ${E[1]}" stroke="#ffd34d" stroke-width="${12 * w}" stroke-linecap="round"/>`;
+        }
+        if (m === 'throw' && t >= 6 && t <= 10) {
+          const u = (t - 6) / 4;
+          out += `<use href="#cship" transform="translate(${KX + 160 + (HX - KX - 200) * u} ${260 + 160 * u - 120 * Math.sin(Math.PI * u)}) rotate(${t * 30}) scale(0.7)"/>`;
+        }
+        // crit ring
+        if (t >= 2 && t <= 11 && !S.critTried) {
+          const r = 30 + (11 - t) * 14;
+          out += `<circle cx="${HX - 10}" cy="400" r="34" fill="none" stroke="#ffd34d" stroke-width="6"/><circle cx="${HX - 10}" cy="400" r="${r}" fill="none" stroke="#fff" stroke-width="5" opacity="0.9"/>`;
+        }
+        if (t >= 10 && t < 16) out += star(HX - 20, 420, 64 - (t - 10) * 6) + sfx(HX - 260, 230, S.move.sfx, 56, -6);
+      }
+      if (S.mode === 'hero') {
+        if (t < 10) out += sfx(HX - 300, 170, S.heroMove, 40, -4);
+        if (t >= 8 && t < 14) out += star(KX + 60, 400, 60 - (t - 8) * 6);
+      }
+      if (S.pop && f - S.pop.f < 16) out += sfx(S.pop.x, S.pop.y - (f - S.pop.f) * 3, S.pop.text, 50, 0);
+      if (S.mode === 'arrive' && f > 20) out += sfx(820, 140, 'ジャスティア！', 52, -4);
+
+      // beam clash (finisher)
+      if (S.mode === 'beam') {
+        const H = [HX - 146, 690 - 0.9 * 350], M = [KX - 600 + 712, 336];
+        const C = [M[0] + (H[0] - M[0]) * S.p, M[1] + (H[1] - M[1]) * S.p];
         const pulse = frame - (S.lastTap ?? -99) < 3 ? 1.35 : 1;
-        const flame = `<path d="M${M[0]} ${M[1]} L ${C[0]} ${C[1]}" stroke="#d33a2c" stroke-width="${46 * pulse}" stroke-linecap="round" opacity="0.85"/>
+        out += `<path d="M${M[0]} ${M[1]} L ${C[0]} ${C[1]}" stroke="#d33a2c" stroke-width="${46 * pulse}" stroke-linecap="round" opacity="0.85"/>
           <path d="M${M[0]} ${M[1]} L ${C[0]} ${C[1]}" stroke="#ff8a3d" stroke-width="${30 * pulse}" stroke-linecap="round"/>
-          <path d="M${M[0]} ${M[1]} L ${C[0]} ${C[1]}" stroke="#ffd34d" stroke-width="${12 * pulse}" stroke-linecap="round"/>`;
-        const beam = `<path d="M${H[0]} ${H[1]} L ${C[0]} ${C[1]}" stroke="#2f7fd8" stroke-width="40" stroke-linecap="round" opacity="0.8"/>
+          <path d="M${M[0]} ${M[1]} L ${C[0]} ${C[1]}" stroke="#ffd34d" stroke-width="${12 * pulse}" stroke-linecap="round"/>
+          <path d="M${H[0]} ${H[1]} L ${C[0]} ${C[1]}" stroke="#2f7fd8" stroke-width="40" stroke-linecap="round" opacity="0.8"/>
           <path d="M${H[0]} ${H[1]} L ${C[0]} ${C[1]}" stroke="#7fe3ff" stroke-width="24" stroke-linecap="round"/>
-          <path d="M${H[0]} ${H[1]} L ${C[0]} ${C[1]}" stroke="#fff" stroke-width="8" stroke-linecap="round"/>`;
-        out += kaiju + hero + flame + beam + star(C[0], C[1], 50 + 8 * Math.sin(f), '#fff6a8');
-        // labels on each side of the clash
-        const lab = (x, y, t, col) => `<text x="${x}" y="${y}" font-family="'M PLUS 1p',sans-serif" font-weight="800" font-size="24" fill="${col}" stroke="#0f2a4a" stroke-width="6" paint-order="stroke" text-anchor="middle">${t}</text>`;
+          <path d="M${H[0]} ${H[1]} L ${C[0]} ${C[1]}" stroke="#fff" stroke-width="8" stroke-linecap="round"/>` + star(C[0], C[1], 50 + 8 * Math.sin(f), '#fff6a8');
+        const lab = (x, y, tx, col) => `<text x="${x}" y="${y}" font-family="'M PLUS 1p',sans-serif" font-weight="800" font-size="24" fill="${col}" stroke="#0f2a4a" stroke-width="6" paint-order="stroke" text-anchor="middle">${tx}</text>`;
         out += lab((M[0] + C[0]) / 2, Math.min(M[1], C[1]) - 40, `${G.kaiju}の火炎`, '#ffd34d') + lab((H[0] + C[0]) / 2, Math.min(H[1], C[1]) - 40, `${HERO}光線`, '#7fe3ff');
-        // tug-of-war gauge
-        out += `<g font-family="'M PLUS 1p',sans-serif" font-weight="800" font-size="22">
-          <rect x="300" y="198" width="600" height="26" rx="13" fill="#2f7fd8" stroke="#0f2a4a" stroke-width="4"/>
-          <rect x="300" y="198" width="${600 * S.p}" height="26" rx="13" fill="#ff8a3d"/>
-          <rect x="${300 + 600 * S.p - 5}" y="190" width="10" height="42" rx="3" fill="#fff" stroke="#0f2a4a" stroke-width="3"/>
-          <text x="292" y="220" fill="#ffd34d" stroke="#0f2a4a" stroke-width="6" paint-order="stroke" text-anchor="end">${G.kaiju}</text>
-          <text x="908" y="220" fill="#7fe3ff" stroke="#0f2a4a" stroke-width="6" paint-order="stroke">${HERO}</text></g>`;
         if (f % 8 < 4) out += sfx(KX - 230, 250, 'ぐぬぬ', 40, -6);
-        const sec = ((f - S.t0) / 20).toFixed(1);
-        out += `<text x="1160" y="110" font-family="${SFX_FONT}" font-size="48" fill="#fff" stroke="${INK}" stroke-width="7" paint-order="stroke" text-anchor="end">${sec}秒</text>`;
-      } else {
-        const j = f - S.endAt;
-        const big = 1 + G.oil * 0.35;
-        out += hero;
-        if (j < 4) out += kaiju + `<rect width="1200" height="750" fill="#fff" opacity="${0.9 - j * 0.2}"/>`;
+      }
+      if (S.mode === 'boom') {
+        const j = f - S.endAt, big = 1 + G.oil * 0.35;
+        out += heroSvg;
+        if (j < 4) out += kaijuSvg + `<rect width="1200" height="750" fill="#fff" opacity="${0.9 - j * 0.2}"/>`;
         else if (j < 26) {
           const r = Math.min(j - 4, 10) * 26 * big;
           out += `<circle cx="${KX}" cy="460" r="${r}" fill="#ffd34d" opacity="${Math.max(0, 1 - (j - 4) * 0.04)}"/><circle cx="${KX}" cy="460" r="${r * 0.7}" fill="#ff8a3d"/><circle cx="${KX}" cy="460" r="${r * 0.4}" fill="#fff6a8"/>`;
@@ -1765,18 +1866,32 @@ function sceneHero() {
         }
         if (j >= 4 && j < 26) out += sfx(KX - 120, 220, 'ドカーン', 80, -8);
       }
+
+      // HP bars (top)
+      if (S.mode !== 'arrive' && S.mode !== 'boom') {
+        const bar = (x, w, frac, col, name, alignR) => `<g font-family="'M PLUS 1p',sans-serif" font-weight="800">
+          <rect x="${x}" y="200" width="${w}" height="20" rx="10" fill="#0f2a4a" opacity="0.85"/>
+          <rect x="${alignR ? x + w * (1 - frac) : x}" y="200" width="${w * frac}" height="20" rx="10" fill="${col}"/>
+          <text x="${alignR ? x + w : x}" y="190" font-size="24" fill="#fff" stroke="${INK}" stroke-width="5" paint-order="stroke" text-anchor="${alignR ? 'end' : 'start'}">${name}</text></g>`;
+        out += bar(60, 420, S.kHp / kMax, '#ff8a3d', G.kaiju, false) + bar(720, 420, S.heroHp / heroMax, '#7fe3ff', HERO, true);
+        out += `<text x="600" y="218" font-family="${SFX_FONT}" font-size="30" fill="#fff" stroke="${INK}" stroke-width="6" paint-order="stroke" text-anchor="middle">${S.mode === 'beam' || S.mode === 'finisher' ? 'とどめ' : `R${Math.min(S.round + 1, ROUNDS)}/${ROUNDS}`}</text>`;
+      }
       return out + liveBadge('中継：' + here().name);
     },
     finish() {
       if (this.ended) return; this.ended = true;
       const fire = G.oil * 15e9;
-      G.epLog.push('defeated');
+      const cornered = S.heroHp / heroMax < 0.45;
+      G.epLog.push(cornered ? 'cornered' : 'defeated');
       showNews({
         loc: G.loc, ok: false,
         head: `${HERO}、${G.kaiju}を撃破${G.oil ? '　体内の石油に引火し周辺が炎上' : ''}`,
-        lines: [`${G.kaiju}は光線を${G.survived.toFixed(1)}秒こらえたのち爆発`, G.oil ? `体内の石油${G.oil}杯分に引火、消火に数日かかる見込み` : '爆発の破片で周辺の建物が損傷',
-          '倒されたあとの被害が、生きていたときの被害を上回るのではと専門家'],
-        gains: {}, dmg: 2e9 + fire, alert: 0, kpop: Math.round(G.survived * 1.5), hpop: 8, cat: '撃破後の被害',
+        lines: [
+          cornered ? `${G.kaiju}は${HERO}をあと一歩まで追いつめた（与えたダメージ ${S.dealt}）` : `${G.kaiju}の攻撃は${HERO}にあまり効かなかった（与えたダメージ ${S.dealt}）`,
+          `とどめの光線を${G.survived.toFixed(1)}秒こらえたのち爆発`,
+          G.oil ? `体内の石油${G.oil}杯分に引火、消火に数日かかる見込み` : '戦いの巻き添えで周辺のビル多数が倒壊',
+        ],
+        gains: {}, dmg: 2e9 + fire + S.collateral, alert: 0, kpop: Math.round(S.dealt / 4 + G.survived), hpop: cornered ? 12 : 6, cat: '戦闘・撃破後の被害',
       }, () => sceneEpisodeEnd());
     },
   });
