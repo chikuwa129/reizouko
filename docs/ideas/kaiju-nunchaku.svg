@@ -1,0 +1,221 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 750" width="1200" height="750">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#9fcde0"/>
+      <stop offset="0.6" stop-color="#d8ebe9"/>
+      <stop offset="1" stop-color="#f4e6c6"/>
+    </linearGradient>
+    <linearGradient id="ground" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#b7b29b"/>
+      <stop offset="1" stop-color="#9c967d"/>
+    </linearGradient>
+    <filter id="blurFar" x="-10%" y="-10%" width="120%" height="120%"><feGaussianBlur stdDeviation="3.5"/></filter>
+    <filter id="blurNear" x="-10%" y="-30%" width="120%" height="160%"><feGaussianBlur stdDeviation="6"/></filter>
+    <filter id="soft"><feGaussianBlur stdDeviation="1.2"/></filter>
+
+    <!-- train car, centered at 0,0, length 160 -->
+    <g id="car">
+      <rect x="-80" y="-19" width="160" height="38" rx="9" fill="#f3efe2" stroke="#2f3e36" stroke-width="3"/>
+      <rect x="-80" y="4" width="160" height="7" fill="#3f7fc0"/>
+      <rect x="-64" y="-11" width="16" height="11" rx="2" fill="#5b6f7a"/>
+      <rect x="-40" y="-11" width="16" height="11" rx="2" fill="#5b6f7a"/>
+      <rect x="-16" y="-11" width="16" height="11" rx="2" fill="#5b6f7a"/>
+      <rect x="8" y="-11" width="16" height="11" rx="2" fill="#5b6f7a"/>
+      <rect x="32" y="-11" width="16" height="11" rx="2" fill="#5b6f7a"/>
+      <rect x="58" y="-11" width="16" height="11" rx="2" fill="#5b6f7a"/>
+      <circle cx="-52" cy="20" r="6" fill="#333"/>
+      <circle cx="-36" cy="20" r="6" fill="#333"/>
+      <circle cx="36" cy="20" r="6" fill="#333"/>
+      <circle cx="52" cy="20" r="6" fill="#333"/>
+    </g>
+  </defs>
+
+  <!-- studio-backdrop sky -->
+  <rect width="1200" height="750" fill="url(#sky)"/>
+  <g fill="#ffffff" opacity="0.8">
+    <ellipse cx="190" cy="120" rx="90" ry="26"/>
+    <ellipse cx="250" cy="105" rx="60" ry="22"/>
+    <ellipse cx="1040" cy="90" rx="80" ry="22"/>
+  </g>
+
+  <!-- far city (tilt-shift blur) -->
+  <g filter="url(#blurFar)" fill="#8fa3ad">
+    <rect x="0" y="390" width="70" height="90"/>
+    <rect x="80" y="350" width="55" height="130"/>
+    <rect x="145" y="400" width="80" height="80"/>
+    <rect x="240" y="330" width="50" height="150"/>
+    <rect x="300" y="380" width="90" height="100"/>
+    <rect x="820" y="370" width="70" height="110"/>
+    <rect x="900" y="340" width="50" height="140"/>
+    <rect x="960" y="395" width="90" height="85"/>
+    <rect x="1060" y="355" width="60" height="125"/>
+    <rect x="1130" y="400" width="70" height="80"/>
+    <!-- radio tower -->
+    <path d="M1000 380 L1012 250 L1024 380 Z" fill="#c9754f"/>
+  </g>
+
+  <!-- diorama ground -->
+  <rect x="0" y="470" width="1200" height="280" fill="url(#ground)"/>
+  <!-- road -->
+  <path d="M0 540 L1200 520 L1200 560 L0 585 Z" fill="#8a8572"/>
+
+  <!-- railway (empty: the train is in the kaiju's hand) -->
+  <g>
+    <path d="M0 640 L1200 600" stroke="#6b5a48" stroke-width="18"/>
+    <g stroke="#5a4b3c" stroke-width="5">
+      <line x1="40" y1="630" x2="44" y2="648"/><line x1="120" y1="627" x2="124" y2="645"/>
+      <line x1="200" y1="624" x2="204" y2="642"/><line x1="280" y1="622" x2="284" y2="640"/>
+      <line x1="880" y1="602" x2="884" y2="620"/><line x1="960" y1="599" x2="964" y2="617"/>
+      <line x1="1040" y1="596" x2="1044" y2="614"/><line x1="1120" y1="594" x2="1124" y2="612"/>
+    </g>
+    <path d="M0 634 L1200 594" stroke="#c9c2b0" stroke-width="3"/>
+    <path d="M0 646 L1200 606" stroke="#c9c2b0" stroke-width="3"/>
+    <!-- overhead wire poles, one snapped -->
+    <g stroke="#555" stroke-width="5">
+      <line x1="150" y1="628" x2="150" y2="555"/>
+      <line x1="1060" y1="598" x2="1060" y2="525"/>
+      <line x1="880" y1="604" x2="905" y2="545"/>
+    </g>
+    <path d="M150 560 Q 300 575 420 600" stroke="#444" stroke-width="2" fill="none"/>
+    <path d="M1060 530 Q 980 545 910 552" stroke="#444" stroke-width="2" fill="none"/>
+  </g>
+
+  <!-- tiny buildings mid-ground -->
+  <g stroke="#2f3e36" stroke-width="2">
+    <rect x="60" y="470" width="60" height="70" fill="#e7d9b8"/>
+    <rect x="130" y="450" width="45" height="90" fill="#c8d6d9"/>
+    <rect x="980" y="455" width="55" height="75" fill="#e7d9b8"/>
+    <rect x="1045" y="440" width="40" height="90" fill="#d9c3c0"/>
+    <!-- crumbled building (styrofoam) -->
+    <path d="M330 545 L330 505 L350 495 L362 512 L378 500 L392 545 Z" fill="#efeadf"/>
+  </g>
+  <g fill="#ffffff" stroke="#c9c2b0" stroke-width="1">
+    <rect x="300" y="548" width="10" height="8"/><rect x="398" y="545" width="12" height="9"/>
+    <rect x="410" y="560" width="8" height="7"/>
+  </g>
+
+  <!-- kaiju tail -->
+  <path d="M505 545 C 430 600 360 630 280 612 C 330 600 390 575 470 500 Z"
+        fill="#6f9a7a" stroke="#2f3e36" stroke-width="5" stroke-linejoin="round"/>
+
+  <!-- back spikes (rounded, amber) -->
+  <g fill="#e2a64c" stroke="#2f3e36" stroke-width="4" stroke-linejoin="round">
+    <path d="M545 232 Q 500 205 506 262 Z"/>
+    <path d="M520 296 Q 466 280 480 338 Z"/>
+    <path d="M500 362 Q 446 354 466 412 Z"/>
+    <path d="M494 432 Q 442 432 466 480 Z"/>
+    <path d="M440 548 Q 412 540 418 572 Z"/>
+    <path d="M372 590 Q 350 580 352 605 Z"/>
+  </g>
+
+  <!-- legs -->
+  <g fill="#6f9a7a" stroke="#2f3e36" stroke-width="5">
+    <ellipse cx="545" cy="625" rx="50" ry="34"/>
+    <ellipse cx="665" cy="628" rx="50" ry="34"/>
+  </g>
+  <g fill="#f4f0e2" stroke="#2f3e36" stroke-width="3">
+    <circle cx="515" cy="650" r="8"/><circle cx="537" cy="655" r="8"/><circle cx="559" cy="655" r="8"/>
+    <circle cx="645" cy="655" r="8"/><circle cx="667" cy="658" r="8"/><circle cx="689" cy="655" r="8"/>
+  </g>
+
+  <!-- body -->
+  <ellipse cx="600" cy="470" rx="125" ry="160" fill="#6f9a7a" stroke="#2f3e36" stroke-width="5"/>
+  <ellipse cx="618" cy="505" rx="78" ry="112" fill="#ead9ad" stroke="#2f3e36" stroke-width="3"/>
+  <g stroke="#c9b583" stroke-width="3">
+    <line x1="560" y1="450" x2="676" y2="450"/>
+    <line x1="548" y1="490" x2="688" y2="490"/>
+    <line x1="550" y1="530" x2="686" y2="530"/>
+    <line x1="562" y1="570" x2="674" y2="570"/>
+  </g>
+
+  <!-- back arm -->
+  <path d="M520 420 Q 490 460 508 490" stroke="#2f3e36" stroke-width="30" stroke-linecap="round" fill="none"/>
+  <path d="M520 420 Q 490 460 508 490" stroke="#628b6d" stroke-width="22" stroke-linecap="round" fill="none"/>
+
+  <!-- motion arcs of the swinging car -->
+  <g fill="none" stroke="#ffffff" stroke-linecap="round" opacity="0.85">
+    <path d="M900 360 Q 1090 330 1060 120" stroke-width="7"/>
+    <path d="M880 330 Q 1050 300 1020 140" stroke-width="4"/>
+    <path d="M915 395 Q 1120 360 1100 160" stroke-width="3" opacity="0.6"/>
+  </g>
+
+  <!-- ghost copies (motion) -->
+  <use href="#car" transform="translate(955 320) rotate(70)" opacity="0.15"/>
+  <use href="#car" transform="translate(1005 255) rotate(40)" opacity="0.3"/>
+
+  <!-- piano wire (studio hint) -->
+  <line x1="1000" y1="0" x2="996" y2="150" stroke="#e9e9e9" stroke-width="1.2" opacity="0.9"/>
+
+  <!-- coupler chain (nunchaku) -->
+  <path d="M812 186 Q 858 140 916 150" stroke="#2f3e36" stroke-width="9" fill="none"
+        stroke-dasharray="9 6" stroke-linecap="round"/>
+
+  <!-- swinging car -->
+  <use href="#car" transform="translate(992 172) rotate(15)"/>
+
+  <!-- held car (handle) -->
+  <use href="#car" transform="translate(785 262) rotate(-70)"/>
+
+  <!-- front arm + hand gripping the car -->
+  <path d="M672 410 Q 730 390 765 335" stroke="#2f3e36" stroke-width="36" stroke-linecap="round" fill="none"/>
+  <path d="M672 410 Q 730 390 765 335" stroke="#6f9a7a" stroke-width="27" stroke-linecap="round" fill="none"/>
+  <circle cx="768" cy="318" r="27" fill="#6f9a7a" stroke="#2f3e36" stroke-width="5"/>
+  <path d="M750 305 Q 768 296 786 306" stroke="#2f3e36" stroke-width="3" fill="none"/>
+  <path d="M748 318 Q 768 310 788 320" stroke="#2f3e36" stroke-width="3" fill="none"/>
+
+  <!-- head (big, chubby) -->
+  <ellipse cx="600" cy="292" rx="92" ry="84" fill="#6f9a7a" stroke="#2f3e36" stroke-width="5"/>
+  <ellipse cx="660" cy="316" rx="62" ry="46" fill="#7aa585" stroke="#2f3e36" stroke-width="4"/>
+  <!-- nostrils -->
+  <circle cx="700" cy="300" r="3.5" fill="#2f3e36"/>
+  <circle cx="712" cy="306" r="3.5" fill="#2f3e36"/>
+  <!-- small round serious eyes -->
+  <circle cx="612" cy="268" r="9" fill="#1f2a24"/>
+  <circle cx="655" cy="262" r="9" fill="#1f2a24"/>
+  <circle cx="615" cy="265" r="3" fill="#fff"/>
+  <circle cx="658" cy="259" r="3" fill="#fff"/>
+  <!-- focused brow -->
+  <path d="M598 248 L622 252" stroke="#2f3e36" stroke-width="4" stroke-linecap="round"/>
+  <path d="M645 246 L668 242" stroke="#2f3e36" stroke-width="4" stroke-linecap="round"/>
+  <!-- tiny mouth -->
+  <path d="M668 338 Q 680 344 692 336" stroke="#2f3e36" stroke-width="4" fill="none" stroke-linecap="round"/>
+  <!-- blush -->
+  <ellipse cx="596" cy="300" rx="14" ry="7" fill="#e88f86" opacity="0.55"/>
+  <!-- sweat drop -->
+  <path d="M540 225 Q 530 245 540 252 Q 550 245 540 225 Z" fill="#bfe6f5" stroke="#2f3e36" stroke-width="2.5"/>
+
+  <!-- sound effect -->
+  <g font-family="IPAGothic, 'WenQuanYi Zen Hei', sans-serif" font-weight="bold">
+    <text x="1060" y="300" font-size="46" fill="#ffffff" stroke="#2f3e36" stroke-width="6" paint-order="stroke" transform="rotate(-12 1060 300)">ぶぉん</text>
+  </g>
+
+  <!-- tiny fleeing people -->
+  <g fill="#2f3e36">
+    <circle cx="230" cy="560" r="3"/><rect x="228" y="563" width="4" height="7"/>
+    <circle cx="245" cy="562" r="3"/><rect x="243" y="565" width="4" height="7"/>
+    <circle cx="262" cy="558" r="3"/><rect x="260" y="561" width="4" height="7"/>
+    <circle cx="905" cy="548" r="3"/><rect x="903" y="551" width="4" height="7"/>
+    <circle cx="920" cy="546" r="3"/><rect x="918" y="549" width="4" height="7"/>
+  </g>
+
+  <!-- foreground strip (tilt-shift blur) -->
+  <g filter="url(#blurNear)">
+    <rect x="-20" y="690" width="1240" height="80" fill="#8c8670"/>
+    <rect x="40" y="660" width="120" height="100" fill="#d9cfb4"/>
+    <rect x="980" y="655" width="150" height="110" fill="#c8d0cf"/>
+    <rect x="420" y="700" width="90" height="60" fill="#d4b6a8"/>
+  </g>
+
+  <!-- news telop -->
+  <g font-family="IPAGothic, 'WenQuanYi Zen Hei', sans-serif">
+    <rect x="0" y="672" width="1200" height="78" fill="#0f2a4a" opacity="0.92"/>
+    <rect x="0" y="672" width="128" height="78" fill="#d33a2c"/>
+    <text x="64" y="722" font-size="30" fill="#fff" font-weight="bold" text-anchor="middle">速報</text>
+    <text x="150" y="706" font-size="22" fill="#fff">怪獣、電車をヌンチャクにしてトレーニング　〇〇線 全線運休</text>
+    <text x="150" y="738" font-size="20" fill="#ffd34d">本日の被害額　¥4,820,316,000</text>
+  </g>
+  <g font-family="IPAGothic, 'WenQuanYi Zen Hei', sans-serif">
+    <rect x="22" y="22" width="92" height="36" rx="4" fill="#d33a2c"/>
+    <text x="68" y="48" font-size="22" fill="#fff" font-weight="bold" text-anchor="middle">LIVE</text>
+  </g>
+</svg>
