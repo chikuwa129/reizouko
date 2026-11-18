@@ -185,8 +185,154 @@ function nunchakuFrame(th, expr = 'serious', o = {}) {
   return { p, body: cityBackground() + far + kaijuBody + p.held + arm(p.hx, p.hy) + head(expr, o.tilt || 0) + near + swish };
 }
 
-// ---------- scenes ----------
+
 const scenes = {};
+// ---------- martial-arts nunchaku kata (2D, screen plane) ----------
+const D2R = Math.PI / 180;
+const dirv = a => [Math.cos(a * D2R), Math.sin(a * D2R)];
+const easeOut = t => 1 - (1 - t) * (1 - t);
+const easeInOut = t => t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+
+// keyframes: f, hand x/y, psi = handle angle, phi = free-car angle (deg, may exceed 360 for spins)
+function makeTrack(keys) {
+  return f => {
+    let i = 0;
+    while (i < keys.length - 1 && keys[i + 1].f <= f) i++;
+    const a = keys[i], b = keys[Math.min(i + 1, keys.length - 1)];
+    if (a === b || f <= a.f) return { ...a };
+    const t0 = (f - a.f) / (b.f - a.f);
+    const t = (b.ease || easeInOut)(Math.min(1, Math.max(0, t0)));
+    const L = (k) => a[k] + (b[k] - a[k]) * t;
+    return { hx: L('hx'), hy: L('hy'), psi: L('psi'), phi: L('phi'), behind: !!((a.behind && b.behind) || (b.behind && t0 > 0.6) || (a.behind && t0 < 0.4)) };
+  };
+}
+
+function kataGeom(st) {
+  const [dx, dy] = dirv(st.psi);
+  const tx = st.hx + 150 * dx, ty = st.hy + 150 * dy;
+  const [fx, fy] = dirv(st.phi);
+  return {
+    held: carBetween(st.hx - 12 * dx, st.hy - 12 * dy, tx, ty),
+    tx, ty,
+    ax: tx + 38 * fx, ay: ty + 38 * fy, bx: tx + 198 * fx, by: ty + 198 * fy,
+  };
+}
+
+function kataLayers(track, f, opts = {}) {
+  const st = track(f);
+  const g = kataGeom(st);
+  const chain = `<path d="M${g.tx} ${g.ty} L ${g.ax} ${g.ay}" stroke="${INK}" stroke-width="9" fill="none" stroke-dasharray="8 6" stroke-linecap="round"/>`;
+  const free = carBetween(g.ax, g.ay, g.bx, g.by);
+  let ghosts = '';
+  if (opts.ghosts !== false) {
+    for (const [k, op] of [[0.5, 0.32], [1.0, 0.16]]) {
+      if (f - k < 0) continue;
+      const s2 = track(f - k);
+      if (Math.abs(((s2.phi - st.phi) % 360)) < 12) continue; // only when moving fast
+      const g2 = kataGeom(s2);
+      ghosts += carBetween(g2.ax, g2.ay, g2.bx, g2.by, { op });
+    }
+  }
+  const nun = ghosts + chain + free;
+  return { st, g, nun };
+}
+
+const KATA_KEYS = [
+  { f: 0, hx: 760, hy: 300, psi: -70, phi: -100 },
+  { f: 7, hx: 770, hy: 300, psi: -75, phi: -150 },                 // kamae (wind-up)
+  { f: 11, hx: 700, hy: 470, psi: 150, phi: 165, ease: easeOut },   // diagonal strike: upper-right -> lower-left
+  { f: 14, hx: 700, hy: 470, psi: 150, phi: 165 },                  // hitstop
+  { f: 22, hx: 648, hy: 430, psi: 165, phi: 95 },                   // armpit catch
+  { f: 32, hx: 648, hy: 430, psi: 165, phi: 95 },                   // hold
+  { f: 38, hx: 730, hy: 285, psi: -90, phi: 95 },                   // lift overhead
+  { f: 50, hx: 730, hy: 285, psi: -90, phi: -625, ease: t => t },   // overhead spins
+  { f: 56, hx: 700, hy: 335, psi: -55, phi: -930, ease: easeOut, behind: true }, // over-the-shoulder catch
+  { f: 74, hx: 700, hy: 335, psi: -55, phi: -930, behind: true },  // hold pose
+  { f: 82, hx: 760, hy: 300, psi: -70, phi: -1180 },                // back to start
+];
+
+function kataFrame(track, f, extra = {}) {
+  const { st, nun } = kataLayers(track, f, extra);
+  const behind = st.behind;
+  return cityBackground() + (extra.cracks || '') + (behind ? nun : '') + kaijuBody + arm(st.hx, st.hy) +
+    head(extra.expr || 'serious', extra.tilt || 0) + (behind ? '' : nun) +
+    // re-draw handle + hand on top so the grip reads clearly
+    kataGeom(st).held + `<circle cx="${st.hx}" cy="${st.hy}" r="27" fill="${SKIN}" stroke="${INK}" stroke-width="5"/>`;
+}
+
+const slamCracks = `<g stroke="${INK}" stroke-width="3" fill="none"><path d="M360 600 l-25 18 l-20 -6"/><path d="M400 598 l18 22 l25 2"/><path d="M380 603 l-4 28"/></g>
+  <g fill="#efeadf" stroke="#c9c2b0"><rect x="330" y="585" width="14" height="9"/><rect x="420" y="590" width="10" height="8"/></g>`;
+const dust = (k) => `<g fill="#e8e1cf" opacity="${0.9 - k * 0.12}">
+  <ellipse cx="${380 - k * 14}" cy="${600 - k * 4}" rx="${30 + k * 10}" ry="${16 + k * 4}"/>
+  <ellipse cx="${430 + k * 12}" cy="${598 - k * 5}" rx="${24 + k * 8}" ry="${14 + k * 3}"/></g>`;
+
+scenes.nunchaku_kata = () => {
+  const track = makeTrack(KATA_KEYS);
+  const frames = [];
+  const tl = (f) => telop('relay', '怪獣、電車ヌンチャクの型を披露', `被害額　¥${(4820316000 + Math.max(0, f - 10) * 21000000).toLocaleString()}`);
+  for (let f = 0; f < 82; f++) {
+    let extra = '', sh = [0, 0];
+    const cracks = f >= 11 ? slamCracks : '';
+    if (f >= 11 && f < 14) sh = [[12, -6], [-9, 5], [5, -2]][f - 11];
+    if (f >= 11 && f < 19) extra += dust(f - 11);
+    if (f >= 11 && f < 18) extra += sfx(250, 520, 'ズドン', 56, -6);
+    if (f >= 22 && f < 32) extra += sfx(760, 250, 'フッ', 44, 0);
+    if (f >= 38 && f < 56) extra += sfx(900, 150, 'ヒュンヒュン', 40, -10);
+    if (f >= 56 && f < 74) extra += sfx(860, 260, 'アチョー', 56, -8) + `<g fill="#fff6a8">${star(560, 250, 14, '#fff6a8')}</g>`;
+    if (f >= 3 && f < 8) extra += sfx(860, 200, 'スッ', 36, 0);
+    frames.push(svg(kataFrame(track, f, { cracks }) + extra + foreground() + tl(f), sh));
+  }
+  return frames;
+};
+
+// failure: the rebound after the strike swings back up into its own head
+scenes.nunchaku_kata_fail = () => {
+  const keys = KATA_KEYS.slice(0, 4).concat([
+    { f: 19, hx: 700, hy: 470, psi: 150, phi: 268, ease: t => t * t },   // rebound swings up the left side...
+  ]);
+  const track = makeTrack(keys);
+  const frames = [];
+  const tlOK = () => telop('relay', '怪獣、電車ヌンチャクの型を披露', '被害額　¥4,820,316,000');
+  for (let f = 0; f < 19; f++) {
+    let extra = '', sh = [0, 0];
+    const cracks = f >= 11 ? slamCracks : '';
+    if (f >= 11 && f < 14) sh = [[12, -6], [-9, 5], [5, -2]][f - 11];
+    if (f >= 11 && f < 19) extra += dust(f - 11);
+    if (f >= 11 && f < 17) extra += sfx(250, 520, 'ズドン', 56, -6);
+    if (f >= 3 && f < 8) extra += sfx(860, 200, 'スッ', 36, 0);
+    frames.push(svg(kataFrame(track, f, { cracks }) + extra + foreground() + tlOK(), sh));
+  }
+  // ...and hits its own head: hitstop + shake
+  for (let k = 0; k < 6; k++) {
+    const sh = [[14, -6], [-12, 8], [9, -4], [-6, 3], [3, -1], [0, 0]][k];
+    frames.push(svg(kataFrame(track, 19, { cracks: slamCracks, expr: 'dizzy', tilt: -10, ghosts: false }) +
+      star(560, 290, 70 - k * 6) + sfx(330, 230, 'ゴンッ', 64, -8) + foreground() + tlOK(), sh));
+  }
+  // chain snaps, the car flies off to the next prefecture
+  const hx = 770, hy = 400;
+  const heldOnly = () => carBetween(hx - 5, hy - 10, hx + 40, hy + 150);
+  for (let k = 0; k < 14; k++) {
+    const t = k / 13;
+    const x = 560 + (150 - 560) * t, y = 330 + (395 - 330) * t - 260 * Math.sin(Math.PI * t);
+    const flying = `<use href="#car" transform="translate(${x} ${y}) rotate(${k * 47}) scale(${1 - 0.85 * t})"/>`;
+    const dizzyStars = [0, 1, 2].map(i => star(600 + 70 * Math.cos(k * 0.6 + i * 2.1), 200 + 18 * Math.sin(k * 0.6 + i * 2.1), 12)).join('');
+    frames.push(svg(cityBackground() + slamCracks + kaijuBody + heldOnly() + arm(hx, hy) + head('dizzy', -6 + 4 * Math.sin(k)) + dizzyStars + flying +
+      (k < 6 ? sfx(250, 160, 'ひゅ〜', 40, -20) : '') + foreground() + tlOK()));
+  }
+  for (let k = 0; k < 34; k++) {
+    const r = Math.min(k, 10);
+    const boom = k < 22 ? `<circle cx="140" cy="380" r="${10 + r * 9}" fill="#ffd34d" opacity="${Math.max(0, 0.9 - k * 0.05)}"/>
+      <circle cx="140" cy="380" r="${6 + r * 6}" fill="#ff8a3d" opacity="${Math.max(0, 0.9 - k * 0.05)}"/>` : '';
+    const smoke = `<g fill="#6d6d6d" opacity="${Math.min(0.85, k * 0.08)}"><circle cx="130" cy="${360 - k * 3}" r="${20 + k * 1.2}"/>
+      <circle cx="160" cy="${340 - k * 3.5}" r="${16 + k}"/><circle cx="115" cy="${330 - k * 4}" r="${14 + k * 0.9}"/></g>`;
+    const news = k < 8 ? tlOK() : telop('live', '型の途中で車両がすっぽ抜け隣県に落下　3県で停電', '被害額　¥4,820,316,000 → ¥16,950,000,000');
+    frames.push(svg(cityBackground() + slamCracks + boom + smoke + kaijuBody + heldOnly() + arm(hx, hy) + head(k < 8 ? 'dizzy' : 'surprised') +
+      (k >= 8 ? sfx(760, 230, 'あ', 60, 0) : '') + (k < 10 ? sfx(60, 300, 'ドーン', 40, -6) : '') + foreground() + news));
+  }
+  return frames;
+};
+
+// ---------- scenes ----------
 
 // 1) success loop: 3 spins
 scenes.nunchaku = () => {
