@@ -268,6 +268,15 @@ body {
 .reveal b { color: var(--red); }
 
 #bg.cctv, #fx.cctv { filter: grayscale(1) contrast(1.15) brightness(0.9); }
+/* phones held upright usually don't rotate the page: turn the TV sideways ourselves */
+@media (orientation: portrait) {
+  .tv {
+    position: fixed; top: 50%; left: 50%;
+    width: min(calc(100dvh - 24px), calc((100vw - 24px) * 1.6 - 20px));
+    transform: translate(-50%, -50%) rotate(90deg);
+  }
+  .hint { display: none; }
+}
 @keyframes roll { from { transform: translateY(0); } to { transform: translateY(calc(-100% - var(--u) * 760)); } }
 @media (prefers-reduced-motion: reduce) {
   .logo, .ep-title, .news li, .kcard .kname { animation: none; }
@@ -283,7 +292,7 @@ body {
     <div id="ui"></div>
   </div>
 </div>
-<p class="hint">横向き推奨。タップ / クリック、またはキーボード（スペース・Enter・←→）で遊べます。試作版：全13話（1クール）。</p>
+<p class="hint">タップ / クリック、またはキーボード（スペース・Enter・←→）で遊べます。試作版：全13話（1クール）。</p>
 
 <script>
 'use strict';
