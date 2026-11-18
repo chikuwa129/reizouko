@@ -277,7 +277,20 @@ body {
 /* =====================================================================
    ART  (SVG strings, coordinates in a 1200x750 frame)
    ===================================================================== */
-const INK = '#2f3e36', SKIN = '#6f9a7a';
+const INK = '#2f3e36';
+const PALETTES = [
+  { id: 'green', name: '緑', skin: '#6f9a7a', snout: '#7aa585', dark: '#5c8466', belly: '#ead9ad', line: '#c9b583', spike: '#e2a64c' },
+  { id: 'red', name: '赤', skin: '#b4574a', snout: '#c46a5c', dark: '#8f4038', belly: '#f0d6a8', line: '#cfae7a', spike: '#3b3b3b' },
+  { id: 'blue', name: '青', skin: '#5e7fa6', snout: '#7092b8', dark: '#48688c', belly: '#dfe6ea', line: '#b8c4cc', spike: '#9fe3ff' },
+  { id: 'purple', name: '紫', skin: '#7e649a', snout: '#9078ab', dark: '#634d7c', belly: '#efe2c0', line: '#cdbb8d', spike: '#ffd34d' },
+  { id: 'ochre', name: '黄土色', skin: '#b99a4a', snout: '#c8aa5c', dark: '#94783a', belly: '#f3ead0', line: '#d6c69c', spike: '#6b3f2a' },
+  { id: 'gray', name: '灰色', skin: '#7b7f86', snout: '#8d9198', dark: '#5f6369', belly: '#e8d9c0', line: '#c7b89e', spike: '#d33a2c' },
+];
+const EYES = { dot: 'つぶら', slant: 'つり目', cyclops: '一つ目', tri: '三つ目', half: '半目' };
+const SPIKES = { round: '丸い背びれ', crystal: '結晶の背びれ', plate: '板状の背びれ' };
+const PATTERNS = { none: '無地', spots: 'まだら模様', stripes: 'しま模様' };
+const BASE_LOOK = { ...PALETTES[0], eyes: 'dot', spikes: 'round', pattern: 'none' };
+let LOOK = BASE_LOOK;
 const SFX_FONT = "'Dela Gothic One','M PLUS 1p',sans-serif";
 const D2R = Math.PI / 180;
 
@@ -306,7 +319,11 @@ const FREIGHT = `<rect x="-80" y="-24" width="160" height="42" rx="3" fill="#3c7
   ${[-56, -28, 0, 28, 56].map(x => `<line x1="${x}" y1="-20" x2="${x}" y2="14" stroke="#2c5a42" stroke-width="3"/>`).join('')}
   <rect x="-80" y="18" width="160" height="5" fill="#333"/>
   ${[-52, -36, 36, 52].map(x => `<circle cx="${x}" cy="24" r="6" fill="#333"/>`).join('')}`;
-const DEFS_DYN = `<defs><g id="car">${CAR}</g><g id="house">${HOUSE}</g><g id="tanker">${TANKER}</g><g id="tank">${TANK}</g><g id="gondola">${GONDOLA}</g><g id="freight">${FREIGHT}</g></defs>`;
+const CSHIP = `<path d="M-120 0 L120 0 L100 34 L-104 34 Z" fill="#23407e" stroke="${INK}" stroke-width="4"/>
+  ${[[-100, '#d33a2c'], [-62, '#3f7fc0'], [-24, '#e2a64c'], [14, '#3c7a5a'], [52, '#d33a2c']].map(([x, c]) => `<rect x="${x}" y="-24" width="36" height="24" fill="${c}" stroke="${INK}" stroke-width="2"/>`).join('')}
+  ${[[-81, '#e2a64c'], [-43, '#d33a2c'], [-5, '#3f7fc0']].map(([x, c]) => `<rect x="${x}" y="-46" width="36" height="22" fill="${c}" stroke="${INK}" stroke-width="2"/>`).join('')}
+  <rect x="92" y="-50" width="22" height="50" fill="#f4f0e2" stroke="${INK}" stroke-width="3"/>`;
+const DEFS_DYN = `<defs><g id="car">${CAR}</g><g id="house">${HOUSE}</g><g id="tanker">${TANKER}</g><g id="tank">${TANK}</g><g id="gondola">${GONDOLA}</g><g id="freight">${FREIGHT}</g><g id="cship">${CSHIP}</g></defs>`;
 const DEFS_BG = `<defs>
   <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9fcde0"/><stop offset="0.6" stop-color="#d8ebe9"/><stop offset="1" stop-color="#f4e6c6"/></linearGradient>
   <linearGradient id="ground" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b7b29b"/><stop offset="1" stop-color="#9c967d"/></linearGradient>
@@ -315,54 +332,88 @@ const DEFS_BG = `<defs>
   <g id="carB">${CAR}</g><g id="houseB">${HOUSE}</g>
 </defs>`;
 
-const kaijuTail = `<path d="M505 545 C 430 600 360 630 280 612 C 330 600 390 575 470 500 Z" fill="${SKIN}" stroke="${INK}" stroke-width="5" stroke-linejoin="round"/>`;
+const kaijuTail = () => `<path d="M505 545 C 430 600 360 630 280 612 C 330 600 390 575 470 500 Z" fill="${LOOK.skin}" stroke="${INK}" stroke-width="5" stroke-linejoin="round"/>`;
 const tailSpikes = `<path d="M440 548 Q 412 540 418 572 Z"/><path d="M372 590 Q 350 580 352 605 Z"/>`;
+
+function spikeSet(noTail) {
+  const back = [[528, 246, -35], [503, 314, -20], [486, 384, -8], [482, 455, 4]];
+  const tail = noTail ? [] : [[430, 556, 30], [364, 596, 40]];
+  const one = (x, y, a, k) => {
+    const th = (200 + a) * D2R, dx = Math.cos(th), dy = Math.sin(th), px = -dy, py = dx;
+    if (LOOK.spikes === 'crystal') {
+      const L = 74 * k, w = 15 * k;
+      return `<path d="M${x + px * w} ${y + py * w} L${x + dx * L} ${y + dy * L} L${x - px * w} ${y - py * w} Z"/>
+        <path d="M${x} ${y} L${x + dx * L * 0.8} ${y + dy * L * 0.8}" stroke="#fff" stroke-width="3" opacity="0.6"/>`;
+    }
+    if (LOOK.spikes === 'plate') {
+      return `<ellipse cx="${x + dx * 26 * k}" cy="${y + dy * 26 * k}" rx="${36 * k}" ry="${17 * k}" transform="rotate(${200 + a} ${x + dx * 26 * k} ${y + dy * 26 * k})"/>`;
+    }
+    const L = 50 * k, w = 20 * k;
+    return `<path d="M${x + px * w} ${y + py * w} Q ${x + dx * L * 1.2 + px * w} ${y + dy * L * 1.2 + py * w} ${x + dx * L} ${y + dy * L} Q ${x + dx * L * 0.5 - px * w} ${y + dy * L * 0.5 - py * w} ${x - px * w} ${y - py * w} Z"/>`;
+  };
+  return `<g fill="${LOOK.spike}" stroke="${INK}" stroke-width="4" stroke-linejoin="round">${back.map(([x, y, a]) => one(x, y, a, 1)).join('')}${tail.map(([x, y, a]) => one(x, y, a, 0.6)).join('')}</g>`;
+}
+function patternSvg() {
+  if (LOOK.pattern === 'spots') return `<g fill="${LOOK.dark}" opacity="0.85"><circle cx="512" cy="410" r="15"/><circle cx="498" cy="478" r="11"/><circle cx="520" cy="560" r="14"/><circle cx="545" cy="345" r="10"/><circle cx="708" cy="405" r="10"/></g>`;
+  if (LOOK.pattern === 'stripes') return `<g stroke="${LOOK.dark}" stroke-width="10" fill="none" stroke-linecap="round" opacity="0.9"><path d="M484 400 q 26 6 44 -6"/><path d="M478 450 q 30 6 50 -6"/><path d="M482 500 q 30 6 50 -6"/><path d="M492 550 q 26 6 44 -6"/></g>`;
+  return '';
+}
+function eyeSvg() {
+  const brow = `<path d="M598 248 L622 252" stroke="${INK}" stroke-width="4" stroke-linecap="round"/><path d="M645 246 L668 242" stroke="${INK}" stroke-width="4" stroke-linecap="round"/>`;
+  switch (LOOK.eyes) {
+    case 'slant': return `<path d="M598 258 L628 256 L620 276 Z" fill="#ffd34d" stroke="${INK}" stroke-width="3"/><path d="M613 259 L613 272" stroke="${INK}" stroke-width="4"/>
+      <path d="M642 254 L672 246 L664 266 Z" fill="#ffd34d" stroke="${INK}" stroke-width="3"/><path d="M658 252 L658 264" stroke="${INK}" stroke-width="4"/>`;
+    case 'cyclops': return `<circle cx="636" cy="262" r="20" fill="#fff" stroke="${INK}" stroke-width="4"/><circle cx="640" cy="263" r="9" fill="#1f2a24"/><circle cx="643" cy="259" r="3" fill="#fff"/>
+      <path d="M612 236 L660 232" stroke="${INK}" stroke-width="5" stroke-linecap="round"/>`;
+    case 'tri': return [[606, 272], [633, 252], [660, 266]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="7.5" fill="#1f2a24"/><circle cx="${x + 2}" cy="${y - 2}" r="2.5" fill="#fff"/>`).join('');
+    case 'half': return `<circle cx="612" cy="268" r="10" fill="#1f2a24"/><circle cx="655" cy="262" r="10" fill="#1f2a24"/>
+      <path d="M600 266 Q 612 254 624 266 Z" fill="${LOOK.skin}" stroke="${INK}" stroke-width="3"/><path d="M643 260 Q 655 248 667 260 Z" fill="${LOOK.skin}" stroke="${INK}" stroke-width="3"/>`;
+    default: return `<circle cx="612" cy="268" r="9" fill="#1f2a24"/><circle cx="655" cy="262" r="9" fill="#1f2a24"/>
+      <circle cx="615" cy="265" r="3" fill="#fff"/><circle cx="658" cy="259" r="3" fill="#fff"/>` + brow;
+  }
+}
 function backParts() {
   const P = (typeof G !== 'undefined' && G.parts) || [];
   let o = '';
   if (P.includes('chimney')) o += `<g transform="rotate(-18 470 330)"><rect x="440" y="250" width="40" height="110" rx="4" fill="#8d8f93" stroke="${INK}" stroke-width="4"/>
     <rect x="434" y="244" width="52" height="16" rx="3" fill="#6d6f73" stroke="${INK}" stroke-width="4"/></g>`;
-  if (P.includes('fins')) o += `<path d="M470 520 Q 400 470 380 540 Q 420 560 470 560 Z" fill="#e2a64c" stroke="${INK}" stroke-width="4"/>`;
+  if (P.includes('fins')) o += `<path d="M470 520 Q 400 470 380 540 Q 420 560 470 560 Z" fill="${LOOK.spike}" stroke="${INK}" stroke-width="4"/>`;
   return o;
 }
 function headParts() {
   const P = (typeof G !== 'undefined' && G.parts) || [];
   let o = '';
   if (P.includes('horn')) o += `<path d="M585 222 Q 600 150 640 132 Q 622 175 622 220 Z" fill="#f1e6c8" stroke="${INK}" stroke-width="4"/>`;
-  if (P.includes('fins')) o += `<path d="M520 270 Q 470 230 480 300 Q 505 300 520 290 Z" fill="#e2a64c" stroke="${INK}" stroke-width="4"/>`;
+  if (P.includes('fins')) o += `<path d="M520 270 Q 470 230 480 300 Q 505 300 520 290 Z" fill="${LOOK.spike}" stroke="${INK}" stroke-width="4"/>`;
   if (P.includes('coil')) o += `<path d="M560 214 L 548 160 l 14 -6 l -12 -14 l 14 -6 l -10 -16" stroke="${INK}" stroke-width="5" fill="none"/><circle cx="556" cy="114" r="12" fill="#ffd34d" stroke="${INK}" stroke-width="4"/>`;
   if (P.includes('nightcap')) o += `<path d="M540 230 Q 600 150 680 215 Q 640 120 560 140 Q 520 170 540 230 Z" fill="#5c7fd1" stroke="${INK}" stroke-width="4"/><circle cx="560" cy="140" r="12" fill="#fff" stroke="${INK}" stroke-width="3"/>`;
   return o;
 }
 function torso(opts = {}) {
-  return `${backParts()}${opts.noTail ? '' : kaijuTail}
-  <g fill="#e2a64c" stroke="${INK}" stroke-width="4" stroke-linejoin="round">
-    <path d="M545 232 Q 500 205 506 262 Z"/><path d="M520 296 Q 466 280 480 338 Z"/>
-    <path d="M500 362 Q 446 354 466 412 Z"/><path d="M494 432 Q 442 432 466 480 Z"/>${opts.noTail ? '' : tailSpikes}
-  </g>
-  <g fill="${SKIN}" stroke="${INK}" stroke-width="5"><ellipse cx="545" cy="625" rx="50" ry="34"/><ellipse cx="665" cy="628" rx="50" ry="34"/></g>
+  return `${backParts()}${opts.noTail ? '' : kaijuTail()}
+  ${spikeSet(opts.noTail)}
+  <g fill="${LOOK.skin}" stroke="${INK}" stroke-width="5"><ellipse cx="545" cy="625" rx="50" ry="34"/><ellipse cx="665" cy="628" rx="50" ry="34"/></g>
   <g fill="#f4f0e2" stroke="${INK}" stroke-width="3">
     <circle cx="515" cy="650" r="8"/><circle cx="537" cy="655" r="8"/><circle cx="559" cy="655" r="8"/>
     <circle cx="645" cy="655" r="8"/><circle cx="667" cy="658" r="8"/><circle cx="689" cy="655" r="8"/>
   </g>
-  <ellipse cx="600" cy="470" rx="125" ry="160" fill="${SKIN}" stroke="${INK}" stroke-width="5"/>
-  <ellipse cx="618" cy="505" rx="78" ry="112" fill="#ead9ad" stroke="${INK}" stroke-width="3"/>
-  <g stroke="#c9b583" stroke-width="3">
+  <ellipse cx="600" cy="470" rx="125" ry="160" fill="${LOOK.skin}" stroke="${INK}" stroke-width="5"/>${patternSvg()}
+  <ellipse cx="618" cy="505" rx="78" ry="112" fill="${LOOK.belly}" stroke="${INK}" stroke-width="3"/>
+  <g stroke="${LOOK.line}" stroke-width="3">
     <line x1="560" y1="450" x2="676" y2="450"/><line x1="548" y1="490" x2="688" y2="490"/>
     <line x1="550" y1="530" x2="686" y2="530"/><line x1="562" y1="570" x2="674" y2="570"/>
   </g>`;
 }
-const backArmStub = `<path d="M520 420 Q 490 460 508 490" stroke="${INK}" stroke-width="30" stroke-linecap="round" fill="none"/>
-  <path d="M520 420 Q 490 460 508 490" stroke="#628b6d" stroke-width="22" stroke-linecap="round" fill="none"/>`;
-const kb = () => torso() + backArmStub;
+const backArmStub = () => `<path d="M520 420 Q 490 460 508 490" stroke="${INK}" stroke-width="30" stroke-linecap="round" fill="none"/>
+  <path d="M520 420 Q 490 460 508 490" stroke="${LOOK.dark}" stroke-width="22" stroke-linecap="round" fill="none"/>`;
+const kb = () => torso() + backArmStub();
 
 function head(expr = 'serious', tilt = 0) {
   let eyes = '', mouth = '', extra = '';
   const browSerious = `<path d="M598 248 L622 252" stroke="${INK}" stroke-width="4" stroke-linecap="round"/><path d="M645 246 L668 242" stroke="${INK}" stroke-width="4" stroke-linecap="round"/>`;
   const sweat = `<path d="M540 225 Q 530 245 540 252 Q 550 245 540 225 Z" fill="#bfe6f5" stroke="${INK}" stroke-width="2.5"/>`;
   if (expr === 'serious') {
-    eyes = `<circle cx="612" cy="268" r="9" fill="#1f2a24"/><circle cx="655" cy="262" r="9" fill="#1f2a24"/>
-      <circle cx="615" cy="265" r="3" fill="#fff"/><circle cx="658" cy="259" r="3" fill="#fff"/>` + browSerious;
+    eyes = eyeSvg();
     mouth = `<path d="M668 338 Q 680 344 692 336" stroke="${INK}" stroke-width="4" fill="none" stroke-linecap="round"/>`;
     extra = sweat;
   } else if (expr === 'dizzy') {
@@ -378,15 +429,15 @@ function head(expr = 'serious', tilt = 0) {
     eyes = `<path d="M602 270 q 10 7 20 0" stroke="${INK}" stroke-width="4" fill="none" stroke-linecap="round"/><path d="M645 264 q 10 7 20 0" stroke="${INK}" stroke-width="4" fill="none" stroke-linecap="round"/>`;
     mouth = `<ellipse cx="682" cy="338" rx="5" ry="6" fill="#7a2f2f"/>`;
   } else if (expr === 'roar') {
-    eyes = `<circle cx="612" cy="268" r="9" fill="#1f2a24"/><circle cx="655" cy="262" r="9" fill="#1f2a24"/>` + browSerious;
+    eyes = eyeSvg();
     mouth = `<path d="M655 330 Q 690 318 722 322 Q 712 372 668 360 Z" fill="#7a2f2f" stroke="${INK}" stroke-width="4"/>`;
   } else if (expr === 'happy') {
     eyes = `<path d="M602 272 q 10 -12 20 0" stroke="${INK}" stroke-width="4" fill="none" stroke-linecap="round"/><path d="M645 266 q 10 -12 20 0" stroke="${INK}" stroke-width="4" fill="none" stroke-linecap="round"/>`;
     mouth = `<path d="M664 334 Q 680 352 696 332" stroke="${INK}" stroke-width="4" fill="#7a2f2f" stroke-linecap="round"/>`;
   }
   return `<g transform="rotate(${tilt} 600 330)">
-    <ellipse cx="600" cy="292" rx="92" ry="84" fill="${SKIN}" stroke="${INK}" stroke-width="5"/>
-    <ellipse cx="660" cy="316" rx="62" ry="46" fill="#7aa585" stroke="${INK}" stroke-width="4"/>
+    <ellipse cx="600" cy="292" rx="92" ry="84" fill="${LOOK.skin}" stroke="${INK}" stroke-width="5"/>
+    <ellipse cx="660" cy="316" rx="62" ry="46" fill="${LOOK.snout}" stroke="${INK}" stroke-width="4"/>
     <circle cx="700" cy="300" r="3.5" fill="${INK}"/><circle cx="712" cy="306" r="3.5" fill="${INK}"/>
     ${eyes}${mouth}
     <ellipse cx="596" cy="300" rx="14" ry="7" fill="#e88f86" opacity="0.55"/>${extra}${headParts()}
@@ -395,14 +446,14 @@ function head(expr = 'serious', tilt = 0) {
 function arm(hx, hy, sx = 672, sy = 410) {
   const cx = (sx + hx) / 2 + 20, cy = (sy + hy) / 2 + 10;
   return `<path d="M${sx} ${sy} Q ${cx} ${cy} ${hx} ${hy}" stroke="${INK}" stroke-width="36" stroke-linecap="round" fill="none"/>
-    <path d="M${sx} ${sy} Q ${cx} ${cy} ${hx} ${hy}" stroke="${SKIN}" stroke-width="27" stroke-linecap="round" fill="none"/>
-    <circle cx="${hx}" cy="${hy}" r="27" fill="${SKIN}" stroke="${INK}" stroke-width="5"/>
+    <path d="M${sx} ${sy} Q ${cx} ${cy} ${hx} ${hy}" stroke="${LOOK.skin}" stroke-width="27" stroke-linecap="round" fill="none"/>
+    <circle cx="${hx}" cy="${hy}" r="27" fill="${LOOK.skin}" stroke="${INK}" stroke-width="5"/>
     <path d="M${hx - 18} ${hy - 6} q 18 -9 36 1" stroke="${INK}" stroke-width="3" fill="none"/>`;
 }
 function backArm(hx, hy) {
   return `<path d="M520 420 Q ${(520 + hx) / 2 - 20} ${(420 + hy) / 2} ${hx} ${hy}" stroke="${INK}" stroke-width="32" stroke-linecap="round" fill="none"/>
-    <path d="M520 420 Q ${(520 + hx) / 2 - 20} ${(420 + hy) / 2} ${hx} ${hy}" stroke="#628b6d" stroke-width="24" stroke-linecap="round" fill="none"/>
-    <circle cx="${hx}" cy="${hy}" r="24" fill="#628b6d" stroke="${INK}" stroke-width="5"/>`;
+    <path d="M520 420 Q ${(520 + hx) / 2 - 20} ${(420 + hy) / 2} ${hx} ${hy}" stroke="${LOOK.dark}" stroke-width="24" stroke-linecap="round" fill="none"/>
+    <circle cx="${hx}" cy="${hy}" r="24" fill="${LOOK.dark}" stroke="${INK}" stroke-width="5"/>`;
 }
 function carBetween(ax, ay, bx, by, opts = {}) {
   const dx = bx - ax, dy = by - ay, len = Math.hypot(dx, dy);
@@ -615,7 +666,7 @@ function kataKaiju(track, f, o = {}) {
   }
   const behind = st.behind;
   return (behind ? nun : '') + kb() + arm(st.hx, st.hy) + head(o.expr || 'serious', o.tilt || 0) + (behind ? '' : nun) +
-    g.held(o.href) + `<circle cx="${st.hx}" cy="${st.hy}" r="27" fill="${SKIN}" stroke="${INK}" stroke-width="5"/>`;
+    g.held(o.href) + `<circle cx="${st.hx}" cy="${st.hy}" r="27" fill="${LOOK.skin}" stroke="${INK}" stroke-width="5"/>`;
 }
 const KATA_R = makeTrack([
   { f: 0, hx: 760, hy: 300, psi: -70, phi: -100 },
@@ -643,8 +694,8 @@ const dust = (k, x = 400) => `<g fill="#e8e1cf" opacity="${Math.max(0, 0.9 - k *
   <ellipse cx="${x + 30 + k * 12}" cy="${598 - k * 5}" rx="${24 + k * 8}" ry="${14 + k * 3}"/></g>`;
 
 /* ---------- swimmer ---------- */
-const swimTail = w => `<path d="M520 540 C 500 660 ${545 + w} 760 ${585 + w * 1.6} 860 C ${600 + w} 760 610 650 640 560 Z" fill="${SKIN}" stroke="${INK}" stroke-width="5" stroke-linejoin="round"/>
-  <g fill="#e2a64c" stroke="${INK}" stroke-width="4" stroke-linejoin="round"><path d="M${520 + w * 0.3} 640 Q 495 660 ${520 + w * 0.4} 680 Z"/><path d="M${545 + w * 0.8} 730 Q 520 750 ${548 + w * 0.9} 770 Z"/></g>`;
+const swimTail = w => `<path d="M520 540 C 500 660 ${545 + w} 760 ${585 + w * 1.6} 860 C ${600 + w} 760 610 650 640 560 Z" fill="${LOOK.skin}" stroke="${INK}" stroke-width="5" stroke-linejoin="round"/>
+  <g fill="${LOOK.spike}" stroke="${INK}" stroke-width="4" stroke-linejoin="round"><path d="M${520 + w * 0.3} 640 Q 495 660 ${520 + w * 0.4} 680 Z"/><path d="M${545 + w * 0.8} 730 Q 520 750 ${548 + w * 0.9} 770 Z"/></g>`;
 const TORSO_SWIM = () => torso({ noTail: true });
 function swimmer(cx, cy, s, rot, beta, o = {}) {
   const T = `translate(${cx} ${cy}) rotate(${rot}) scale(${s}) translate(-600 -450)`;
@@ -657,9 +708,9 @@ function swimmer(cx, cy, s, rot, beta, o = {}) {
       <path d="M${sx} ${sy} L${hx} ${hy}" stroke="${col}" stroke-width="${w}" stroke-linecap="round"/>
       <circle cx="${hx}" cy="${hy}" r="${w * 0.75}" fill="${col}" stroke="${INK}" stroke-width="4"/>`; };
   return {
-    far: armPath(beta + 180, '#5c8466', 30 * s * 1.6),
+    far: armPath(beta + 180, LOOK.dark, 30 * s * 1.6),
     body: `<g transform="${T}">${swimTail(o.wag || 0)}${TORSO_SWIM()}${head(o.expr || 'serious', -40 * (o.breathe || 0))}</g>`,
-    near: armPath(beta, SKIN, 34 * s * 1.6),
+    near: armPath(beta, LOOK.skin, 34 * s * 1.6),
     hand: handAt(beta),
   };
 }
@@ -680,20 +731,22 @@ const SHOW = '銀河超人ジャスティア';
 const HERO = 'ジャスティア';
 const TIMES = ['朝', '昼', '晩'];
 const LOCS = {
-  city: { name: '駅前', acts: { nunchaku: { n: 3, thing: '電車', unit: '両', href: 'car' }, rope: { n: 2, thing: '電線', unit: '本' } } },
+  city: { name: '駅前', acts: { nunchaku: { n: 3, thing: '電車', unit: '両', href: 'car' }, rope: { n: 2, thing: '電線', unit: '本' }, run: { n: 2, thing: '高速道路', unit: '回' } } },
   dam: { name: '山あいのダム', acts: { swim: { n: 2, thing: 'ダム湖', unit: '回' }, nunchaku: { n: 2, thing: 'ロープウェイのゴンドラ', unit: '台', href: 'gondola' } } },
-  port: { name: '臨海コンビナート', acts: { eat: { n: 3, thing: 'コンビナートの石油', unit: '杯' }, nunchaku: { n: 2, thing: '貨物列車', unit: '両', href: 'freight' } } },
+  port: { name: '臨海コンビナート', acts: { eat: { n: 3, thing: 'コンビナートの石油', unit: '杯' }, skip: { n: 2, thing: 'コンテナ船', unit: '隻' }, nunchaku: { n: 2, thing: '貨物列車', unit: '両', href: 'freight' } } },
 };
 // action names only: what gets used is a surprise until the minigame/news
 const ACTIONS = [
   { id: 'nunchaku', name: 'ヌンチャク', what: '技術・腕力が上がる　体力−25', base: 18 },
   { id: 'rope', name: '縄跳び', what: '持久力・技術が上がる　体力−25', base: 15 },
   { id: 'swim', name: '水泳', what: '持久力が上がる　体力−30', base: 20 },
+  { id: 'run', name: 'ランニング', what: '持久力・腕力が上がる　体力−25', base: 16 },
+  { id: 'skip', name: '水切り', what: '技術・腕力が上がる　体力−20', base: 18 },
   { id: 'eat', name: '食事', what: '腕力が上がる　体力回復', safe: true },
   { id: 'sleep', name: '寝る', what: '体力が全回復', safe: true, always: true },
   { id: 'move', name: '移動して探す', what: '別の場所に、新しい道具があるかも', safe: true, always: true },
 ];
-const PART_OF = { eat: 'chimney', swim: 'fins', nunchaku: 'horn', rope: 'coil', sleep: 'nightcap', move: 'horn' };
+const PART_OF = { eat: 'chimney', swim: 'fins', nunchaku: 'horn', rope: 'coil', sleep: 'nightcap', move: 'horn', run: 'horn', skip: 'fins' };
 const PART_NAME = { chimney: '背中の煙突', fins: 'ヒレ', horn: 'ツノ', coil: 'アンテナ', nightcap: 'ナイトキャップ' };
 const KAIJU_NAME = { chimney: 'モクモクドン', fins: 'ザブングラ', horn: 'ツノグラー', coil: 'ビリビリンガ', nightcap: 'ネムグラ' };
 
@@ -702,7 +755,7 @@ function newGame() {
   for (const [k, v] of Object.entries(LOCS)) { stock[k] = {}; for (const [a, d] of Object.entries(v.acts)) stock[k][a] = d.n; }
   return {
     ep: 0, turn: 0, loc: 'city',
-    kaiju: 'ズングラ', parts: [],
+    kaiju: 'ズングラ', parts: [], look: { ...BASE_LOOK }, lookChanges: [],
     pow: 10, sta: 10, tec: 10, hp: 100,
     dmg: 0, alert: 0, kpop: 10, hpop: 10, oil: 0,
     stock, flags: { blackout: false, cracks: false, damBroken: false },
@@ -710,6 +763,7 @@ function newGame() {
   };
 }
 let G = newGame();
+LOOK = G.look;
 
 const yen = n => '¥' + Math.round(n).toLocaleString('ja-JP');
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
@@ -776,6 +830,7 @@ window.addEventListener('keydown', e => {
   if (!scene) return;
   if ((e.key === 'ArrowLeft' || e.key === 'a') && scene.onSide) { scene.onSide('L'); e.preventDefault(); return; }
   if ((e.key === 'ArrowRight' || e.key === 'd') && scene.onSide) { scene.onSide('R'); e.preventDefault(); return; }
+  if ((e.key === 'ArrowUp' || e.key === 'w') && scene.onSide) { scene.onSide('T'); e.preventDefault(); return; }
   if (e.key === ' ' || e.key === 'Enter') {
     if (document.activeElement && document.activeElement.tagName === 'BUTTON') return;
     if (scene.onTap) { scene.onTap(e); e.preventDefault(); }
@@ -879,12 +934,12 @@ function sceneNewKaiju(next) {
     bg: () => bgFor(),
     draw(f) {
       const s = Math.min(1, f / 8);
-      return `<g transform="translate(600 450) scale(${0.6 + 0.4 * s}) translate(-600 -450) translate(0 ${40 - 40 * s})">${kb()}${arm(735, 470)}${head('serious')}</g>` + (f > 8 && f < 20 ? sfx(820, 300, 'ガオー', 60, -6) : '');
+      return `<g transform="translate(600 450) scale(${0.6 + 0.4 * s}) translate(-600 -450) translate(0 ${130 - 40 * s})">${kb()}${arm(735, 470)}${head('serious')}</g>` + (f > 8 && f < 20 ? sfx(840, 420, 'ガオー', 60, -6) : '');
     },
     tick(f) { if (f === 60) this.onTap(); },
     enter() {
       h(`<div class="kcard"><div class="kind">今週の怪獣</div><div class="kname">${G.kaiju}</div>
-        <div class="kpart">着ぐるみ改造：${G.parts.map(p => PART_NAME[p]).join('・')}を追加</div></div><div class="skip">タップで進む</div>`);
+        <div class="kpart">着ぐるみ改造メモ：${G.lookChanges.join('／')}</div></div><div class="skip">タップで進む</div>`);
     },
     onTap() { if (this.done) return; this.done = true; next(); },
   });
@@ -911,8 +966,8 @@ function sceneMenu(view = 'main') {
         }).join('') + `<button class="btn back" id="back">もどる</button>`;
       } else {
         let usable = 0;
-        list = ACTIONS.map(a => {
-          const avail = a.always || thingHere(a.id) !== undefined;
+        list = ACTIONS.filter(a => a.always || thingHere(a.id) !== undefined).map(a => {
+          const avail = true;
           const n = a.always ? Infinity : left(a.id);
           const ok = avail && n > 0;
           if (ok && !a.always) usable++;
@@ -953,7 +1008,7 @@ function sceneMenu(view = 'main') {
 function countAct(id) { G.actCount[id] = (G.actCount[id] || 0) + 1; }
 function runCommand(id) {
   countAct(id);
-  ({ nunchaku: sceneNunchaku, rope: sceneRope, swim: sceneSwim, eat: sceneEat, sleep: sceneSleep })[id]();
+  ({ nunchaku: sceneNunchaku, rope: sceneRope, swim: sceneSwim, run: sceneRun, skip: sceneSkip, eat: sceneEat, sleep: sceneSleep })[id]();
 }
 
 // ---- move: walk off to search somewhere else ----
@@ -1302,6 +1357,230 @@ function sceneSwim() {
   });
 }
 
+// ---- minigame: highway running (alternate steps, jump the toll gates) ----
+function sceneRun() {
+  const GOAL = 1600, OBST = [560, 1140];
+  const JT = Math.round(15 * (0.75 + 0.25 * G.hp / 100));
+  const S = { mode: 'run', d: 0, v: 0, last: null, jumpT: -1, passed: new Set(), failAt: 0, doneAt: 0, phase: 0, wrong: -10, failObs: 0 };
+  const KX = 470;  // kaiju's front foot on screen
+  setScene({
+    bg: DEFS_BG + `<rect width="1200" height="750" fill="url(#sky)"/>
+      <g fill="#fff" opacity="0.8"><ellipse cx="190" cy="120" rx="90" ry="26"/><ellipse cx="1040" cy="90" rx="80" ry="22"/></g>`,
+    wantsTap: true,
+    enter() {
+      h(`<div class="prompt" id="pr">左右交互で走る！ 料金所はジャンプ</div>
+        <div class="pads"><button class="pad" id="padL">左足 ←</button><button class="pad next" id="padJ">ジャンプ ↑</button><button class="pad" id="padR">右足 →</button></div>`);
+      [['padL', 'L'], ['padR', 'R'], ['padJ', 'T']].forEach(([id, sd]) => { document.getElementById(id).onpointerdown = e => { e.stopPropagation(); this.onSide(sd); }; });
+    },
+    yoff() { return S.jumpT >= 0 ? -160 * Math.sin(Math.PI * S.jumpT / JT) : 0; },
+    onSide(side) {
+      if (S.mode !== 'run') return;
+      if (side === 'T') { if (S.jumpT < 0) S.jumpT = 0; return; }
+      if (S.last === side) { S.v *= 0.5; S.wrong = frame; }
+      else { S.v += 4.4 * (1 + G.sta / 150); S.phase++; }
+      S.last = side;
+      const b = document.getElementById(side === 'L' ? 'padL' : 'padR');
+      if (b) { b.classList.add('lit'); setTimeout(() => b.classList.remove('lit'), 90); }
+    },
+    tick(f) {
+      if (f === 40) { const pr = document.getElementById('pr'); if (pr) pr.remove(); }
+      if (S.mode === 'run') {
+        S.d += S.v; S.v *= 0.9;
+        if (S.jumpT >= 0) { S.jumpT++; if (S.jumpT >= JT) S.jumpT = -1; }
+        for (const o of OBST) {
+          const x = KX + 60 + (o - S.d);
+          if (S.passed.has(o) || x > KX + 70 || x < KX - 90) continue;
+          if (this.yoff() < -70) { if (x < KX - 60) S.passed.add(o); }
+          else { S.mode = 'fail'; S.failAt = f; S.failObs = o; $ui.innerHTML = ''; return; }
+        }
+        if (S.d >= GOAL) { S.mode = 'done'; S.doneAt = f; $ui.innerHTML = ''; }
+      } else if (S.mode === 'done' && f - S.doneAt > 30) this.finish(true);
+      else if (S.mode === 'fail' && f - S.failAt > 52) this.finish(false);
+    },
+    shake(f) { if (S.mode === 'fail') { const j = f - S.failAt - 10; if (j >= 0 && j < 5) return [[0, 16], [0, -12], [8, 6], [-4, -2], [2, 1]][j]; } return null; },
+    draw(f) {
+      const d = S.d;
+      let out = '';
+      // far buildings (parallax), ground, elevated highway
+      for (let i = -1; i < 6; i++) { const x = ((i * 260 - d * 0.3) % 1560 + 1560) % 1560 - 200; out += `<rect x="${x}" y="${360 + (i % 3) * 25}" width="${90 + (i % 2) * 40}" height="${200}" fill="#8fa3ad" opacity="0.8"/>`; }
+      out += `<rect x="0" y="520" width="1200" height="230" fill="#9c967d"/>`;
+      for (let i = -1; i < 8; i++) { const x = ((i * 220 - d) % 1760 + 1760) % 1760 - 220; out += `<rect x="${x}" y="640" width="34" height="110" fill="#b9b4a3" stroke="${INK}" stroke-width="3"/>`; }
+      out += `<rect x="0" y="600" width="1200" height="42" fill="#7d7a72" stroke="${INK}" stroke-width="3"/><rect x="0" y="590" width="1200" height="10" fill="#c9c5ba" stroke="${INK}" stroke-width="2"/>`;
+      for (let i = -1; i < 14; i++) { const x = ((i * 100 - d) % 1400 + 1400) % 1400 - 100; out += `<rect x="${x}" y="619" width="50" height="5" fill="#f4f0e2"/>`; }
+      for (let i = 0; i < 6; i++) { const x = ((i * 330 + 120 - d * 1.15) % 1980 + 1980) % 1980 - 200; out += `<g transform="translate(${x} 604)"><rect x="-22" y="-14" width="44" height="16" rx="4" fill="${['#d33a2c', '#3f7fc0', '#f4f0e2'][i % 3]}" stroke="${INK}" stroke-width="2"/></g>`; }
+      // toll gates
+      for (const o of OBST) {
+        const x = KX + 60 + (o - d);
+        if (x < -150 || x > 1350) continue;
+        const broken = S.mode === 'fail' && S.failObs === o && f - S.failAt > 4;
+        out += broken
+          ? `<g transform="translate(${x} 600)" stroke="${INK}" stroke-width="3"><rect x="-70" y="-30" width="50" height="16" fill="#d9d4c3" transform="rotate(-30 -45 -22)"/><rect x="10" y="-20" width="60" height="16" fill="#d9d4c3" transform="rotate(25 40 -12)"/><rect x="-30" y="-14" width="22" height="14" fill="#f4f0e2"/></g>`
+          : `<g transform="translate(${x} 600)" stroke="${INK}" stroke-width="3">
+              <rect x="-60" y="-78" width="120" height="16" fill="#d9d4c3"/><rect x="-56" y="-62" width="8" height="62" fill="#b9b4a3"/><rect x="48" y="-62" width="8" height="62" fill="#b9b4a3"/>
+              <rect x="-22" y="-40" width="18" height="40" fill="#f4f0e2"/><rect x="6" y="-40" width="18" height="40" fill="#f4f0e2"/>
+              <text x="0" y="-65" font-family="'M PLUS 1p',sans-serif" font-weight="800" font-size="13" fill="${INK}" stroke="none" text-anchor="middle">料金所</text></g>`;
+      }
+      // kaiju
+      const y = this.yoff();
+      if (S.mode === 'fail') {
+        const j = f - S.failAt, t = clamp(j / 12, 0, 1);
+        out += `<g transform="translate(${KX - 600 - 60} ${-40}) rotate(${6 + 80 * easeInOut(t)} 560 640)">${kb()}${arm(760, 470)}${head(j < 12 ? 'surprised' : 'dizzy')}</g>`;
+        if (j > 10 && j < 30) out += sfx(560, 360, 'ズデーン', 64, -6);
+        if (j > 24) out += `<g stroke="${INK}" stroke-width="3" fill="#7d7a72"><path d="M700 600 l40 30 l-30 20 Z"/><path d="M820 600 l-20 40 l40 10 Z"/></g>` + sfx(760, 480, 'ガラガラ', 40, 6);
+      } else {
+        const bob = S.v > 0.8 ? -Math.abs(Math.sin(S.phase * Math.PI / 2 + f * 0.0)) * 12 : 0;
+        out += `<g transform="translate(${KX - 600 - 60} ${y + bob - 40}) rotate(6 560 640)">${kb()}${arm(780, 440)}${head(S.mode === 'done' ? 'happy' : 'serious')}</g>`;
+        if (S.v > 3 && y === 0) out += `<g fill="#e8e1cf" opacity="0.8"><ellipse cx="${KX - 160}" cy="598" rx="${20 + S.v * 2}" ry="10"/></g>` + (S.phase % 2 ? sfx(KX - 260, 560, 'ドスドス', 36, -4) : '');
+        if (f - S.wrong < 10) out += sfx(KX - 120, 200, 'つまずきそう', 30, 0);
+        if (S.mode === 'done') out += sfx(700, 240, 'ゴール！', 64, -6);
+      }
+      const prog = clamp(S.d / GOAL, 0, 1);
+      out += `<rect x="300" y="160" width="600" height="14" rx="7" fill="#0f2a4a" opacity="0.7"/><rect x="300" y="160" width="${600 * prog}" height="14" rx="7" fill="#ffd34d"/>
+        <text x="910" y="174" font-family="'M PLUS 1p',sans-serif" font-weight="800" font-size="20" fill="#fff" stroke="${INK}" stroke-width="4" paint-order="stroke">ゴール</text>`;
+      return out + liveBadge('中継：首都高速');
+    },
+    finish(ok) {
+      if (this.ended) return; this.ended = true;
+      if (ok) {
+        G.stock.city.run -= 1;
+        G.epLog.push('run');
+        showNews({
+          loc: 'city', ok: true,
+          head: '怪獣、高速道路をランニング　料金所を2か所とび越える',
+          lines: ['料金は払っていない模様', '足あとで路面が波打ち、あちこちで段差', `走れる高速道路：残り${G.stock.city.run}回`],
+          gains: { sta: 7, pow: 3, hp: -25 }, dmg: 2.2e9, alert: 10, kpop: 5, cat: '道路',
+        });
+      } else {
+        G.stock.city.run = 0;
+        G.epLog.push('runFail');
+        showNews({
+          loc: 'city', ok: false,
+          head: '怪獣、料金所でつまずきジャンクションごと転倒',
+          lines: ['ジャンプのタイミングが合わず、料金所に足を引っかけた', '転倒の衝撃でジャンクションの高架が崩落', '首都圏の高速道路は終日通行止め'],
+          gains: { sta: 2, hp: -25 }, dmg: 34.5e9, alert: 26, kpop: 2, hpop: 5, cat: '道路',
+        });
+      }
+    },
+  });
+}
+
+// ---- minigame: skipping a container ship across the bay ----
+function sceneSkip() {
+  const S = { mode: 'power', t0: 0, pv: 0, av: 0, power: 0, angle: 0, n: 0, over: false, at: 0, dur: 0, xs: [] };
+  const REL = [600, 330], WY = 505;
+  setScene({
+    bg: () => bgFor('port'),
+    enter() { h(`<div class="prompt" id="pr">強さ：針が黄色に入ったらタップ（赤は強すぎ）</div>`); },
+    tick(f) {
+      if (S.mode === 'power') S.pv = (1 - Math.cos((f - S.t0) * 0.16)) / 2;
+      else if (S.mode === 'angle') S.av = (1 - Math.cos((f - S.t0) * 0.14)) / 2;
+      else if (S.mode === 'throw' && f - S.at > S.dur) this.finish();
+    },
+    onTap() {
+      if (S.mode === 'power') { S.power = S.pv; S.mode = 'angle'; S.t0 = frame; h(`<div class="prompt">角度：低いほどよく跳ねる。タップで投げる</div>`); }
+      else if (S.mode === 'angle') { S.angle = S.av; this.launch(); }
+    },
+    launch() {
+      S.over = S.power > 0.92;
+      const q = Math.max(0, 1 - Math.abs(S.power - 0.72) / 0.72) * (1 - S.angle);
+      S.n = S.over || S.angle > 0.78 ? 0 : clamp(Math.round(q * 6 + G.tec / 30), 0, 9);
+      let x = REL[0] - (150 + S.power * 220), L = 110 + S.power * 200;
+      S.xs = [x];
+      for (let i = 0; i < S.n; i++) { L *= 0.74; x -= L; S.xs.push(x); }
+      S.dur = 8 + (S.over ? 20 : 8 + S.n * 7) + 26;
+      S.mode = 'throw'; S.at = frame; $ui.innerHTML = '';
+    },
+    draw(f) {
+      let out = '';
+      const t = S.mode === 'throw' ? f - S.at : -1;
+      // kaiju on the quay, facing left, ship raised overhead until it's thrown
+      const wind = t < 0 ? 0 : t < 6 ? t / 6 : 1;
+      const hand = t < 0 ? [760, 300] : t < 6 ? [760 - 60 * wind, 300 - 40 * wind] : [820, 430];
+      const holding = t < 6;
+      const ship = holding ? `<use href="#cship" transform="translate(${hand[0] + 20} ${hand[1] - 50}) rotate(${-8 - 10 * wind}) scale(0.9)"/>` : '';
+      out += `<g transform="translate(270 40)">${mirror(`${kb()}${ship}${arm(hand[0], hand[1])}${head(t >= 0 && t < 10 ? 'roar' : 'serious')}`)}</g>`;
+      if (t >= 0 && t < 10) out += sfx(560, 220, 'どっせい', 48, -6);
+      if (S.mode === 'power' || S.mode === 'angle') {
+        // power gauge
+        out += `<g><rect x="300" y="170" width="600" height="24" rx="12" fill="#0f2a4a" opacity="0.8"/>
+          <rect x="${300 + 600 * 0.6}" y="170" width="${600 * 0.25}" height="24" fill="#ffd34d"/>
+          <rect x="${300 + 600 * 0.92}" y="170" width="${600 * 0.08}" height="24" fill="#d33a2c"/>
+          <rect x="${300 + 600 * (S.mode === 'power' ? S.pv : S.power) - 5}" y="160" width="10" height="44" rx="3" fill="#fff" stroke="${INK}" stroke-width="3"/>
+          <text x="290" y="190" font-family="'M PLUS 1p',sans-serif" font-weight="800" font-size="20" fill="#fff" stroke="${INK}" stroke-width="4" paint-order="stroke" text-anchor="end">強さ</text></g>`;
+        if (S.mode === 'angle') {
+          const a = (8 + S.av * 52) * D2R;
+          out += `<path d="M${REL[0]} ${REL[1] + 120} l -200 0" stroke="#fff" stroke-width="3" stroke-dasharray="8 6"/>
+            <path d="M${REL[0]} ${REL[1] + 120} l ${-200 * Math.cos(a)} ${-200 * Math.sin(a)}" stroke="#ffd34d" stroke-width="8" stroke-linecap="round"/>
+            <text x="${REL[0] - 220}" y="${REL[1] + 100}" font-family="'M PLUS 1p',sans-serif" font-weight="800" font-size="20" fill="#fff" stroke="${INK}" stroke-width="4" paint-order="stroke" text-anchor="end">角度</text>`;
+        }
+      }
+      if (t >= 6) {
+        const k = t - 6;
+        if (S.over) {
+          const u = clamp(k / 20, 0, 1);
+          if (k < 20) out += `<use href="#cship" transform="translate(${REL[0] - (REL[0] - 60) * u} ${REL[1] + 40 + 60 * u}) rotate(${k * 18}) scale(${0.9 - 0.6 * u})"/>`;
+          const e = k - 20;
+          if (e >= 0) out += `<circle cx="60" cy="430" r="${Math.min(e, 10) * 12}" fill="#ffd34d" opacity="${Math.max(0, 0.9 - e * 0.04)}"/><g fill="#6d6d6d" opacity="${Math.min(0.85, e * 0.08)}"><circle cx="70" cy="${400 - e * 3}" r="${24 + e}"/><circle cx="40" cy="${380 - e * 3.5}" r="${18 + e}"/></g>`;
+          if (e >= 0 && e < 14) out += sfx(80, 330, 'ドーン', 48, -6);
+          if (e > 8) out += sfx(820, 200, 'あ', 60, 0);
+        } else {
+          // first arc from the hand to the water, then shrinking hops
+          const pts = [[REL[0], REL[1] + 40], ...S.xs.map(x => [x, WY])];
+          const seg = Math.floor(k / 7), u = (k % 7) / 7;
+          let hops = 0;
+          if (seg < pts.length - 1) {
+            const [x0, y0] = pts[seg], [x1, y1] = pts[seg + 1];
+            const hgt = seg === 0 ? 60 : 70 * Math.pow(0.72, seg);
+            const x = x0 + (x1 - x0) * u, y = y0 + (y1 - y0) * u - hgt * Math.sin(Math.PI * u);
+            out += `<use href="#cship" transform="translate(${x} ${y}) rotate(${seg === 0 ? 10 : 0}) scale(0.7)"/>`;
+            hops = seg;
+          } else {
+            hops = pts.length - 1;
+            const [lx] = pts[pts.length - 1];
+            const sink = clamp((k - (pts.length - 1) * 7) / 10, 0, 1);
+            out += `<g opacity="${1 - sink}"><use href="#cship" transform="translate(${lx} ${WY + 20 * sink}) rotate(${-20 * sink}) scale(0.7)"/></g>`;
+            out += `<ellipse cx="${lx}" cy="${WY + 4}" rx="${40 + 30 * sink}" ry="10" fill="#fff" opacity="${1 - sink * 0.6}"/>` + sfx(lx - 40, WY - 90, 'ドボン', 40, -4);
+          }
+          for (let i = 1; i <= Math.min(hops, S.xs.length - 1); i++) out += `<ellipse cx="${S.xs[i]}" cy="${WY + 4}" rx="30" ry="8" fill="#fff" opacity="0.8"/>`;
+          if (hops >= 1) out += sfx(Math.max(60, S.xs[Math.min(hops, S.xs.length - 1)] - 30), WY - 60, 'パシャ', 32, -6);
+          out += `<text x="1160" y="110" font-family="${SFX_FONT}" font-size="60" fill="#fff" stroke="${INK}" stroke-width="8" paint-order="stroke" text-anchor="end">${Math.max(0, hops - 0)}回</text>`;
+        }
+      }
+      return out + liveBadge('中継：' + LOCS.port.name);
+    },
+    finish() {
+      if (this.ended) return; this.ended = true;
+      G.stock.port.skip -= 1;
+      const restTxt = `残りのコンテナ船：${G.stock.port.skip}隻`;
+      if (S.over) {
+        G.epLog.push('skipFail');
+        showNews({
+          loc: 'port', ok: false,
+          head: '怪獣が投げたコンテナ船、跳ねずに対岸の港へ直撃',
+          lines: ['力みすぎて水面に当たらず、まっすぐ飛んでいった模様', '対岸の港のクレーン3基が倒壊', '積み荷のコンテナ約2,000個が散乱', restTxt],
+          gains: { pow: 3, tec: 1, hp: -20 }, dmg: 41.2e9, alert: 24, kpop: 2, hpop: 5, cat: '港湾',
+        });
+      } else if (S.n >= 3) {
+        G.epLog.push('skip');
+        showNews({
+          loc: 'port', ok: true,
+          head: `怪獣、コンテナ船で水切り　${S.n}回跳ねる`,
+          lines: ['専門家「コンテナ船の水切りとしては世界記録」', '波で沿岸の釣り船が一斉に転覆', restTxt],
+          gains: { tec: 3 + S.n, pow: 4, hp: -20 }, dmg: 1.4e9 + S.n * 0.25e9, alert: 9, kpop: 3 + S.n, cat: '港湾',
+        });
+      } else {
+        G.epLog.push('skipSink');
+        showNews({
+          loc: 'port', ok: true,
+          head: `コンテナ船、${S.n === 0 ? '1回も跳ねずに' : S.n + '回で'}沈没`,
+          lines: ['角度が高すぎたか、力が足りなかった模様', '沈んだ船の引き上げには3か月かかる見込み', restTxt],
+          gains: { tec: 2, pow: 2, hp: -20 }, dmg: 2.6e9, alert: 8, kpop: 1, cat: '港湾',
+        });
+      }
+    },
+  });
+}
+
 // ---- eat: a mug of crude straight from the refinery ----
 function sceneEat() {
   setScene({
@@ -1515,6 +1794,10 @@ function reactions() {
   if (L.includes('rope') || L.includes('ropeFail')) add('ハガキ・主婦', '縄跳びのたびに電子レンジが止まります');
   if (L.includes('eat')) add('SNS', 'ジョッキで原油を飲む怪獣、ちょっとうらやましい');
   if (L.includes('move')) add('SNS', 'うちの近所に向かって歩いてるの、見えてます');
+  if (L.includes('run')) add('ハガキ・料金所職員', '料金所を飛び越えるとき、ちゃんと会釈していました');
+  if (L.includes('runFail')) add('SNS', '高速が通行止めで帰省できない');
+  if (L.includes('skip')) add('ハガキ・小4', '水切りの回数、家族で数えました');
+  if (L.includes('skipFail')) add('ハガキ・港湾関係', '対岸の港で働いています。今日は休みになりました');
   if (L.filter(x => x === 'sleep').length >= 2) add('SNS', '今週ほぼ寝てただけでは？');
   if (G.survived > 6) add('ハガキ・小2', `${G.kaiju}がんばってた。ジャスティアがんばりすぎ`);
   const generic = [
@@ -1562,6 +1845,13 @@ function evolve() {
   if (G.parts.includes(part)) part = ['horn', 'fins', 'coil', 'chimney', 'nightcap'].find(p => !G.parts.includes(p));
   G.parts.push(part);
   G.kaiju = G.parts.length === 1 ? KAIJU_NAME[part] : 'ネオ' + KAIJU_NAME[part];
+  // repaint and re-sculpt the suit so it doesn't read as the same costume
+  const prev = G.look;
+  const pick = (arr, cur) => { const c = arr.filter(x => x !== cur); return c[Math.floor(Math.random() * c.length)]; };
+  const pal = pick(PALETTES.map(x => x.id), prev.id);
+  G.look = { ...PALETTES.find(x => x.id === pal), eyes: pick(Object.keys(EYES), prev.eyes), spikes: pick(Object.keys(SPIKES), prev.spikes), pattern: pick(Object.keys(PATTERNS), prev.pattern) };
+  LOOK = G.look;
+  G.lookChanges = [`${PART_NAME[part]}を追加`, `${PALETTES.find(x => x.id === pal).name}に塗り直し`, `目を${EYES[G.look.eyes]}に`, `${SPIKES[G.look.spikes]}に交換`, PATTERNS[G.look.pattern] !== '無地' ? `${PATTERNS[G.look.pattern]}を追加` : '模様を塗りつぶし'];
   G.actCount = {};
   G.hp = 100; G.alert = Math.max(0, G.alert - 25);
 }
@@ -1663,7 +1953,7 @@ function sceneBill() {
         <div style="color:var(--muted);font-size:calc(var(--u)*20)">最後の怪獣：${G.kaiju}（改造：${G.parts.map(p => PART_NAME[p]).join('・') || 'なし'}）／ 腕力 ${G.pow}・持久力 ${G.sta}・技術 ${G.tec}</div>
         <div class="foot"><span style="margin-right:auto;color:var(--muted)">試作版はここまで。</span><button class="btn" id="again">最初から</button></div>
       </div>`);
-      focusBtn('again').onclick = () => { G = newGame(); sceneProposal(); };
+      focusBtn('again').onclick = () => { G = newGame(); LOOK = G.look; sceneProposal(); };
     },
   });
 }
