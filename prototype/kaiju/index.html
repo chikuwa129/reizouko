@@ -1,0 +1,1346 @@
+<title>怪獣育成（仮）</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=M+PLUS+1p:wght@500;800&display=swap">
+<style>
+/* Layout: one TV screen centered in a dark studio. Everything inside the screen is sized in
+   screen units (--u = 1/1200 of the screen width), so the game scales like a TV picture. */
+:root {
+  --studio: #15181e;
+  --bezel: #2b2f37;
+  --paper: #f3ecdb;
+  --paper-ink: #3a2f25;
+  --ink: #2f3e36;
+  --telop: #0f2a4a;
+  --relay: #3a6fb0;
+  --red: #d33a2c;
+  --gold: #ffd34d;
+  --text: #f5f3ee;
+  --muted: #aab3bf;
+  --panel: rgba(12, 22, 38, 0.86);
+  --good: #7fd18b;
+  --bad: #ff8a7a;
+  --f-display: 'Dela Gothic One', 'Hiragino Sans', 'Noto Sans JP', 'Yu Gothic', sans-serif;
+  --f-body: 'M PLUS 1p', 'Hiragino Sans', 'Noto Sans JP', 'Yu Gothic', system-ui, sans-serif;
+  color-scheme: dark;
+}
+html, body { height: 100%; }
+body {
+  margin: 0;
+  background: var(--studio);
+  color: var(--text);
+  font-family: var(--f-body);
+  box-sizing: border-box;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  overflow-x: hidden;
+}
+.tv {
+  width: min(100%, 1120px, calc((100dvh - 64px) * 1.6));
+  padding: 10px;
+  background: var(--bezel);
+  border-radius: 22px;
+  box-shadow: 0 0 0 2px #3a3f49 inset, 0 18px 50px rgba(0,0,0,0.5);
+  box-sizing: border-box;
+}
+.screen {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  container-type: inline-size;
+  overflow: hidden;
+  border-radius: 12px;
+  background: #000;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+  --u: calc(100cqw / 1200);
+}
+.layer { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+#stage { position: absolute; inset: 0; }
+#bg.dim { filter: brightness(0.55) saturate(0.8); }
+#bg.cctv, #fx.cctv { filter: grayscale(1) contrast(1.15) brightness(0.9); }
+#ui { position: absolute; inset: 0; font-size: calc(var(--u) * 24); line-height: 1.45; }
+#ui * { box-sizing: border-box; }
+.hint { color: var(--muted); font-size: 12px; text-align: center; max-width: 60ch; }
+
+/* generic buttons */
+.btn {
+  font-family: var(--f-body);
+  font-weight: 800;
+  font-size: calc(var(--u) * 26);
+  color: var(--telop);
+  background: var(--gold);
+  border: calc(var(--u) * 4) solid var(--ink);
+  border-radius: calc(var(--u) * 10);
+  padding: calc(var(--u) * 10) calc(var(--u) * 30);
+  cursor: pointer;
+  box-shadow: 0 calc(var(--u) * 5) 0 var(--ink);
+}
+.btn:active { transform: translateY(calc(var(--u) * 4)); box-shadow: 0 calc(var(--u) * 1) 0 var(--ink); }
+.btn:focus-visible, .cmd:focus-visible { outline: calc(var(--u) * 5) solid #8fd0ff; outline-offset: calc(var(--u) * 3); }
+
+/* proposal sheet (title) */
+.sheet {
+  position: absolute; inset: calc(var(--u) * 40) calc(var(--u) * 160);
+  background: var(--paper); color: var(--paper-ink);
+  border-radius: calc(var(--u) * 6);
+  box-shadow: 0 calc(var(--u) * 12) calc(var(--u) * 40) rgba(0,0,0,0.5);
+  padding: calc(var(--u) * 46) calc(var(--u) * 64);
+  display: flex; flex-direction: column; gap: calc(var(--u) * 14);
+  background-image: repeating-linear-gradient(transparent 0 calc(var(--u) * 47), rgba(58,47,37,0.09) calc(var(--u) * 47) calc(var(--u) * 48));
+}
+.sheet .meta { display: flex; justify-content: space-between; font-size: calc(var(--u) * 20); letter-spacing: 0.08em; }
+.sheet h1 { font-family: var(--f-display); font-weight: 400; font-size: calc(var(--u) * 78); margin: calc(var(--u) * 10) 0 0; letter-spacing: 0.04em; text-wrap: balance; }
+.sheet .lede { font-size: calc(var(--u) * 26); margin: 0; }
+.sheet ul { margin: 0; padding-left: 1.2em; font-size: calc(var(--u) * 22); }
+.sheet .row { margin-top: auto; display: flex; align-items: center; justify-content: space-between; gap: calc(var(--u) * 20); }
+.stamp {
+  font-family: var(--f-display); color: var(--red); border: calc(var(--u) * 6) double var(--red);
+  border-radius: calc(var(--u) * 8); padding: calc(var(--u) * 4) calc(var(--u) * 18); font-size: calc(var(--u) * 34);
+  transform: rotate(-9deg); opacity: 0.85;
+}
+.strike { text-decoration: line-through; text-decoration-thickness: calc(var(--u) * 6); text-decoration-color: var(--red); }
+
+/* program title card */
+.titlecard { position: absolute; inset: 0; display: grid; place-items: center; background: radial-gradient(circle at 50% 45%, #2b4d78 0, #0c1626 70%); }
+.logo {
+  font-family: var(--f-display); font-size: calc(var(--u) * 120); color: var(--gold);
+  -webkit-text-stroke: calc(var(--u) * 5) var(--red); paint-order: stroke fill;
+  text-shadow: calc(var(--u) * 6) calc(var(--u) * 8) 0 #0a0f18; letter-spacing: 0.02em; line-height: 1.05; text-align: center;
+  animation: zoomIn 0.5s cubic-bezier(.2,1.6,.4,1) both;
+}
+.logo small { display: block; font-size: 0.32em; -webkit-text-stroke: 0; color: #fff; text-shadow: none; letter-spacing: 0.3em; }
+.ep-title { font-family: var(--f-display); font-size: calc(var(--u) * 54); color: #fff; text-align: center; animation: zoomIn 0.4s ease-out both; }
+.ep-title .num { display: block; color: var(--gold); font-size: 0.6em; letter-spacing: 0.2em; }
+@keyframes zoomIn { from { transform: scale(1.6); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.skip { position: absolute; right: calc(var(--u) * 24); bottom: calc(var(--u) * 20); color: var(--muted); font-size: calc(var(--u) * 20); }
+
+/* command menu (status + commands) */
+.topbar {
+  position: absolute; left: 0; right: 0; top: 0; height: calc(var(--u) * 64);
+  display: flex; align-items: center; gap: calc(var(--u) * 18); padding: 0 calc(var(--u) * 22);
+  background: linear-gradient(var(--panel), rgba(12,22,38,0.6));
+}
+.chip { font-weight: 800; border-radius: calc(var(--u) * 6); padding: calc(var(--u) * 2) calc(var(--u) * 14); font-size: calc(var(--u) * 22); white-space: nowrap; }
+.chip.time { background: var(--gold); color: var(--telop); }
+.chip.alert { background: #555c66; color: #fff; }
+.chip.alert.lv1 { background: #6c7a3a; } .chip.alert.lv2 { background: var(--relay); } .chip.alert.lv3 { background: var(--red); } .chip.alert.lv4 { background: #8a1c6a; }
+.ep { font-family: var(--f-display); font-size: calc(var(--u) * 26); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.money { margin-left: auto; font-variant-numeric: tabular-nums; font-weight: 800; font-size: calc(var(--u) * 26); color: var(--gold); white-space: nowrap; }
+.money span { color: var(--muted); font-weight: 500; font-size: 0.8em; margin-right: 0.4em; }
+
+.status {
+  position: absolute; left: calc(var(--u) * 18); top: calc(var(--u) * 82); width: calc(var(--u) * 330);
+  background: var(--panel); border: calc(var(--u) * 3) solid #2c4a6e; border-radius: calc(var(--u) * 12);
+  padding: calc(var(--u) * 14) calc(var(--u) * 18); display: flex; flex-direction: column; gap: calc(var(--u) * 8);
+}
+.status h2 { margin: 0; font-family: var(--f-display); font-weight: 400; font-size: calc(var(--u) * 28); }
+.stat { display: grid; grid-template-columns: calc(var(--u) * 70) 1fr calc(var(--u) * 56); align-items: center; gap: calc(var(--u) * 8); font-size: calc(var(--u) * 20); }
+.bar { height: calc(var(--u) * 14); background: #233247; border-radius: 99px; overflow: hidden; }
+.bar i { display: block; height: 100%; background: var(--good); border-radius: 99px; }
+.bar.hp i { background: linear-gradient(90deg, #ff8a7a, #ffd34d 45%, #7fd18b); }
+.stat b { text-align: right; font-variant-numeric: tabular-nums; }
+.belly { font-size: calc(var(--u) * 19); color: var(--muted); }
+
+.cmds {
+  position: absolute; right: calc(var(--u) * 18); top: calc(var(--u) * 82); bottom: calc(var(--u) * 18); width: calc(var(--u) * 430);
+  display: flex; flex-direction: column; gap: calc(var(--u) * 10);
+}
+.cmds h2 { margin: 0; font-family: var(--f-display); font-weight: 400; font-size: calc(var(--u) * 26); text-shadow: 0 2px 0 #000; }
+.cmd {
+  display: grid; grid-template-columns: 1fr auto; gap: 0 calc(var(--u) * 10); align-items: center; text-align: left;
+  font-family: var(--f-body); color: var(--text); background: var(--panel);
+  border: calc(var(--u) * 3) solid #2c4a6e; border-radius: calc(var(--u) * 12);
+  padding: calc(var(--u) * 9) calc(var(--u) * 16); cursor: pointer; font-size: calc(var(--u) * 20);
+}
+.cmd:hover:not(:disabled) { border-color: var(--gold); }
+.cmd strong { font-size: calc(var(--u) * 27); font-weight: 800; }
+.cmd .what { color: var(--muted); grid-column: 1 / 2; }
+.cmd .risk { grid-row: 1 / 3; grid-column: 2; text-align: center; font-weight: 800; font-variant-numeric: tabular-nums; }
+.cmd .risk small { display: block; font-size: calc(var(--u) * 16); color: var(--muted); font-weight: 500; }
+.cmd .risk.high { color: var(--bad); }
+.cmd:disabled { opacity: 0.55; cursor: not-allowed; }
+.cmd:disabled .what { color: var(--bad); }
+
+/* in-game prompts */
+.prompt {
+  position: absolute; left: 50%; top: calc(var(--u) * 90); transform: translateX(-50%);
+  background: var(--panel); border-radius: calc(var(--u) * 10); padding: calc(var(--u) * 8) calc(var(--u) * 24);
+  font-weight: 800; font-size: calc(var(--u) * 26); white-space: nowrap; border: calc(var(--u) * 3) solid var(--gold);
+}
+.pads { position: absolute; left: 0; right: 0; bottom: calc(var(--u) * 16); display: flex; justify-content: space-between; padding: 0 calc(var(--u) * 24); pointer-events: none; }
+.pad {
+  pointer-events: auto; width: calc(var(--u) * 210); height: calc(var(--u) * 120); border-radius: calc(var(--u) * 20);
+  font-family: var(--f-display); font-size: calc(var(--u) * 34); color: #fff; background: rgba(15, 42, 74, 0.72);
+  border: calc(var(--u) * 4) solid rgba(255,255,255,0.75); cursor: pointer;
+}
+.pad.lit { background: rgba(255, 211, 77, 0.85); color: var(--telop); }
+.pad.next { border-color: var(--gold); }
+
+/* news result */
+.news {
+  position: absolute; left: calc(var(--u) * 30); right: calc(var(--u) * 30); bottom: calc(var(--u) * 24);
+  background: rgba(10, 24, 44, 0.94); border-radius: calc(var(--u) * 10); overflow: hidden;
+  display: grid; grid-template-columns: calc(var(--u) * 170) 1fr; min-height: calc(var(--u) * 300);
+  border: calc(var(--u) * 3) solid #2c4a6e;
+}
+.news .label {
+  font-family: var(--f-display); display: grid; place-items: center; text-align: center; color: #fff;
+  font-size: calc(var(--u) * 36); line-height: 1.15; padding: calc(var(--u) * 12); background: #555c66;
+}
+.news.lv1 .label { background: #6c7a3a; } .news.lv2 .label { background: var(--relay); } .news.lv3 .label { background: var(--red); }
+.news.lv4 .label { background: linear-gradient(160deg, #8a1c6a, #d33a2c); }
+.news .body { padding: calc(var(--u) * 16) calc(var(--u) * 26); display: flex; flex-direction: column; gap: calc(var(--u) * 6); min-width: 0; }
+.news .head { font-weight: 800; font-size: calc(var(--u) * 34); line-height: 1.3; text-wrap: balance; }
+.news ul { margin: 0; padding-left: 1.1em; font-size: calc(var(--u) * 22); color: #dfe6ee; }
+.news li { animation: lineIn 0.3s ease-out both; }
+@keyframes lineIn { from { opacity: 0; transform: translateX(calc(var(--u) * 20)); } }
+.news .row { display: flex; align-items: flex-end; justify-content: space-between; gap: calc(var(--u) * 16); margin-top: auto; flex-wrap: wrap; }
+.news .gain { font-size: calc(var(--u) * 21); color: var(--good); }
+.news .gain .minus { color: var(--bad); }
+.news .dmg { font-variant-numeric: tabular-nums; color: var(--gold); font-weight: 800; font-size: calc(var(--u) * 36); white-space: nowrap; }
+.news .dmg small { color: var(--muted); font-weight: 500; font-size: calc(var(--u) * 20); margin-right: 0.5em; }
+.news .label small { display: block; font-family: var(--f-body); font-size: calc(var(--u) * 17); font-weight: 500; opacity: 0.85; margin-top: calc(var(--u) * 6); }
+
+/* episode end */
+.board {
+  position: absolute; inset: calc(var(--u) * 28); background: var(--panel); border-radius: calc(var(--u) * 14);
+  border: calc(var(--u) * 3) solid #2c4a6e; padding: calc(var(--u) * 26) calc(var(--u) * 36);
+  display: flex; flex-direction: column; gap: calc(var(--u) * 14); overflow: hidden;
+}
+.board h2 { margin: 0; font-family: var(--f-display); font-weight: 400; font-size: calc(var(--u) * 40); }
+.board .kpi { display: flex; gap: calc(var(--u) * 26); flex-wrap: wrap; }
+.board .kpi div { font-size: calc(var(--u) * 20); color: var(--muted); }
+.board .kpi b { display: block; font-size: calc(var(--u) * 44); color: #fff; font-variant-numeric: tabular-nums; line-height: 1.1; }
+.voices { display: grid; grid-template-columns: 1fr 1fr; gap: calc(var(--u) * 12); }
+.voice { background: var(--paper); color: var(--paper-ink); border-radius: calc(var(--u) * 8); padding: calc(var(--u) * 10) calc(var(--u) * 16); font-size: calc(var(--u) * 21); transform: rotate(var(--r, 0deg)); }
+.voice small { display: block; color: #7a6a58; font-size: calc(var(--u) * 16); }
+.board .foot { margin-top: auto; display: flex; justify-content: flex-end; gap: calc(var(--u) * 16); align-items: center; }
+.preview { font-family: var(--f-display); font-size: calc(var(--u) * 46); line-height: 1.3; color: #fff; text-wrap: balance; }
+.preview em { font-style: normal; color: var(--gold); }
+.bill { background: var(--paper); color: var(--paper-ink); border-radius: calc(var(--u) * 6); padding: calc(var(--u) * 20) calc(var(--u) * 30); display: flex; flex-direction: column; gap: calc(var(--u) * 6); font-size: calc(var(--u) * 22); }
+.bill .line { display: flex; justify-content: space-between; gap: calc(var(--u) * 20); font-variant-numeric: tabular-nums; border-bottom: 1px dashed rgba(58,47,37,0.3); }
+.bill .total { font-weight: 800; font-size: calc(var(--u) * 32); border-bottom: none; color: var(--red); }
+
+@media (prefers-reduced-motion: reduce) {
+  .logo, .ep-title, .news li { animation: none; }
+}
+</style>
+
+<div class="tv">
+  <div class="screen" id="screen">
+    <div id="stage">
+      <svg id="bg" class="layer" viewBox="0 0 1200 750" preserveAspectRatio="xMidYMid slice" aria-hidden="true"></svg>
+      <svg id="fx" class="layer" viewBox="0 0 1200 750" preserveAspectRatio="xMidYMid slice" aria-hidden="true"></svg>
+    </div>
+    <div id="ui"></div>
+  </div>
+</div>
+<p class="hint">横向き推奨。タップ / クリック、またはキーボード（スペース・Enter・←→）で遊べます。試作版：第1話〜第3話。</p>
+
+<script>
+'use strict';
+/* =====================================================================
+   ART  (SVG strings, coordinates in a 1200x750 frame)
+   ===================================================================== */
+const INK = '#2f3e36', SKIN = '#6f9a7a';
+const SFX_FONT = "'Dela Gothic One','M PLUS 1p',sans-serif";
+const D2R = Math.PI / 180;
+
+const CAR = `<rect x="-80" y="-19" width="160" height="38" rx="9" fill="#f3efe2" stroke="${INK}" stroke-width="3"/>
+  <rect x="-80" y="4" width="160" height="7" fill="#3f7fc0"/>
+  ${[-64, -40, -16, 8, 32, 58].map(x => `<rect x="${x}" y="-11" width="16" height="11" rx="2" fill="#5b6f7a"/>`).join('')}
+  ${[-52, -36, 36, 52].map(x => `<circle cx="${x}" cy="20" r="6" fill="#333"/>`).join('')}`;
+const HOUSE = `<path d="M-18 0 L-18 -22 L0 -36 L18 -22 L18 0 Z" fill="#efe3c6" stroke="${INK}" stroke-width="2.5"/>
+  <path d="M-22 -20 L0 -40 L22 -20" fill="none" stroke="#b5533c" stroke-width="6" stroke-linecap="round"/>
+  <rect x="-6" y="-14" width="10" height="14" fill="#8a6a4a"/>`;
+const TANKER = `<path d="M-110 -6 L110 -6 L94 26 L-96 26 Z" fill="#b5402f" stroke="${INK}" stroke-width="4"/>
+  <rect x="-110" y="12" width="204" height="6" fill="#2c2c2c"/>
+  <rect x="-92" y="-38" width="38" height="32" fill="#f4f0e2" stroke="${INK}" stroke-width="3"/>
+  <rect x="-84" y="-56" width="12" height="18" fill="#d33a2c" stroke="${INK}" stroke-width="3"/>
+  ${[-40, -6, 28, 62].map(x => `<ellipse cx="${x}" cy="-10" rx="15" ry="7" fill="#d9d4c3" stroke="${INK}" stroke-width="2"/>`).join('')}`;
+const TANK = `<rect x="-46" y="-18" width="92" height="30" rx="6" fill="#7d8a6a" stroke="${INK}" stroke-width="4"/>
+  <rect x="-24" y="-38" width="46" height="22" rx="6" fill="#8e9c78" stroke="${INK}" stroke-width="4"/>
+  <rect x="20" y="-32" width="70" height="9" fill="#6b7759" stroke="${INK}" stroke-width="3"/>
+  ${[-30, -10, 10, 30].map(x => `<circle cx="${x}" cy="14" r="8" fill="#444" stroke="${INK}" stroke-width="2"/>`).join('')}`;
+
+const DEFS_DYN = `<defs><g id="car">${CAR}</g><g id="house">${HOUSE}</g><g id="tanker">${TANKER}</g><g id="tank">${TANK}</g></defs>`;
+const DEFS_BG = `<defs>
+  <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9fcde0"/><stop offset="0.6" stop-color="#d8ebe9"/><stop offset="1" stop-color="#f4e6c6"/></linearGradient>
+  <linearGradient id="ground" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b7b29b"/><stop offset="1" stop-color="#9c967d"/></linearGradient>
+  <filter id="blurFar" x="-10%" y="-10%" width="120%" height="120%"><feGaussianBlur stdDeviation="3.5"/></filter>
+  <filter id="blurNear" x="-10%" y="-30%" width="120%" height="160%"><feGaussianBlur stdDeviation="6"/></filter>
+  <g id="carB">${CAR}</g><g id="houseB">${HOUSE}</g>
+</defs>`;
+
+const kaijuTail = `<path d="M505 545 C 430 600 360 630 280 612 C 330 600 390 575 470 500 Z" fill="${SKIN}" stroke="${INK}" stroke-width="5" stroke-linejoin="round"/>`;
+const tailSpikes = `<path d="M440 548 Q 412 540 418 572 Z"/><path d="M372 590 Q 350 580 352 605 Z"/>`;
+function torso(opts = {}) {
+  return `${opts.noTail ? '' : kaijuTail}
+  <g fill="#e2a64c" stroke="${INK}" stroke-width="4" stroke-linejoin="round">
+    <path d="M545 232 Q 500 205 506 262 Z"/><path d="M520 296 Q 466 280 480 338 Z"/>
+    <path d="M500 362 Q 446 354 466 412 Z"/><path d="M494 432 Q 442 432 466 480 Z"/>${opts.noTail ? '' : tailSpikes}
+  </g>
+  <g fill="${SKIN}" stroke="${INK}" stroke-width="5"><ellipse cx="545" cy="625" rx="50" ry="34"/><ellipse cx="665" cy="628" rx="50" ry="34"/></g>
+  <g fill="#f4f0e2" stroke="${INK}" stroke-width="3">
+    <circle cx="515" cy="650" r="8"/><circle cx="537" cy="655" r="8"/><circle cx="559" cy="655" r="8"/>
+    <circle cx="645" cy="655" r="8"/><circle cx="667" cy="658" r="8"/><circle cx="689" cy="655" r="8"/>
+  </g>
+  <ellipse cx="600" cy="470" rx="125" ry="160" fill="${SKIN}" stroke="${INK}" stroke-width="5"/>
+  <ellipse cx="618" cy="505" rx="78" ry="112" fill="#ead9ad" stroke="${INK}" stroke-width="3"/>
+  <g stroke="#c9b583" stroke-width="3">
+    <line x1="560" y1="450" x2="676" y2="450"/><line x1="548" y1="490" x2="688" y2="490"/>
+    <line x1="550" y1="530" x2="686" y2="530"/><line x1="562" y1="570" x2="674" y2="570"/>
+  </g>`;
+}
+const backArmStub = `<path d="M520 420 Q 490 460 508 490" stroke="${INK}" stroke-width="30" stroke-linecap="round" fill="none"/>
+  <path d="M520 420 Q 490 460 508 490" stroke="#628b6d" stroke-width="22" stroke-linecap="round" fill="none"/>`;
+const KAIJU_BODY = torso() + backArmStub;
+
+function head(expr = 'serious', tilt = 0) {
+  let eyes = '', mouth = '', extra = '';
+  const browSerious = `<path d="M598 248 L622 252" stroke="${INK}" stroke-width="4" stroke-linecap="round"/><path d="M645 246 L668 242" stroke="${INK}" stroke-width="4" stroke-linecap="round"/>`;
+  const sweat = `<path d="M540 225 Q 530 245 540 252 Q 550 245 540 225 Z" fill="#bfe6f5" stroke="${INK}" stroke-width="2.5"/>`;
+  if (expr === 'serious') {
+    eyes = `<circle cx="612" cy="268" r="9" fill="#1f2a24"/><circle cx="655" cy="262" r="9" fill="#1f2a24"/>
+      <circle cx="615" cy="265" r="3" fill="#fff"/><circle cx="658" cy="259" r="3" fill="#fff"/>` + browSerious;
+    mouth = `<path d="M668 338 Q 680 344 692 336" stroke="${INK}" stroke-width="4" fill="none" stroke-linecap="round"/>`;
+    extra = sweat;
+  } else if (expr === 'dizzy') {
+    const sp = (cx, cy) => `<path d="M${cx} ${cy} m-2 0 a2 2 0 1 1 4 0 a4 4 0 1 1 -8 0 a6 6 0 1 1 12 0 a8 8 0 1 1 -16 0" fill="none" stroke="${INK}" stroke-width="2.5"/>`;
+    eyes = sp(612, 268) + sp(655, 262);
+    mouth = `<path d="M664 340 q 6 -6 12 0 q 6 6 12 0 q 6 -6 12 0" stroke="${INK}" stroke-width="3.5" fill="none" stroke-linecap="round"/>`;
+  } else if (expr === 'surprised') {
+    eyes = `<circle cx="612" cy="268" r="11" fill="#fff" stroke="${INK}" stroke-width="3"/><circle cx="612" cy="268" r="4" fill="#1f2a24"/>
+      <circle cx="655" cy="262" r="11" fill="#fff" stroke="${INK}" stroke-width="3"/><circle cx="655" cy="262" r="4" fill="#1f2a24"/>`;
+    mouth = `<ellipse cx="682" cy="340" rx="8" ry="10" fill="#7a2f2f" stroke="${INK}" stroke-width="3"/>`;
+    extra = sweat + `<path d="M528 255 Q 520 270 528 276 Q 536 270 528 255 Z" fill="#bfe6f5" stroke="${INK}" stroke-width="2"/>`;
+  } else if (expr === 'sleep') {
+    eyes = `<path d="M602 270 q 10 7 20 0" stroke="${INK}" stroke-width="4" fill="none" stroke-linecap="round"/><path d="M645 264 q 10 7 20 0" stroke="${INK}" stroke-width="4" fill="none" stroke-linecap="round"/>`;
+    mouth = `<ellipse cx="682" cy="338" rx="5" ry="6" fill="#7a2f2f"/>`;
+  } else if (expr === 'happy') {
+    eyes = `<path d="M602 272 q 10 -12 20 0" stroke="${INK}" stroke-width="4" fill="none" stroke-linecap="round"/><path d="M645 266 q 10 -12 20 0" stroke="${INK}" stroke-width="4" fill="none" stroke-linecap="round"/>`;
+    mouth = `<path d="M664 334 Q 680 352 696 332" stroke="${INK}" stroke-width="4" fill="#7a2f2f" stroke-linecap="round"/>`;
+  }
+  return `<g transform="rotate(${tilt} 600 330)">
+    <ellipse cx="600" cy="292" rx="92" ry="84" fill="${SKIN}" stroke="${INK}" stroke-width="5"/>
+    <ellipse cx="660" cy="316" rx="62" ry="46" fill="#7aa585" stroke="${INK}" stroke-width="4"/>
+    <circle cx="700" cy="300" r="3.5" fill="${INK}"/><circle cx="712" cy="306" r="3.5" fill="${INK}"/>
+    ${eyes}${mouth}
+    <ellipse cx="596" cy="300" rx="14" ry="7" fill="#e88f86" opacity="0.55"/>${extra}
+  </g>`;
+}
+function arm(hx, hy, sx = 672, sy = 410) {
+  const cx = (sx + hx) / 2 + 20, cy = (sy + hy) / 2 + 10;
+  return `<path d="M${sx} ${sy} Q ${cx} ${cy} ${hx} ${hy}" stroke="${INK}" stroke-width="36" stroke-linecap="round" fill="none"/>
+    <path d="M${sx} ${sy} Q ${cx} ${cy} ${hx} ${hy}" stroke="${SKIN}" stroke-width="27" stroke-linecap="round" fill="none"/>
+    <circle cx="${hx}" cy="${hy}" r="27" fill="${SKIN}" stroke="${INK}" stroke-width="5"/>
+    <path d="M${hx - 18} ${hy - 6} q 18 -9 36 1" stroke="${INK}" stroke-width="3" fill="none"/>`;
+}
+function backArm(hx, hy) {
+  return `<path d="M520 420 Q ${(520 + hx) / 2 - 20} ${(420 + hy) / 2} ${hx} ${hy}" stroke="${INK}" stroke-width="32" stroke-linecap="round" fill="none"/>
+    <path d="M520 420 Q ${(520 + hx) / 2 - 20} ${(420 + hy) / 2} ${hx} ${hy}" stroke="#628b6d" stroke-width="24" stroke-linecap="round" fill="none"/>
+    <circle cx="${hx}" cy="${hy}" r="24" fill="#628b6d" stroke="${INK}" stroke-width="5"/>`;
+}
+function carBetween(ax, ay, bx, by, opts = {}) {
+  const dx = bx - ax, dy = by - ay, len = Math.hypot(dx, dy);
+  const ang = Math.atan2(dy, dx) / D2R;
+  const sx = Math.max(len / 160, 0.22);
+  return `<use href="#car" transform="translate(${(ax + bx) / 2} ${(ay + by) / 2}) rotate(${ang}) scale(${sx} ${opts.sy || 1})" opacity="${opts.op ?? 1}"/>`;
+}
+function star(cx, cy, r, fill = '#ffe066') {
+  let d = '';
+  for (let i = 0; i < 16; i++) {
+    const a = i * Math.PI / 8, rr = i % 2 ? r * 0.45 : r;
+    d += (i ? 'L' : 'M') + (cx + rr * Math.cos(a)).toFixed(1) + ' ' + (cy + rr * Math.sin(a)).toFixed(1);
+  }
+  return `<path d="${d}Z" fill="${fill}" stroke="${INK}" stroke-width="4" stroke-linejoin="round"/>`;
+}
+function sfx(x, y, text, size = 46, rot = -12) {
+  return `<text x="${x}" y="${y}" font-family="${SFX_FONT}" font-size="${size}" fill="#fff" stroke="${INK}" stroke-width="${Math.max(5, size / 8)}" stroke-linejoin="round" paint-order="stroke" transform="rotate(${rot} ${x} ${y})">${text}</text>`;
+}
+function liveBadge(text) {
+  return `<g font-family="'M PLUS 1p',sans-serif" font-weight="800">
+    <rect x="22" y="22" width="92" height="36" rx="4" fill="#d33a2c"/><text x="68" y="48" font-size="22" fill="#fff" text-anchor="middle">LIVE</text>
+    <rect x="120" y="22" width="${28 + text.length * 22}" height="36" rx="4" fill="#0f2a4a" opacity="0.9"/><text x="134" y="48" font-size="22" fill="#fff">${text}</text></g>`;
+}
+const mirror = inner => `<g transform="translate(1200 0) scale(-1 1)">${inner}</g>`;
+
+/* ---------- backgrounds (static layer) ---------- */
+function trackY(x) { return 640 - x / 30; }
+function cityBg(o = {}) {
+  const trains = o.trains ?? 0;
+  let parked = '';
+  for (let i = 0; i < trains; i++) {
+    const x = 860 + i * 120;
+    parked += `<use href="#carB" transform="translate(${x} ${trackY(x) - 18}) rotate(-1.9) scale(0.72)"/>`;
+  }
+  const wires = o.wires ?? 0;
+  const pylon = (x, s) => `<g transform="translate(${x} 470) scale(${s})" stroke="#6e6a64" stroke-width="5" fill="none">
+      <path d="M-40 0 L-8 -230 L8 -230 L40 0"/><path d="M-30 -60 L30 -60 M-22 -120 L22 -120 M-60 -170 L60 -170 M-45 -210 L45 -210"/>
+      <path d="M-30 -60 L22 -120 M30 -60 L-22 -120"/></g>`;
+  const lines = wires > 0
+    ? `<g stroke="#4b4b4b" stroke-width="2.5" fill="none" opacity="0.9"><path d="M60 300 Q 330 360 600 300"/><path d="M60 316 Q 330 380 600 316"/>${wires > 1 ? '<path d="M600 300 Q 870 360 1140 300"/>' : ''}</g>`
+    : `<g stroke="#4b4b4b" stroke-width="2.5" fill="none"><path d="M60 300 Q 80 380 70 440"/><path d="M1140 300 Q 1120 380 1130 440"/></g>`;
+  const blackout = o.blackout ? `<rect width="1200" height="750" fill="#0b1630" opacity="0.38"/>` : '';
+  return DEFS_BG + `
+  <rect width="1200" height="750" fill="url(#sky)"/>
+  <g fill="#fff" opacity="0.8"><ellipse cx="190" cy="120" rx="90" ry="26"/><ellipse cx="250" cy="105" rx="60" ry="22"/><ellipse cx="1040" cy="90" rx="80" ry="22"/></g>
+  <g filter="url(#blurFar)">${pylon(60, 0.9)}${pylon(1140, 0.9)}${pylon(600, 0.7)}${lines}</g>
+  <g filter="url(#blurFar)" fill="#8fa3ad">
+    <rect x="0" y="390" width="70" height="90"/><rect x="80" y="350" width="55" height="130"/><rect x="145" y="400" width="80" height="80"/>
+    <rect x="240" y="330" width="50" height="150"/><rect x="300" y="380" width="90" height="100"/><rect x="820" y="370" width="70" height="110"/>
+    <rect x="900" y="340" width="50" height="140"/><rect x="960" y="395" width="90" height="85"/><rect x="1060" y="355" width="60" height="125"/>
+    <rect x="1130" y="400" width="70" height="80"/><path d="M1000 380 L1012 250 L1024 380 Z" fill="#c9754f"/>
+  </g>
+  <rect x="0" y="470" width="1200" height="280" fill="url(#ground)"/>
+  <path d="M0 540 L1200 520 L1200 560 L0 585 Z" fill="#8a8572"/>
+  <path d="M0 640 L1200 600" stroke="#6b5a48" stroke-width="18"/>
+  <path d="M0 634 L1200 594" stroke="#c9c2b0" stroke-width="3"/><path d="M0 646 L1200 606" stroke="#c9c2b0" stroke-width="3"/>
+  <g stroke="${INK}" stroke-width="2">
+    <rect x="60" y="470" width="60" height="70" fill="#e7d9b8"/><rect x="130" y="450" width="45" height="90" fill="#c8d6d9"/>
+    <rect x="980" y="455" width="55" height="75" fill="#e7d9b8"/><rect x="1045" y="440" width="40" height="90" fill="#d9c3c0"/>
+  </g>
+  <g transform="translate(1110 560)" stroke="${INK}" stroke-width="2"><rect x="-40" y="-26" width="80" height="26" fill="#bfc4c0"/>
+    <rect x="-30" y="-46" width="18" height="20" fill="#9aa3a0"/><rect x="8" y="-46" width="18" height="20" fill="#9aa3a0"/></g>
+  ${o.cracks ? `<g stroke="${INK}" stroke-width="3" fill="none"><path d="M360 600 l-25 18 l-20 -6"/><path d="M400 598 l18 22 l25 2"/><path d="M820 590 l25 18 l20 -6"/><path d="M780 588 l-18 22 l-25 2"/></g>` : ''}
+  ${parked}
+  <g filter="url(#blurNear)"><rect x="-20" y="690" width="1240" height="80" fill="#8c8670"/>
+    <rect x="40" y="660" width="120" height="100" fill="#d9cfb4"/><rect x="980" y="655" width="150" height="110" fill="#c8d0cf"/></g>
+  ${blackout}`;
+}
+function damBg(level, broken, flood) {
+  const wallTop = 300;
+  const wall = broken < 0.05
+    ? `<path d="M820 ${wallTop} L860 ${wallTop} L900 600 L820 600 Z" fill="#c8c6bd" stroke="${INK}" stroke-width="4"/>
+       <g stroke="#a9a69b" stroke-width="2">${[340, 380, 420, 460, 500, 540].map(y => `<line x1="822" y1="${y}" x2="${862 + (y - 300) * 0.13}" y2="${y}"/>`).join('')}</g>`
+    : `<path d="M820 ${wallTop} L845 ${wallTop} L838 ${wallTop + 80 + 60 * broken} L820 ${wallTop + 120} Z" fill="#c8c6bd" stroke="${INK}" stroke-width="4"/>
+       <path d="M820 540 L842 520 L870 545 L900 600 L820 600 Z" fill="#c8c6bd" stroke="${INK}" stroke-width="4"/>`;
+  const town = [[930, 590], [990, 600], [1050, 588], [1110, 598], [1160, 592]].map(([x, y], i) => {
+    const dx = flood * (180 + i * 20), dy = -flood * 25 * Math.sin(i + flood * 6), r = flood * (30 + i * 12) * (i % 2 ? 1 : -1);
+    return `<use href="#house" transform="translate(${x + dx} ${y + dy}) rotate(${r})"/>`;
+  }).join('');
+  const floodPoly = flood > 0
+    ? `<path d="M840 ${level} C 900 ${level + 40} 960 560 1200 ${560 - flood * 40} L1200 750 L840 750 Z" fill="#4f9fc4" opacity="0.92"/>
+       <g fill="#fff" opacity="0.85">${[0, 1, 2, 3, 4, 5].map(i => `<ellipse cx="${880 + i * 55 + (flood * 200 % 55)}" cy="${575 - flood * 30 + (i % 2) * 8}" rx="22" ry="8"/>`).join('')}</g>`
+    : `<path d="M900 600 Q 1050 610 1200 600 L1200 615 Q 1050 625 900 615 Z" fill="#6fb3d1"/>`;
+  return `<rect width="1200" height="750" fill="url(#sky)"/>
+  <g fill="#fff" opacity="0.8"><ellipse cx="300" cy="100" rx="90" ry="24"/><ellipse cx="980" cy="80" rx="70" ry="20"/></g>
+  <g filter="url(#blurFar)"><path d="M0 330 L160 200 L300 300 L430 180 L600 310 L760 210 L900 320 L1050 220 L1200 300 L1200 450 L0 450 Z" fill="#88a78d"/></g>
+  <path d="M0 420 L820 420 L820 750 L0 750 Z" fill="#7d9a6e"/>
+  <path d="M860 560 L1200 560 L1200 750 L860 750 Z" fill="#a8b48a"/>
+  ${town}
+  <rect x="0" y="${level}" width="${broken > 0.05 ? 850 : 822}" height="${750 - level}" fill="#4f9fc4"/>
+  <g stroke="#bfe6f5" stroke-width="3" opacity="0.8">${[60, 220, 380, 540, 700].map(x => `<line x1="${x}" y1="${level + 18}" x2="${x + 60}" y2="${level + 18}"/>`).join('')}</g>
+  ${floodPoly}${wall}`;
+}
+const damStatic = (G) => DEFS_BG + (G.res.dam ? damBg(420, 0, 0) : damBg(570, 1, 1));
+const seaBg = () => DEFS_BG + `<rect width="1200" height="750" fill="url(#sky)"/>
+  <g fill="#fff" opacity="0.8"><ellipse cx="220" cy="110" rx="90" ry="24"/><ellipse cx="960" cy="90" rx="70" ry="20"/></g>
+  <g filter="url(#blurFar)" fill="#8fa3ad"><rect x="760" y="380" width="60" height="70"/><rect x="830" y="360" width="40" height="90"/>
+    <rect x="880" y="395" width="120" height="55"/><path d="M1020 450 L1040 330 L1060 450 Z" fill="#c9754f"/>
+    <circle cx="1120" cy="420" r="30" fill="#b9c0c4"/><circle cx="1170" cy="425" r="26" fill="#b9c0c4"/></g>
+  <rect x="0" y="450" width="1200" height="300" fill="#4f9fc4"/>
+  <g stroke="#bfe6f5" stroke-width="3" opacity="0.8">${[40, 260, 480, 880, 1080].map(x => `<line x1="${x}" y1="${480 + (x % 3) * 30}" x2="${x + 70}" y2="${480 + (x % 3) * 30}"/>`).join('')}</g>`;
+
+/* ---------- nunchaku kata (2D) ---------- */
+const easeOut = t => 1 - (1 - t) * (1 - t);
+const easeInOut = t => t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+function makeTrack(keys) {
+  return f => {
+    let i = 0;
+    while (i < keys.length - 1 && keys[i + 1].f <= f) i++;
+    const a = keys[i], b = keys[Math.min(i + 1, keys.length - 1)];
+    if (a === b || f <= a.f) return { ...a, behind: !!a.behind };
+    const t0 = (f - a.f) / (b.f - a.f);
+    const t = (b.ease || easeInOut)(Math.min(1, Math.max(0, t0)));
+    const L = k => a[k] + (b[k] - a[k]) * t;
+    return { hx: L('hx'), hy: L('hy'), psi: L('psi'), phi: L('phi'), behind: !!((a.behind && b.behind) || (b.behind && t0 > 0.6) || (a.behind && t0 < 0.4)) };
+  };
+}
+function kataGeom(st) {
+  const dx = Math.cos(st.psi * D2R), dy = Math.sin(st.psi * D2R);
+  const tx = st.hx + 150 * dx, ty = st.hy + 150 * dy;
+  const fx = Math.cos(st.phi * D2R), fy = Math.sin(st.phi * D2R);
+  return { held: carBetween(st.hx - 12 * dx, st.hy - 12 * dy, tx, ty), tx, ty, ax: tx + 38 * fx, ay: ty + 38 * fy, bx: tx + 198 * fx, by: ty + 198 * fy };
+}
+function kataKaiju(track, f, o = {}) {
+  const st = track(f), g = kataGeom(st);
+  let nun = '';
+  if (!o.snapped) {
+    let ghosts = '';
+    for (const [k, op] of [[0.5, 0.32], [1.0, 0.16]]) {
+      if (f - k < 0 || o.noGhost) continue;
+      const s2 = track(f - k);
+      if (Math.abs(s2.phi - st.phi) < 12) continue;
+      const g2 = kataGeom(s2);
+      ghosts += carBetween(g2.ax, g2.ay, g2.bx, g2.by, { op });
+    }
+    nun = ghosts + `<path d="M${g.tx} ${g.ty} L ${g.ax} ${g.ay}" stroke="${INK}" stroke-width="9" fill="none" stroke-dasharray="8 6" stroke-linecap="round"/>` + carBetween(g.ax, g.ay, g.bx, g.by);
+  }
+  const behind = st.behind;
+  return (behind ? nun : '') + KAIJU_BODY + arm(st.hx, st.hy) + head(o.expr || 'serious', o.tilt || 0) + (behind ? '' : nun) +
+    g.held + `<circle cx="${st.hx}" cy="${st.hy}" r="27" fill="${SKIN}" stroke="${INK}" stroke-width="5"/>`;
+}
+const KATA_R = makeTrack([
+  { f: 0, hx: 760, hy: 300, psi: -70, phi: -100 },
+  { f: 7, hx: 770, hy: 300, psi: -75, phi: -150 },
+  { f: 11, hx: 700, hy: 470, psi: 150, phi: 165, ease: easeOut },
+  { f: 14, hx: 700, hy: 470, psi: 150, phi: 165 },
+  { f: 22, hx: 648, hy: 430, psi: 165, phi: 95 },
+  { f: 32, hx: 648, hy: 430, psi: 165, phi: 95 },
+]);
+const KATA_L = makeTrack([
+  { f: 36, hx: 648, hy: 430, psi: 165, phi: 95 },
+  { f: 43, hx: 770, hy: 300, psi: -75, phi: -150 },
+  { f: 47, hx: 700, hy: 470, psi: 150, phi: 165, ease: easeOut },
+  { f: 50, hx: 700, hy: 470, psi: 150, phi: 165 },
+  { f: 58, hx: 648, hy: 430, psi: 165, phi: 95 },
+  { f: 63, hx: 648, hy: 430, psi: 165, phi: 95 },
+  { f: 69, hx: 730, hy: 285, psi: -90, phi: 95 },
+  { f: 81, hx: 730, hy: 285, psi: -90, phi: -625, ease: t => t },
+  { f: 87, hx: 700, hy: 335, psi: -55, phi: -930, ease: easeOut, behind: true },
+  { f: 112, hx: 700, hy: 335, psi: -55, phi: -930, behind: true },
+]);
+const kataAt = (f, o) => f < 34 ? kataKaiju(KATA_R, Math.min(f, 32), o) : mirror(kataKaiju(KATA_L, Math.max(f, 36), o));
+const dust = (k, x = 400) => `<g fill="#e8e1cf" opacity="${Math.max(0, 0.9 - k * 0.12)}">
+  <ellipse cx="${x - 20 - k * 14}" cy="${600 - k * 4}" rx="${30 + k * 10}" ry="${16 + k * 4}"/>
+  <ellipse cx="${x + 30 + k * 12}" cy="${598 - k * 5}" rx="${24 + k * 8}" ry="${14 + k * 3}"/></g>`;
+
+/* ---------- swimmer ---------- */
+const swimTail = w => `<path d="M520 540 C 500 660 ${545 + w} 760 ${585 + w * 1.6} 860 C ${600 + w} 760 610 650 640 560 Z" fill="${SKIN}" stroke="${INK}" stroke-width="5" stroke-linejoin="round"/>
+  <g fill="#e2a64c" stroke="${INK}" stroke-width="4" stroke-linejoin="round"><path d="M${520 + w * 0.3} 640 Q 495 660 ${520 + w * 0.4} 680 Z"/><path d="M${545 + w * 0.8} 730 Q 520 750 ${548 + w * 0.9} 770 Z"/></g>`;
+const TORSO_SWIM = torso({ noTail: true });
+function swimmer(cx, cy, s, rot, beta, o = {}) {
+  const T = `translate(${cx} ${cy}) rotate(${rot}) scale(${s}) translate(-600 -450)`;
+  const a = rot * D2R, lx = 72, ly = -40;
+  const sx = cx + s * (lx * Math.cos(a) - ly * Math.sin(a)), sy = cy + s * (lx * Math.sin(a) + ly * Math.cos(a));
+  const R = 120 * s;
+  const handAt = b => [sx + R * Math.cos(b * D2R), sy + R * Math.sin(b * D2R)];
+  const armPath = (b, col, w) => { const [hx, hy] = handAt(b);
+    return `<path d="M${sx} ${sy} L${hx} ${hy}" stroke="${INK}" stroke-width="${w + 8}" stroke-linecap="round"/>
+      <path d="M${sx} ${sy} L${hx} ${hy}" stroke="${col}" stroke-width="${w}" stroke-linecap="round"/>
+      <circle cx="${hx}" cy="${hy}" r="${w * 0.75}" fill="${col}" stroke="${INK}" stroke-width="4"/>`; };
+  return {
+    far: armPath(beta + 180, '#5c8466', 30 * s * 1.6),
+    body: `<g transform="${T}">${swimTail(o.wag || 0)}${TORSO_SWIM}${head(o.expr || 'serious', -40 * (o.breathe || 0))}</g>`,
+    near: armPath(beta, SKIN, 34 * s * 1.6),
+    hand: handAt(beta),
+  };
+}
+let clipSeq = 0;
+function waterClip(inner, waterY) {
+  const id = 'wc' + (clipSeq++);
+  return `<clipPath id="${id}"><rect x="0" y="0" width="1200" height="${waterY + 4}"/></clipPath>
+    <g opacity="0.33">${inner}</g><g clip-path="url(#${id})">${inner}</g>`;
+}
+function kaijuAt(x, y, s, rot, expr, flip = false) {
+  return `<g transform="translate(${x} ${y}) rotate(${rot}) scale(${s * (flip ? -1 : 1)} ${s}) translate(-600 -450)">${KAIJU_BODY}${head(expr)}</g>`;
+}
+
+/* =====================================================================
+   GAME STATE
+   ===================================================================== */
+const SHOW = '大怪獣ズングラ';
+const EPISODES = [
+  { no: 1, title: 'ズングラ、上陸す' },
+  { no: 2, title: '新兵器、5秒の攻防' },
+  { no: 3, title: '電車がない！' },
+];
+const TIMES = ['朝', '昼', '晩'];
+function newGame() {
+  return {
+    ep: 0, turn: 0,
+    pow: 10, sta: 10, tec: 10, hp: 100,
+    dmg: 0, alert: 0, kpop: 10, hpop: 10,
+    oil: 0,
+    res: { trains: 3, wires: 2, dam: true },
+    flags: { blackout: false, cracks: false },
+    log: [],            // {cat, amount}
+    epLog: [],          // events this episode (for reactions)
+    sleptTurns: 0,
+    perfectKata: false,
+    titled: false,
+    epStartDmg: 0,
+  };
+}
+let G = newGame();
+
+const yen = n => '¥' + Math.round(n).toLocaleString('ja-JP');
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+function alertLevel(a = G.alert) {
+  if (a < 20) return { lv: 0, name: 'うわさ', src: '防犯カメラ映像' };
+  if (a < 45) return { lv: 1, name: '目撃情報', src: '視聴者提供' };
+  if (a < 75) return { lv: 2, name: '速報', src: '中継' };
+  return { lv: 3, name: '緊急特番', src: '特別報道体制' };
+}
+const failRate = base => clamp(Math.round(base + (100 - G.hp) * 0.45 - G.tec * 0.15), 3, 95);
+
+const COMMANDS = [
+  { id: 'nunchaku', name: '電車ヌンチャク', what: '技術・腕力が上がる／体力 −25', base: 18,
+    usable: () => G.res.trains > 0, empty: 'ヌンチャクにする電車がもうない…' },
+  { id: 'rope', name: '電線で縄跳び', what: '持久力・技術が上がる／体力 −25', base: 15,
+    usable: () => G.res.wires > 0, empty: '跳べる電線がもう残っていない…' },
+  { id: 'swim', name: 'ダム湖で水泳', what: '持久力が上がる／体力 −30', base: 20,
+    usable: () => G.res.dam, empty: 'ダムがもうない。泳ぐ水もない…' },
+  { id: 'eat', name: '石油タンカーを飲む', what: '腕力・体力が上がる／お腹に石油がたまる', base: 0, safe: true,
+    usable: () => true },
+  { id: 'sleep', name: '寝る', what: '体力が全回復する', base: 0, safe: true,
+    usable: () => true },
+];
+
+/* =====================================================================
+   RUNTIME (fixed 20 fps animation clock)
+   ===================================================================== */
+const $bg = document.getElementById('bg');
+const $fx = document.getElementById('fx');
+const $ui = document.getElementById('ui');
+const $stage = document.getElementById('stage');
+const $screen = document.getElementById('screen');
+let scene = null, frame = 0, acc = 0, last = 0, dirty = true;
+
+function setScene(sc) {
+  scene = sc; frame = 0; acc = 0; dirty = true;
+  $stage.style.transform = '';
+  if (sc.bg !== undefined) $bg.innerHTML = typeof sc.bg === 'function' ? sc.bg() : sc.bg;
+  $bg.className.baseVal = 'layer ' + (sc.bgClass || '');
+  $fx.className.baseVal = 'layer ' + (sc.fxClass || '');
+  $ui.innerHTML = '';
+  if (sc.enter) sc.enter();
+}
+function loop(ts) {
+  if (!last) last = ts;
+  acc += Math.min(250, ts - last); last = ts;
+  while (acc >= 50) {
+    acc -= 50;
+    if (scene && scene.tick) { scene.tick(frame); dirty = true; }
+    frame++;
+  }
+  if (dirty && scene) {
+    dirty = false;
+    if (scene.draw) { const s = scene.draw(frame); if (s !== null) $fx.innerHTML = DEFS_DYN + s; }
+    const sh = scene.shake ? scene.shake(frame) : null;
+    $stage.style.transform = sh ? `translate(${sh[0] / 12}cqw, ${sh[1] / 12}cqw)` : '';
+  }
+  requestAnimationFrame(loop);
+}
+function tap(e) { if (scene && scene.onTap) scene.onTap(e); }
+$screen.addEventListener('pointerdown', e => {
+  if (e.target.closest('button')) return;
+  if (scene && scene.onSide) {
+    const r = $screen.getBoundingClientRect();
+    scene.onSide(e.clientX - r.left < r.width / 2 ? 'L' : 'R');
+  } else tap(e);
+});
+window.addEventListener('keydown', e => {
+  if (!scene) return;
+  if ((e.key === 'ArrowLeft' || e.key === 'a') && scene.onSide) { scene.onSide('L'); e.preventDefault(); return; }
+  if ((e.key === 'ArrowRight' || e.key === 'd') && scene.onSide) { scene.onSide('R'); e.preventDefault(); return; }
+  if (e.key === ' ' || e.key === 'Enter') {
+    if (document.activeElement && document.activeElement.tagName === 'BUTTON' && e.key === 'Enter') return;
+    if (scene.onTap) { scene.onTap(e); e.preventDefault(); }
+    else if (scene.onSide && scene.wantsTap) { scene.onSide('T'); e.preventDefault(); }
+  }
+});
+const h = (html) => { $ui.innerHTML = html; };
+
+/* =====================================================================
+   SCENES
+   ===================================================================== */
+
+// ---- 0. proposal sheet (title) ----
+function sceneProposal() {
+  setScene({
+    bg: '', draw: () => '',
+    enter() {
+      $bg.innerHTML = `<rect width="1200" height="750" fill="#2a2420"/>`;
+      h(`<div class="sheet">
+        <div class="meta"><span>企画書　No.0001</span><span>制作部　第2班</span></div>
+        <h1>怪獣育成（仮）</h1>
+        <p class="lede">ずんぐりした怪獣が、街のインフラで大真面目に筋トレする。<br>強くなるほど、街の請求書がふくらむ。</p>
+        <ul><li>朝・昼・晩に1つずつ、トレーニングを選ぶ</li><li>ミニゲームで成功すると強くなる。失敗すると被害が広がる</li><li>結果はニュースで知らされる</li></ul>
+        <div class="row"><span class="stamp">検討中</span><button class="btn" id="go">企画を通す</button></div>
+      </div>`);
+      document.getElementById('go').onclick = () => sceneEpisodeTitle();
+      document.getElementById('go').focus();
+    },
+    onTap() {},
+  });
+}
+
+// ---- episode title card ----
+function sceneEpisodeTitle() {
+  const ep = EPISODES[G.ep];
+  setScene({
+    bg: '', draw: () => '',
+    enter() {
+      $bg.innerHTML = '';
+      h(`<div class="titlecard"><div>
+        ${G.titled ? `<div class="logo" style="font-size:calc(var(--u)*70)">${SHOW}</div>` : `<div class="ep-title" style="margin-bottom:calc(var(--u)*10);font-size:calc(var(--u)*30);color:var(--muted)">怪獣育成（仮）</div>`}
+        <div class="ep-title"><span class="num">第${ep.no}話</span>「${ep.title}」</div></div>
+        <div class="skip">タップで進む</div></div>`);
+    },
+    tick(f) { if (f === 40) this.onTap(); },
+    onTap() {
+      if (this.done) return; this.done = true;
+      if (G.ep === 1) sceneSneezeGag();
+      else if (G.ep === 2) sceneHeroLate();
+      else sceneMenu();
+    },
+  });
+}
+
+// ---- command menu ----
+function sceneMenu() {
+  setScene({
+    bg: () => cityBg({ trains: G.res.trains, wires: G.res.wires, blackout: G.flags.blackout, cracks: G.flags.cracks }),
+    draw(f) {
+      const bob = Math.sin(f * 0.25) * 4;
+      return `<g transform="translate(-120 ${bob})">${KAIJU_BODY}${arm(735, 470)}${head(G.hp < 35 ? 'dizzy' : 'serious')}</g>`;
+    },
+    tick() {},
+    enter() {
+      const ep = EPISODES[G.ep], al = alertLevel();
+      const bar = (v, cls = '') => `<div class="bar ${cls}"><i style="width:${clamp(v, 0, 100)}%"></i></div>`;
+      const cmds = COMMANDS.map(c => {
+        const ok = c.usable();
+        const rate = c.safe ? null : failRate(c.base);
+        return `<button class="cmd" data-id="${c.id}" ${ok ? '' : 'disabled'}>
+          <strong>${c.name}</strong>
+          <span class="risk ${rate !== null && rate >= 40 ? 'high' : ''}">${rate === null ? '—' : rate + '%'}<small>${rate === null ? '' : '失敗率'}</small></span>
+          <span class="what">${ok ? c.what : c.empty}</span></button>`;
+      }).join('');
+      h(`<div class="topbar">
+          <span class="ep">${G.titled ? SHOW + '　' : ''}第${ep.no}話「${ep.title}」</span>
+          <span class="chip time">${TIMES[G.turn]}</span>
+          <span class="chip alert lv${al.lv + 1}">警戒：${al.name}</span>
+          <span class="money"><span>被害額</span>${yen(G.dmg)}</span>
+        </div>
+        <div class="status">
+          <h2>ズングラ</h2>
+          <div class="stat"><span>体力</span>${bar(G.hp, 'hp')}<b>${G.hp}</b></div>
+          <div class="stat"><span>腕力</span>${bar(G.pow)}<b>${G.pow}</b></div>
+          <div class="stat"><span>持久力</span>${bar(G.sta)}<b>${G.sta}</b></div>
+          <div class="stat"><span>技術</span>${bar(G.tec)}<b>${G.tec}</b></div>
+          <div class="belly">お腹の中：石油 ${G.oil} 隻分${G.oil >= 3 ? '（たぷたぷ）' : ''}</div>
+          <div class="belly">怪獣人気 ${G.kpop}　／　ヒーロー人気 ${G.hpop}</div>
+        </div>
+        <div class="cmds"><h2>${TIMES[G.turn]}の行動</h2>${cmds}</div>`);
+      $ui.querySelectorAll('.cmd').forEach(b => b.onclick = () => runCommand(b.dataset.id));
+      const first = $ui.querySelector('.cmd:not(:disabled)'); if (first) first.focus();
+    },
+  });
+}
+
+function runCommand(id) {
+  if (id === 'nunchaku') sceneNunchaku();
+  else if (id === 'rope') sceneRope();
+  else if (id === 'swim') sceneSwim();
+  else if (id === 'eat') sceneEat();
+  else if (id === 'sleep') sceneSleep();
+}
+
+// ---- minigame: nunchaku kata (rhythm) ----
+function sceneNunchaku() {
+  const LEAD = 34;          // frames of intro before the kata starts
+  const BEATS = [
+    { f: 11, label: '振り下ろし' }, { f: 22, label: '受け' }, { f: 34, label: '持ち替え' },
+    { f: 47, label: '振り下ろし' }, { f: 58, label: '受け' }, { f: 87, label: 'キメ' },
+  ];
+  const W = clamp(2.3 * (0.55 + 0.45 * G.hp / 100) * (1 + G.tec / 120), 1.3, 4.2); // hit window (frames)
+  const S = { mode: 'play', judged: BEATS.map(() => null), failAt: 0, failK: 0, flash: null };
+  G.res.trains -= 1;
+  const k = f => f - LEAD;
+  setScene({
+    bg: () => cityBg({ trains: G.res.trains, wires: G.res.wires, blackout: G.flags.blackout, cracks: G.flags.cracks }),
+    enter() { h(`<div class="prompt">マーカーが円に重なった瞬間にタップ！</div>`); },
+    tick(f) {
+      const kk = k(f);
+      if (S.mode === 'play') {
+        if (kk === 0) $ui.innerHTML = '';
+        BEATS.forEach((b, i) => {
+          if (S.judged[i] === null && kk > b.f + W) { S.judged[i] = 'miss'; this.fail(f, kk); }
+        });
+        if (kk >= 112) this.finish(true);
+      } else if (S.mode === 'fail' && f - S.failAt > 66) this.finish(false);
+    },
+    fail(f, kk) {
+      if (S.mode !== 'play') return;
+      S.mode = 'fail'; S.failAt = f; S.failK = clamp(kk, 0, 111);
+    },
+    onTap() {
+      if (S.mode !== 'play') return;
+      const kk = k(frame);
+      let best = -1, bd = 1e9;
+      BEATS.forEach((b, i) => { if (S.judged[i] === null) { const d = Math.abs(kk - b.f); if (d < bd) { bd = d; best = i; } } });
+      if (best < 0) return;
+      if (bd <= W) { S.judged[best] = bd <= W / 2 ? 'great' : 'good'; S.flash = { f: frame, text: bd <= W / 2 ? 'カンペキ' : 'よし' }; }
+      else if (bd <= 9) { S.judged[best] = 'miss'; this.fail(frame, kk); }
+    },
+    shake(f) {
+      if (S.mode === 'play') {
+        const kk = k(f);
+        for (const sf of [11, 47]) if (kk >= sf && kk < sf + 3) return [[12, -6], [-9, 5], [5, -2]][kk - sf];
+      } else if (S.mode === 'fail') {
+        const j = f - S.failAt; if (j < 5) return [[14, -6], [-12, 8], [9, -4], [-6, 3], [3, -1]][j];
+      }
+      return null;
+    },
+    draw(f) {
+      const kk = k(f);
+      let out = '';
+      if (S.mode === 'play') {
+        const kf = clamp(kk, 0, 111);
+        out += kataAt(kf);
+        if (kk >= 11 && kk < 19) out += dust(kk - 11, 380);
+        if (kk >= 11 && kk < 18) out += sfx(250, 520, 'ズドン', 56, -6);
+        if (kk >= 47 && kk < 55) out += mirror(dust(kk - 47, 380));
+        if (kk >= 47 && kk < 54) out += sfx(800, 520, 'ズドン', 56, 6);
+        if (kk >= 22 && kk < 31) out += sfx(760, 250, 'フッ', 44, 0);
+        if (kk >= 31 && kk < 38) out += sfx(780, 300, 'クルッ', 44, 8);
+        if (kk >= 69 && kk < 87) out += sfx(120, 150, 'ヒュンヒュン', 40, 10);
+        if (kk >= 87) out += sfx(110, 270, 'アチョー', 64, 8) + star(640, 250, 16, '#fff6a8');
+        if (kk >= 95) out += `<g><rect x="420" y="80" width="360" height="60" rx="8" fill="#fff" stroke="${INK}" stroke-width="4"/>
+          <text x="600" y="122" font-family="${SFX_FONT}" font-size="34" fill="${INK}" text-anchor="middle">型、完了。</text></g>`;
+        if (S.flash && f - S.flash.f < 8) out += sfx(560, 190, S.flash.text, 40, -6);
+        // rhythm lane
+        out += `<rect x="0" y="650" width="1200" height="100" fill="#0f2a4a" opacity="0.8"/>
+          <circle cx="170" cy="700" r="${30 + W * 4}" fill="#ffd34d" opacity="0.25"/>
+          <circle cx="170" cy="700" r="34" fill="none" stroke="#ffd34d" stroke-width="6"/>`;
+        BEATS.forEach((b, i) => {
+          const x = 170 + (b.f - kk) * 16;
+          if (x < 110 || x > 1240) return;
+          const j = S.judged[i];
+          const col = j === 'great' ? '#7fd18b' : j === 'good' ? '#bfe6f5' : '#fff';
+          out += `<circle cx="${x}" cy="700" r="24" fill="${col}" stroke="${INK}" stroke-width="5"/>
+            <text x="${x}" y="676" font-family="'M PLUS 1p',sans-serif" font-weight="800" font-size="22" fill="#fff" text-anchor="middle">${b.label}</text>`;
+        });
+      } else {
+        const j = f - S.failAt;
+        const kf = S.failK, mir = kf >= 34;
+        if (j < 6) {
+          out += kataAt(kf, { expr: 'dizzy', tilt: -10, noGhost: true }) + star(mir ? 655 : 545, 270, 70 - j * 6) + sfx(330, 220, 'ゴンッ', 64, -8);
+        } else {
+          const hand = `${KAIJU_BODY}${carBetween(765, 390, 810, 550)}${arm(770, 400)}`;
+          const t = clamp((j - 6) / 13, 0, 1);
+          const fly = j < 20 ? `<use href="#car" transform="translate(${560 - 410 * t} ${330 + 65 * t - 260 * Math.sin(Math.PI * t)}) rotate(${j * 47}) scale(${1 - 0.85 * t})"/>` : '';
+          const e = j - 20;
+          const boom = e >= 0 && e < 22 ? `<circle cx="140" cy="380" r="${10 + Math.min(e, 10) * 9}" fill="#ffd34d" opacity="${Math.max(0, 0.9 - e * 0.05)}"/>
+            <circle cx="140" cy="380" r="${6 + Math.min(e, 10) * 6}" fill="#ff8a3d" opacity="${Math.max(0, 0.9 - e * 0.05)}"/>` : '';
+          const smoke = e >= 0 ? `<g fill="#6d6d6d" opacity="${Math.min(0.85, e * 0.08)}"><circle cx="130" cy="${360 - e * 3}" r="${20 + e * 1.2}"/><circle cx="160" cy="${340 - e * 3.5}" r="${16 + e}"/></g>` : '';
+          const body = (mir ? mirror : (x => x))(hand + head(e > 6 ? 'surprised' : 'dizzy', e > 6 ? 0 : -6 + 4 * Math.sin(j)));
+          out += boom + smoke + body + fly;
+          if (j < 14) out += sfx(250, 160, 'ひゅ〜', 40, -20);
+          if (e >= 0 && e < 10) out += sfx(60, 300, 'ドーン', 40, -6);
+          if (e > 6) out += sfx(mir ? 380 : 760, 230, 'あ', 60, 0);
+        }
+      }
+      return out + liveBadge('中継：駅前');
+    },
+    finish(ok) {
+      if (this.ended) return; this.ended = true;
+      const greats = S.judged.filter(x => x === 'great').length;
+      if (ok) {
+        const perfect = greats === BEATS.length;
+        if (perfect) G.perfectKata = true;
+        G.epLog.push(perfect ? 'kataPerfect' : 'kata');
+        showNews({
+          loc: 'city', act: 'nunchaku', ok: true,
+          head: perfect ? '怪獣、電車ヌンチャクの型を完璧に披露' : '怪獣、駅前で電車をヌンチャクにしてトレーニング',
+          lines: ['車両1両を使用、駅前の線路に深いひび', perfect ? '専門家「持ち替えの所作が美しい。教本に載せたい」' : '近隣の住民「朝から地響きで目が覚めた」',
+            `○○線は運転見合わせ（残りの車両：${G.res.trains}両）`],
+          gains: { tec: perfect ? 9 : 6, pow: 5, hp: -25 }, dmg: 1.2e9 + greats * 0.1e9, alert: 12, kpop: perfect ? 8 : 4,
+          cat: '鉄道', flags: { cracks: true },
+        });
+      } else {
+        G.res.trains = Math.max(0, G.res.trains - 1);
+        G.flags.blackout = true;
+        G.epLog.push('kataFail');
+        showNews({
+          loc: 'city', act: 'nunchaku', ok: false,
+          head: 'すっぽ抜けた車両が隣県に落下　変電所が停止し3県で停電',
+          lines: ['怪獣はヌンチャクの型の途中で自分の頭を強打した模様', '落下した車両は隣県の変電所に直撃', '3県の約40万世帯で停電、信号機も停止', `回収不能の車両を含め、残りの車両：${G.res.trains}両`],
+          gains: { tec: 2, pow: 2, hp: -25 }, dmg: 12.1e9, alert: 26, kpop: 2, hpop: 4,
+          cat: '鉄道・電力',
+        });
+      }
+    },
+  });
+}
+
+// ---- minigame: power-line jump rope ----
+function sceneRope() {
+  const J = Math.round(14 * (0.72 + 0.28 * G.hp / 100) * (1 + G.sta / 200));
+  const GOAL = 8;
+  const S = { mode: 'intro', phi: Math.PI, om: 0.2, jumpT: -1, count: 0, failAt: 0 };
+  setScene({
+    bg: () => cityBg({ trains: G.res.trains, wires: Math.max(0, G.res.wires - 1), blackout: G.flags.blackout, cracks: G.flags.cracks }),
+    enter() { h(`<div class="prompt">電線が足もとに来たらタップでジャンプ！（${GOAL}回）</div>`); },
+    yoff() { return S.jumpT >= 0 ? -120 * Math.sin(Math.PI * S.jumpT / J) : 0; },
+    tick(f) {
+      if (S.mode === 'intro') { if (f >= 28) { S.mode = 'play'; $ui.innerHTML = ''; } return; }
+      if (S.mode === 'play') {
+        if (S.jumpT >= 0) { S.jumpT++; if (S.jumpT >= J) S.jumpT = -1; }
+        S.phi += S.om;
+        if (S.phi >= 2 * Math.PI) {
+          S.phi -= 2 * Math.PI;
+          if (this.yoff() < -38) { S.count++; S.om = Math.min(0.36, S.om + 0.015); if (S.count >= GOAL) { S.mode = 'done'; S.doneAt = f; } }
+          else { S.mode = 'fail'; S.failAt = f; }
+        }
+      } else if (S.mode === 'done' && f - S.doneAt > 30) this.finish(true);
+      else if (S.mode === 'fail' && f - S.failAt > 56) this.finish(false);
+    },
+    onTap() { if (S.mode === 'play' && S.jumpT < 0) S.jumpT = 0; },
+    shake(f) { if (S.mode === 'fail') { const j = f - S.failAt; if (j < 5) return [[12, -6], [-10, 6], [7, -3], [-4, 2], [2, -1]][j]; if (j >= 22 && j < 26) return [[0, 14], [0, -10], [0, 6], [0, -2]][j - 22]; } return null; },
+    draw(f) {
+      let out = '';
+      if (S.mode !== 'fail') {
+        const y = this.yoff();
+        const LH = [430, 450 + y], RH = [770, 440 + y];
+        const target = 445 + 255 * Math.cos(S.phi) + y;
+        const cy = 2 * target - (LH[1] + RH[1]) / 2;
+        const rope = `<path d="M${LH[0]} ${LH[1]} Q 600 ${cy} ${RH[0]} ${RH[1]}" stroke="#1d1d1d" stroke-width="12" fill="none"/><path d="M${LH[0]} ${LH[1]} Q 600 ${cy} ${RH[0]} ${RH[1]}" stroke="#8a8a8a" stroke-width="4" fill="none"/>`;
+        const front = Math.sin(S.phi) > 0;
+        const k = `<g transform="translate(0 ${y})">${torso()}${backArm(430, 450)}${arm(770, 440)}${head(S.mode === 'done' ? 'happy' : 'serious')}</g>`;
+        out += `<ellipse cx="600" cy="668" rx="${150 + y * 0.4}" ry="16" fill="#000" opacity="0.18"/>`;
+        out += (front ? '' : rope) + k + (front ? rope : '');
+        if (Math.cos(S.phi) > 0.93 && S.mode === 'play') out += sfx(640, 720, 'バチッ', 32, 0);
+        out += `<text x="1160" y="110" font-family="${SFX_FONT}" font-size="60" fill="#fff" stroke="${INK}" stroke-width="8" paint-order="stroke" text-anchor="end">${S.count} / ${GOAL}</text>`;
+        if (S.mode === 'done') out += sfx(360, 220, 'ピタッ', 56, -6);
+      } else {
+        const j = f - S.failAt;
+        const t = clamp((j - 5) / 16, 0, 1);
+        const rot = 75 * easeInOut(t), x = 600 + 260 * easeInOut(t), yy = 450 + 90 * easeInOut(t);
+        const tangle = `<path d="M560 640 q 40 -30 80 0 q 40 30 80 0" stroke="#2e2e2e" stroke-width="7" fill="none"/>`;
+        out += `<g transform="translate(${x - 600} ${yy - 450}) rotate(${rot} 600 640)">${KAIJU_BODY}${arm(735, 470)}${head(j < 22 ? 'surprised' : 'dizzy')}${tangle}</g>`;
+        if (j < 6) out += star(600, 650, 60 - j * 6) + sfx(380, 560, 'バチバチッ', 48, -6);
+        if (j >= 22 && j < 30) out += sfx(820, 430, 'ドシーン', 56, -6);
+        if (j >= 28) out += `<rect width="1200" height="750" fill="#fff" opacity="${Math.max(0, 0.9 - (j - 28) * 0.3)}"/>`;
+        if (j >= 31) out += `<rect width="1200" height="750" fill="#07102a" opacity="${Math.min(0.6, (j - 31) * 0.1)}"/>` + sfx(480, 300, 'ブツッ', 64, 0);
+      }
+      return out + liveBadge('中継：送電線');
+    },
+    finish(ok) {
+      if (this.ended) return; this.ended = true;
+      if (ok) {
+        G.res.wires -= 1;
+        G.epLog.push('rope');
+        showNews({
+          loc: 'city', act: 'rope', ok: true,
+          head: '怪獣、送電線で縄跳び　8回連続',
+          lines: ['跳ぶたびに火花、一帯で瞬間的な停電が8回', '電力会社「縄跳びは想定していなかった」', `使える送電線：残り${G.res.wires}本`],
+          gains: { sta: 6, tec: 4, hp: -25 }, dmg: 0.8e9, alert: 10, kpop: 5, cat: '電力',
+        });
+      } else {
+        G.res.wires = 0; G.flags.blackout = true;
+        G.epLog.push('ropeFail');
+        showNews({
+          loc: 'city', act: 'rope', ok: false,
+          head: '怪獣、縄跳びで足を取られ変電所に転倒　県全域で停電',
+          lines: ['電線が足に絡まり、そのまま変電所へ倒れ込んだ', '県内全域で停電、復旧のめどは立っていない', '送電線はすべて使用不能に'],
+          gains: { sta: 2, tec: 1, hp: -25 }, dmg: 25.4e9, alert: 28, kpop: 2, hpop: 5, cat: '電力',
+        });
+      }
+    },
+  });
+}
+
+// ---- minigame: dam lake front crawl ----
+function sceneSwim() {
+  const LV = 420;
+  const tw = 0.075 * (0.6 + 0.4 * G.hp / 100) * (1 + G.tec / 150);   // half width of the turn timing zone
+  const S = { mode: 'swim', x: 170, vx: 0, beta: 180, betaT: 180, last: null, strokes: 0, breatheT: -1, turnAt: 0, p: 0, endAt: 0, wrong: -10 };
+  setScene({
+    bg: () => damStatic(G),
+    wantsTap: false,
+    enter() {
+      h(`<div class="prompt">左右を交互に押してクロール！</div>
+        <div class="pads"><button class="pad" id="padL">左腕 ←</button><button class="pad" id="padR">右腕 →</button></div>`);
+      document.getElementById('padL').onpointerdown = e => { e.stopPropagation(); this.onSide('L'); };
+      document.getElementById('padR').onpointerdown = e => { e.stopPropagation(); this.onSide('R'); };
+    },
+    onSide(side) {
+      if (S.mode === 'swim') {
+        if (side === 'T') return;
+        if (S.last === side) { S.vx *= 0.4; S.wrong = frame; }
+        else { S.vx += 3.1 * (1 + G.sta / 140); S.betaT += 180; S.strokes++; if (S.strokes % 4 === 0) S.breatheT = 0; }
+        S.last = side;
+        const b = document.getElementById(side === 'L' ? 'padL' : 'padR');
+        if (b) { b.classList.add('lit'); setTimeout(() => b.classList.remove('lit'), 90); }
+      } else if (S.mode === 'turn') {
+        S.mode = Math.abs(S.p - 0.7) <= tw ? 'good' : 'bad'; S.endAt = frame;
+      }
+    },
+    tick(f) {
+      if (S.mode === 'swim') {
+        S.x += S.vx; S.vx *= 0.9;
+        S.beta += Math.min(32, (S.betaT - S.beta) * 0.45);
+        if (S.breatheT >= 0) { S.breatheT++; if (S.breatheT > 10) S.breatheT = -1; }
+        if (S.x >= 620) {
+          S.mode = 'turn'; S.turnAt = f; this.wantsTap = true;
+          h(`<div class="prompt">ターン！　針が黄色に入った瞬間にタップ</div>
+            <div class="pads" style="justify-content:center"><button class="pad next" id="padT">ターン</button></div>`);
+          document.getElementById('padT').onpointerdown = e => { e.stopPropagation(); this.onSide('T'); };
+        }
+      } else if (S.mode === 'turn') {
+        S.p = (f - S.turnAt) / 34;
+        if (S.p > 1.05) { S.mode = 'bad'; S.endAt = f; }
+      } else if (S.mode === 'good' || S.mode === 'bad') {
+        if (f - S.endAt === 1) $ui.innerHTML = '';
+        if (S.mode === 'good' && f - S.endAt > 40) this.finish(true);
+        if (S.mode === 'bad' && f - S.endAt > 70) this.finish(false);
+      }
+    },
+    shake(f) {
+      if (S.mode === 'bad') { const j = f - S.endAt - 10; if (j >= 0 && j < 4) return [[12, -5], [-10, 6], [7, -3], [-4, 2]][j]; }
+      return null;
+    },
+    draw(f) {
+      let out = '';
+      if (S.mode === 'swim' || S.mode === 'turn') {
+        const br = S.breatheT >= 0 ? Math.sin(S.breatheT / 10 * Math.PI) : 0;
+        const sw = swimmer(S.x, LV + 2 + 4 * Math.sin(f * 0.9), 0.5, 90, S.beta, { breathe: br, wag: 25 * Math.sin(f * (0.6 + S.vx * 0.15)) });
+        const [hx, hy] = sw.hand;
+        out += waterClip(sw.far + sw.body + sw.near, LV);
+        if (S.vx > 0.8) out += `<g fill="#fff" opacity="0.9"><ellipse cx="${S.x - 175}" cy="${LV - 4 - 8 * Math.abs(Math.sin(f * 1.3))}" rx="${16 + 6 * Math.sin(f * 1.3)}" ry="8"/><ellipse cx="${S.x - 150}" cy="${LV - 2}" rx="12" ry="6"/></g>`;
+        if (hy > LV - 10 && hy < LV + 30 && hx > S.x && S.vx > 1) out += `<ellipse cx="${hx}" cy="${LV}" rx="26" ry="9" fill="#fff" opacity="0.95"/>` + sfx(hx - 30, LV - 50, 'バシャ', 32, -6);
+        if (br > 0.6) out += sfx(S.x + 40, LV - 90, 'ぷはっ', 34, 0);
+        if (f - S.wrong < 10) out += sfx(S.x - 60, LV - 110, 'フォームが乱れた', 30, 0);
+        const prog = clamp((S.x - 170) / 450, 0, 1);
+        out += `<rect x="300" y="160" width="600" height="14" rx="7" fill="#0f2a4a" opacity="0.7"/><rect x="300" y="160" width="${600 * prog}" height="14" rx="7" fill="#ffd34d"/>
+          <text x="910" y="174" font-family="'M PLUS 1p',sans-serif" font-weight="800" font-size="20" fill="#fff" stroke="${INK}" stroke-width="4" paint-order="stroke">壁まで</text>`;
+        if (S.mode === 'turn') {
+          const cx = 600, cy = 230, r = 90;
+          const ang = p => (200 + p * 140) * D2R;
+          const arc = (p0, p1, col, w) => `<path d="M${cx + r * Math.cos(ang(p0))} ${cy + r * Math.sin(ang(p0))} A ${r} ${r} 0 0 1 ${cx + r * Math.cos(ang(p1))} ${cy + r * Math.sin(ang(p1))}" stroke="${col}" stroke-width="${w}" fill="none" stroke-linecap="round"/>`;
+          out += `<circle cx="${cx}" cy="${cy}" r="${r + 30}" fill="#0f2a4a" opacity="0.75"/>` + arc(0, 1, '#556', 18) + arc(0.7 - tw, 0.7 + tw, '#ffd34d', 20) +
+            `<line x1="${cx}" y1="${cy}" x2="${cx + (r + 12) * Math.cos(ang(clamp(S.p, 0, 1)))}" y2="${cy + (r + 12) * Math.sin(ang(clamp(S.p, 0, 1)))}" stroke="#fff" stroke-width="6" stroke-linecap="round"/>
+            <text x="${cx}" y="${cy + 40}" font-family="${SFX_FONT}" font-size="30" fill="#fff" text-anchor="middle">ターン</text>`;
+        }
+      } else {
+        const j = f - S.endAt;
+        if (j < 10) {
+          const t = j / 9, rot = 90 + 180 * easeInOut(t);
+          const sw = swimmer(S.x + 70 * t, LV + 22 + 70 * Math.sin(Math.PI * Math.min(1, t * 1.1)), 0.5, rot, 200 + j * 10, {});
+          out += waterClip(sw.far + sw.body + sw.near, LV) + sfx(500, LV - 70, 'クイックターン', 36, -4);
+        } else if (S.mode === 'good') {
+          const t = clamp((j - 10) / 30, 0, 1);
+          const sw = swimmer(700 - 260 * easeOut(t), LV + 40 - 30 * t, 0.5, 270, 330 + j * 8, {});
+          out += waterClip(sw.far + sw.body + sw.near, LV) + sfx(520, 240, 'スーッ', 48, -4) + sfx(380, 330, 'きれいなターン', 36, 0);
+        } else {
+          const k = j - 10;
+          if (k < 6) {
+            const sw = swimmer(700 - k * 4, LV + 92, 0.5, 270, 330, {});
+            out += waterClip(sw.far + sw.body + sw.near, LV) + star(822, LV + 95, 60 - k * 5) + sfx(600, 360, 'ドンッ', 60, -6);
+          } else if (k < 16) {
+            const c = k - 6;
+            const sw = swimmer(640, LV + 30, 0.5, 220 - c * 4, 330, { expr: c > 4 ? 'surprised' : 'serious' });
+            out += waterClip(sw.far + sw.body + sw.near, LV) + `<g stroke="${INK}" stroke-width="3" fill="none"><path d="M840 300 L850 360 L835 410 L858 470 L845 ${520 + c * 4}"/>
+              ${c > 3 ? '<path d="M850 360 L875 380"/><path d="M835 410 L822 440"/>' : ''}</g>` + (c > 4 ? sfx(520, 280, 'ピシッ…', 42, -4) : '');
+          } else {
+            if (k === 16) $bg.innerHTML = DEFS_BG;
+            const t = clamp((k - 16) / 44, 0, 1);
+            const lv = LV + 150 * Math.min(1, t * 1.6), flood = Math.min(1, t * 1.4);
+            const kx = 760 + 330 * t, ky = 470 + 70 * t - 30 * Math.sin(t * 9);
+            out += damBg(lv, 1, flood) + kaijuAt(kx, ky, 0.5, k * 22, 'surprised') + (k < 30 ? sfx(900, 260, 'ドドドド', 48, -8) : sfx(Math.min(kx - 80, 1050), ky - 120, 'あ〜', 50, 0));
+          }
+        }
+      }
+      return out + liveBadge('中継：○○ダム');
+    },
+    finish(ok) {
+      if (this.ended) return; this.ended = true;
+      if (ok) {
+        G.epLog.push('swim');
+        showNews({
+          loc: 'dam', act: 'swim', ok: true,
+          head: '怪獣、ダム湖で本格クロール　ターンも完璧',
+          lines: ['息継ぎは4かきに1回、教科書どおりのフォーム', '大波でボート乗り場が流される', 'ダム管理事務所「壁を蹴る瞬間は生きた心地がしなかった」'],
+          gains: { sta: 8, hp: -30 }, dmg: 0.25e9, alert: 6, kpop: 5, cat: '水道・観光',
+        });
+      } else {
+        G.res.dam = false;
+        G.epLog.push('damFail');
+        showNews({
+          loc: 'dam', act: 'swim', ok: false,
+          head: 'ダム決壊　怪獣ごと下流へ　流域に避難指示',
+          lines: ['クイックターンで壁を強く蹴りすぎた模様', '下流の住宅地が浸水、家屋が流される', '怪獣は約8km流されたのち、自力で岸に上がった', '下流の水力発電所も停止'],
+          gains: { sta: 3, hp: -30 }, dmg: 87.3e9, alert: 34, kpop: 3, hpop: 6, cat: '治水・電力',
+        });
+      }
+    },
+  });
+}
+
+// ---- eat oil tanker ----
+function sceneEat() {
+  setScene({
+    bg: seaBg,
+    tick(f) { if (f > 46) this.finish(); },
+    onTap() { if (frame > 10) this.finish(); },
+    draw(f) {
+      const sip = f > 10 && f < 34;
+      const shrink = clamp((f - 10) / 24, 0, 1);
+      const tanker = `<g transform="translate(770 ${330 - (f < 10 ? (10 - f) * 18 : 0)}) rotate(-80) scale(${1 - shrink * 0.12} 1)"><use href="#tanker"/></g>`;
+      const straw = `<path d="M778 220 L 712 322" stroke="#ff6fa5" stroke-width="10" stroke-linecap="round"/>`;
+      let out = `<g transform="translate(0 70)">${KAIJU_BODY}${tanker}${f > 6 ? straw : ''}${arm(770, 380)}${head(f >= 34 ? 'happy' : 'serious')}</g>`;
+      if (sip) out += sfx(860, 200, 'ちゅー', 50, -6);
+      if (f >= 34) out += sfx(780, 260, 'ぷはー', 56, -4);
+      return out + liveBadge('中継：湾岸');
+    },
+    finish() {
+      if (this.ended) return; this.ended = true;
+      G.oil += 1;
+      G.epLog.push('eat');
+      showNews({
+        loc: 'sea', act: 'eat', ok: true,
+        head: '怪獣、石油タンカーをストローで完飲',
+        lines: ['原油約30万トンが怪獣の体内へ', '専門家「体内に石油がたまると、倒された時が心配」', `お腹の中の石油：${G.oil}隻分`],
+        gains: { pow: 6, hp: 25 }, dmg: 3.4e9, alert: 8, kpop: 3, cat: '燃料',
+      });
+    },
+  });
+}
+
+// ---- sleep ----
+function sceneSleep() {
+  setScene({
+    bg: () => cityBg({ trains: G.res.trains, wires: G.res.wires, blackout: G.flags.blackout, cracks: G.flags.cracks }),
+    tick(f) { if (f > 40) this.finish(); },
+    onTap() { if (frame > 8) this.finish(); },
+    draw(f) {
+      const breath = 1 + 0.02 * Math.sin(f * 0.3);
+      return `<g transform="translate(600 560) rotate(-90) scale(${0.85 * breath} 0.85) translate(-600 -450)">${KAIJU_BODY}${head('sleep')}</g>` +
+        sfx(760 + (f % 20), 300 - (f % 20) * 4, 'Zzz', 48 + (f % 20), -10) + liveBadge('中継：市街地');
+    },
+    finish() {
+      if (this.ended) return; this.ended = true;
+      G.sleptTurns += 1;
+      G.epLog.push('sleep');
+      showNews({
+        loc: 'city', act: 'sleep', ok: true,
+        head: '怪獣、市街地のど真ん中で昼寝',
+        lines: ['いびきの振動で窓ガラス約2,000枚が割れる', '寝返りで駐車場が1つなくなった', '起こしに行く人はいなかった'],
+        gains: { hp: 100 }, dmg: 0.06e9, alert: 3, kpop: 2, cat: '建物',
+      });
+    },
+  });
+}
+
+// ---- news (result) ----
+function showNews(r) {
+  const before = G.dmg;
+  // apply
+  const g = r.gains || {};
+  for (const k of ['pow', 'sta', 'tec']) if (g[k]) G[k] = clamp(G[k] + g[k], 0, 100);
+  if (g.hp) G.hp = clamp(G.hp + g.hp, 0, 100);
+  G.dmg += r.dmg;
+  G.alert = clamp(G.alert + r.alert + Math.log10(r.dmg / 1e8 + 1) * 4, 0, 100);
+  G.kpop += r.kpop || 0; G.hpop += r.hpop || 0;
+  if (r.flags) Object.assign(G.flags, r.flags);
+  G.log.push({ cat: r.cat, amount: r.dmg });
+  const al = alertLevel();
+
+  const keepFx = $fx.innerHTML;
+  setScene({
+    bg: undefined, draw: () => null,
+    bgClass: al.lv === 0 ? 'cctv' : '', fxClass: al.lv === 0 ? 'cctv' : '',
+    enter() {
+      $fx.innerHTML = keepFx;
+      const names = { pow: '腕力', sta: '持久力', tec: '技術', hp: '体力' };
+      const gains = Object.entries(g).map(([k, v]) => `<span class="${v < 0 ? 'minus' : ''}">${names[k]} ${v > 0 ? '+' : ''}${v}</span>`).join('　');
+      h(`<div class="news lv${al.lv + 1}">
+          <div class="label"><span>${al.name}<small>${al.src}</small></span></div>
+          <div class="body">
+            <div class="head">${r.head}</div>
+            <ul>${r.lines.map((l, i) => `<li style="animation-delay:${0.25 + i * 0.35}s">${l}</li>`).join('')}</ul>
+            <div class="row"><span class="gain">${gains}</span>
+              <span class="dmg"><small>被害額</small><span id="cnt">${yen(before)}</span></span></div>
+          </div>
+        </div>
+        <div style="position:absolute;right:calc(var(--u)*40);top:calc(var(--u)*24)"><button class="btn" id="next">次へ</button></div>`);
+      const btn = document.getElementById('next');
+      btn.onclick = () => nextTurn();
+      btn.focus();
+      const t0 = performance.now(), dur = 1200;
+      const step = (now) => {
+        const el = document.getElementById('cnt'); if (!el) return;
+        const t = Math.min(1, (now - t0) / dur);
+        el.textContent = yen(before + (G.dmg - before) * easeOut(t));
+        if (t < 1) requestAnimationFrame(step);
+      };
+      requestAnimationFrame(step);
+    },
+  });
+}
+
+function nextTurn() {
+  G.turn++;
+  if (G.turn >= 3) sceneEpisodeEnd();
+  else sceneMenu();
+}
+
+// ---- episode end: ratings, reactions, preview ----
+function reactions() {
+  const L = G.epLog, pool = [];
+  const add = (who, text) => pool.push({ who, text });
+  if (L.some(x => x.startsWith('kata'))) add('40代・会社員', '電車返して');
+  if (L.includes('kataPerfect')) add('ハガキ・小5', 'ヌンチャクの持ち替え、録画で10回見ました');
+  if (L.includes('kataFail')) add('SNS', '停電で後半見られなかった。再放送してほしい');
+  if (L.includes('damFail')) add('ハガキ・農家', 'ダムの水が引いたら、うちの畑の水も引きました');
+  if (L.includes('swim')) add('SNS', 'クロールのフォームが綺麗すぎる。息継ぎの角度まで正しい');
+  if (L.includes('rope') || L.includes('ropeFail')) add('ハガキ・主婦', '縄跳びのたびに電子レンジが止まります');
+  if (L.includes('eat')) add('SNS', 'タンカーをストローで飲むの、かわいいけどガソリン代が心配');
+  if (G.sleptTurns > 0 && L.filter(x => x === 'sleep').length >= 2) add('SNS', '今週ほぼ寝てただけでは？');
+  const generic = [
+    ['ハガキ・小3', '被害額のケタが多くて数えられません'],
+    ['SNS', '今週の怪獣、背中にファスナーが見えた気がする'],
+    ['避難所から', '避難所のテレビで見ていました。うちの家が映ってた'],
+    ['ハガキ・模型店', 'ミニチュアの線路の出来がすばらしい'],
+    ['SNS', 'ヒーローはまだ来ないんですか'],
+    ['ハガキ・会社員', '今日も通勤電車が運休でした'],
+  ];
+  generic.sort(() => Math.random() - 0.5).forEach(([w, t]) => add(w, t));
+  return pool.slice(0, 4);
+}
+function sceneEpisodeEnd() {
+  const epDmg = G.dmg - G.epStartDmg;
+  const rating = (5.5 + Math.log10(epDmg / 1e8 + 1) * 3.2 + G.kpop * 0.08 + Math.random() * 1.2).toFixed(1);
+  setScene({
+    bg: () => cityBg({ trains: G.res.trains, wires: G.res.wires, blackout: G.flags.blackout, cracks: G.flags.cracks }),
+    bgClass: 'dim',
+    draw: () => `<g transform="translate(-120 0)" opacity="0.6">${KAIJU_BODY}${arm(735, 470)}${head('serious')}</g>`,
+    enter() {
+      const v = reactions();
+      h(`<div class="board">
+        <h2>第${EPISODES[G.ep].no}話　放送終了</h2>
+        <div class="kpi"><div>視聴率<b>${rating}%</b></div><div>今週の被害額<b>${yen(epDmg)}</b></div><div>怪獣人気<b>${G.kpop}</b></div><div>ヒーロー人気<b>${G.hpop}</b></div></div>
+        <div style="font-weight:800">今週の反響</div>
+        <div class="voices">${v.map((x, i) => `<div class="voice" style="--r:${(i % 2 ? 1 : -1) * (0.6 + i * 0.3)}deg">${x.text}<small>${x.who}</small></div>`).join('')}</div>
+        <div class="foot"><button class="btn" id="next">次回予告へ</button></div>
+      </div>`);
+      document.getElementById('next').onclick = () => scenePreview();
+      document.getElementById('next').focus();
+    },
+  });
+}
+function scenePreview() {
+  const texts = [
+    `次回、防衛隊の<em>新兵器</em>がついに出動！<br>ズングラ、<em>絶体絶命</em>か！？`,
+    `次回、ついに<em>ヒーロー</em>が登場！？<br>街の運命やいかに！`,
+    null,
+  ];
+  if (G.ep >= EPISODES.length - 1) return sceneBill();
+  setScene({
+    bg: undefined, draw: () => '', bgClass: 'dim',
+    enter() {
+      h(`<div class="board" style="justify-content:center;align-items:center;text-align:center">
+        <div style="color:var(--gold);font-weight:800;letter-spacing:0.3em">次回予告</div>
+        <div class="preview">${texts[G.ep]}</div>
+        <div class="foot" style="margin-top:calc(var(--u)*20)"><button class="btn" id="next">次の話へ</button></div></div>`);
+      document.getElementById('next').onclick = () => {
+        G.ep++; G.turn = 0; G.epLog = []; G.sleptTurns = 0; G.epStartDmg = G.dmg;
+        if (!G.titled) { G.titled = true; sceneGreenlight(); } else sceneEpisodeTitle();
+      };
+      document.getElementById('next').focus();
+    },
+  });
+}
+// after episode 1: the proposal title becomes the show's title
+function sceneGreenlight() {
+  setScene({
+    bg: '', draw: () => '',
+    enter() {
+      $bg.innerHTML = `<rect width="1200" height="750" fill="#2a2420"/>`;
+      h(`<div class="sheet">
+        <div class="meta"><span>企画書　No.0001</span><span>制作部　第2班</span></div>
+        <h1><span class="strike">怪獣育成（仮）</span></h1>
+        <p class="lede">第1話の視聴率を受けて、番組タイトルが決まりました。</p>
+        <div class="row"><span class="stamp" style="font-size:calc(var(--u)*48)">放送決定</span><button class="btn" id="go">タイトルを見る</button></div>
+      </div>`);
+      document.getElementById('go').onclick = () => {
+        h(`<div class="titlecard"><div class="logo"><small>毎週日曜 夕方6時</small>${SHOW}</div><div class="skip">タップで進む</div></div>`);
+        setTimeout(() => { scene.onTap = () => sceneEpisodeTitle(); }, 300);
+      };
+      document.getElementById('go').focus();
+    },
+  });
+}
+// episode 2 opener: the hyped new weapon lasts five seconds
+function sceneSneezeGag() {
+  setScene({
+    bg: () => cityBg({ trains: G.res.trains, wires: G.res.wires, blackout: G.flags.blackout, cracks: G.flags.cracks }),
+    tick(f) { if (f > 62) this.finish(); },
+    onTap() { if (frame > 30) this.finish(); },
+    shake(f) { return f >= 24 && f < 28 ? [[10, -4], [-8, 5], [5, -2], [-2, 1]][f - 24] : null; },
+    draw(f) {
+      const t = clamp((f - 25) / 20, 0, 1);
+      const tank = f < 25 ? `<use href="#tank" transform="translate(${1000 - Math.min(f, 15) * 8} 600)"/>`
+        : `<use href="#tank" transform="translate(${880 + 300 * t} ${600 - 420 * Math.sin(Math.PI * t * 0.8)}) rotate(${f * 40}) scale(${1 - 0.6 * t})"/>`;
+      let out = `<g transform="translate(-120 0)">${KAIJU_BODY}${arm(735, 470)}${head(f < 18 ? 'serious' : f < 25 ? 'surprised' : 'happy', f >= 22 && f < 26 ? 8 : 0)}</g>` + tank;
+      if (f < 18) out += sfx(820, 470, '新兵器 メガ放水砲 出動！', 30, 0);
+      if (f >= 14 && f < 24) out += sfx(420, 200, 'へ…へ…', 44, -6);
+      if (f >= 24 && f < 40) out += sfx(560, 230, 'ヘックシ', 64, -8);
+      out += `<text x="1160" y="110" font-family="${SFX_FONT}" font-size="54" fill="#fff" stroke="${INK}" stroke-width="8" paint-order="stroke" text-anchor="end">${Math.max(0, 5 - Math.floor(f / 5))}秒</text>`;
+      return out + liveBadge('中継：防衛隊');
+    },
+    finish() {
+      if (this.ended) return; this.ended = true;
+      G.turn = -1;
+      G.epLog.push('gag');
+      showNews({
+        loc: 'city', act: 'gag', ok: true,
+        head: '新兵器「メガ放水砲」、怪獣のくしゃみで5秒で全損',
+        lines: ['先週の予告で大きく宣伝された新兵器', '出動から5秒、怪獣のくしゃみで空のかなたへ', '防衛隊「次回作に期待してほしい」'],
+        gains: {}, dmg: 30e9, alert: 6, kpop: 4, hpop: -2, cat: '防衛',
+      });
+    },
+  });
+}
+// episode 3 opener: the hero is stuck because there are no trains
+function sceneHeroLate() {
+  const trainsGone = G.res.trains <= 1;
+  G.turn = -1;
+  showNews({
+    loc: 'city', act: 'gag', ok: true,
+    head: trainsGone ? '予告のヒーロー、電車が動かず現場に到着できず' : '予告のヒーロー、渋滞で到着が遅れる',
+    lines: trainsGone ? ['怪獣が電車をヌンチャクに使い続けたため、在来線が全線運休', 'ヒーローは駅で振替輸送を待っている模様', '視聴者からは「予告詐欺」の声も'] : ['ヒーローは現在、高速道路の渋滞に巻き込まれている', '到着は来週以降の見込み'],
+    gains: {}, dmg: 0.01e9, alert: 0, kpop: 3, hpop: -3, cat: 'その他',
+  });
+}
+
+// ---- end of prototype: the bill ----
+function sceneBill() {
+  const byCat = {};
+  for (const l of G.log) byCat[l.cat] = (byCat[l.cat] || 0) + l.amount;
+  const rows = Object.entries(byCat).sort((a, b) => b[1] - a[1]);
+  setScene({
+    bg: undefined, draw: () => '', bgClass: 'dim',
+    enter() {
+      h(`<div class="board">
+        <h2>ご請求書（第1話〜第3話）</h2>
+        <div class="bill">
+          ${rows.map(([c, v]) => `<div class="line"><span>${c}</span><span>${yen(v)}</span></div>`).join('')}
+          <div class="line total"><span>合計</span><span>${yen(G.dmg)}</span></div>
+        </div>
+        <div style="color:var(--muted);font-size:calc(var(--u)*20)">お腹の中の石油：${G.oil}隻分（倒されたときに燃えます）／ 腕力 ${G.pow}・持久力 ${G.sta}・技術 ${G.tec}</div>
+        <div class="foot"><span style="margin-right:auto;color:var(--muted)">試作版はここまで。第4話でヒーローと初対決（予定）</span><button class="btn" id="again">最初から</button></div>
+      </div>`);
+      document.getElementById('again').onclick = () => { G = newGame(); sceneProposal(); };
+      document.getElementById('again').focus();
+    },
+  });
+}
+
+/* boot */
+sceneProposal();
+requestAnimationFrame(loop);
+</script>
