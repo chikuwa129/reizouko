@@ -254,6 +254,8 @@ body {
 .kcard .kname { font-family: var(--f-display); font-size: calc(var(--u) * 80); color: #fff; -webkit-text-stroke: calc(var(--u) * 3) var(--ink); paint-order: stroke fill; line-height: 1.1; animation: zoomIn 0.4s ease-out both; }
 .kcard .kpart { margin-top: calc(var(--u) * 6); display: inline-block; background: var(--panel); padding: calc(var(--u) * 6) calc(var(--u) * 18); border-radius: calc(var(--u) * 8); font-size: calc(var(--u) * 22); }
 .cmds .back { align-self: flex-start; }
+.cmds { overflow-y: auto; overscroll-behavior: contain; }
+.cmds .cmd { flex: none; }
 .pinbtn { position: absolute; width: calc(var(--u) * 100); height: calc(var(--u) * 100); border-radius: 50%; background: transparent; border: 0; cursor: pointer; }
 .pinbtn:focus-visible { outline: calc(var(--u) * 5) solid #8fd0ff; }
 .mapinfo { position: absolute; left: calc(var(--u) * 756); width: calc(var(--u) * 420); top: calc(var(--u) * 370); background: var(--panel); border: calc(var(--u) * 3) solid #2c4a6e; border-radius: calc(var(--u) * 12); padding: calc(var(--u) * 16) calc(var(--u) * 20); display: flex; flex-direction: column; gap: calc(var(--u) * 8); }
@@ -1120,14 +1122,14 @@ const SHOW = '銀河超人ジャスティア';
 const HERO = 'ジャスティア';
 const TIMES = ['朝', '昼', '晩'];
 const LOCS = {
-  city: { name: '駅前', acts: { nunchaku: { n: 3, thing: '電車', unit: '両', href: 'car' }, rope: { n: 2, thing: '電線', unit: '本' }, run: { n: 2, thing: '高速道路', unit: '回' }, sandbag: { n: 2, thing: 'ビル街', unit: '回' } } },
+  city: { name: '駅前', acts: { nunchaku: { n: 3, thing: '電車', unit: '両', href: 'car' }, rope: { n: 2, thing: '電線', unit: '本' }, run: { n: 2, thing: '高速道路', unit: '回' }, sandbag: { n: 2, thing: 'ビル街', unit: '回' }, whack: { n: 2, thing: '防衛隊の戦車部隊', unit: '回' } } },
   dam: { name: '山あいのダム', acts: { juggle: { n: 2, thing: 'ダム湖のボート', unit: '回' }, swim: { n: 2, thing: 'ダム湖', unit: '回' }, nunchaku: { n: 2, thing: 'ロープウェイのゴンドラ', unit: '台', href: 'gondola' } } },
-  airport: { name: '空港', unlock: 3, acts: { run: { n: 2, thing: '滑走路', unit: '回' }, sandbag: { n: 2, thing: 'ターミナルビル', unit: '回' }, pullup: { n: 2, thing: '管制塔', unit: '回' } } },
+  airport: { name: '空港', unlock: 3, acts: { run: { n: 2, thing: '滑走路', unit: '回' }, sandbag: { n: 2, thing: 'ターミナルビル', unit: '回' }, pullup: { n: 2, thing: '管制塔', unit: '回' }, shoot: { n: 2, thing: '防衛隊の航空部隊', unit: '回' } } },
   mountain: { name: '山岳地帯', unlock: 7, acts: { pullup: { n: 2, thing: '送電鉄塔', unit: '回' }, rope: { n: 2, thing: '山の送電線', unit: '本' }, nunchaku: { n: 2, thing: 'ロープウェイのゴンドラ', unit: '台', href: 'gondola' } } },
   metro: { name: '大陸の大都市', world: [200, 175], unlock: 4, acts: { sandbag: { n: 2, thing: '摩天楼街', unit: '回' }, run: { n: 2, thing: '大通り', unit: '回' }, pullup: { n: 2, thing: '電波塔', unit: '回' }, nunchaku: { n: 2, thing: '地下鉄の車両', unit: '両', href: 'car' } } },
-  desert: { name: '砂漠の油田', world: [505, 300], unlock: 6, acts: { eat: { n: 3, thing: '油田の原油', unit: '杯' }, run: { n: 2, thing: '砂漠のハイウェイ', unit: '回' }, rope: { n: 2, thing: '砂漠の送電線', unit: '本' } } },
-  ice: { name: '氷の大地', world: [610, 70], unlock: 8, acts: { juggle: { n: 2, thing: '流氷の漁船', unit: '回' }, pullup: { n: 2, thing: 'オーロラ観測塔', unit: '回' }, nunchaku: { n: 2, thing: '雪上車', unit: '台', href: 'freight' } } },
-  port: { name: '臨海コンビナート', acts: { juggle: { n: 1, thing: '港の漁船', unit: '回' }, eat: { n: 3, thing: 'コンビナートの石油', unit: '杯' }, skip: { n: 2, thing: 'コンテナ船', unit: '隻' }, nunchaku: { n: 2, thing: '貨物列車', unit: '両', href: 'freight' } } },
+  desert: { name: '砂漠の油田', world: [505, 300], unlock: 6, acts: { eat: { n: 3, thing: '油田の原油', unit: '杯' }, run: { n: 2, thing: '砂漠のハイウェイ', unit: '回' }, rope: { n: 2, thing: '砂漠の送電線', unit: '本' }, whack: { n: 2, thing: '砂漠の機甲部隊', unit: '回' } } },
+  ice: { name: '氷の大地', world: [610, 70], unlock: 8, acts: { juggle: { n: 2, thing: '流氷の漁船', unit: '回' }, pullup: { n: 2, thing: 'オーロラ観測塔', unit: '回' }, nunchaku: { n: 2, thing: '雪上車', unit: '台', href: 'freight' }, shoot: { n: 2, thing: '哨戒ヘリ部隊', unit: '回' } } },
+  port: { name: '臨海コンビナート', acts: { shoot: { n: 2, thing: '沿岸警備の航空部隊', unit: '回' }, juggle: { n: 1, thing: '港の漁船', unit: '回' }, eat: { n: 3, thing: 'コンビナートの石油', unit: '杯' }, skip: { n: 2, thing: 'コンテナ船', unit: '隻' }, nunchaku: { n: 2, thing: '貨物列車', unit: '両', href: 'freight' } } },
 };
 // action names only: what gets used is a surprise until the minigame/news
 const ACTIONS = [
@@ -1135,6 +1137,8 @@ const ACTIONS = [
   { id: 'nunchaku', name: 'ヌンチャク', what: '技術・腕力が上がる　体力−25', base: 18 },
   { id: 'rope', name: '縄跳び', what: '持久力・技術が上がる　体力−25', base: 15 },
   { id: 'swim', name: '水泳', what: '持久力が上がる　体力−30', base: 20 },
+  { id: 'whack', name: 'もぐら叩き', what: '腕力・技術が上がる＋戦車も減らせる', base: 10 },
+  { id: 'shoot', name: 'シューティング', what: '技術が上がる＋戦闘機も減らせる', base: 10 },
   { id: 'pullup', name: '懸垂', what: '持久力が大きく上がる　体力−25', base: 15 },
   { id: 'juggle', name: 'ジャグリング', what: '技術が大きく上がる　体力−20', base: 15 },
   { id: 'run', name: 'ランニング', what: '持久力・腕力が上がる　体力−25', base: 16 },
@@ -1143,7 +1147,7 @@ const ACTIONS = [
   { id: 'sleep', name: '寝る', what: '体力が全回復', safe: true, always: true },
   { id: 'move', name: '移動して探す', what: '別の場所に、新しい道具があるかも', safe: true, always: true },
 ];
-const PART_OF = { eat: 'chimney', swim: 'fins', nunchaku: 'horn', rope: 'coil', sleep: 'nightcap', move: 'horn', run: 'horn', skip: 'fins', sandbag: 'horn', pullup: 'coil', juggle: 'fins' };
+const PART_OF = { eat: 'chimney', swim: 'fins', nunchaku: 'horn', rope: 'coil', sleep: 'nightcap', move: 'horn', run: 'horn', skip: 'fins', sandbag: 'horn', pullup: 'coil', juggle: 'fins', whack: 'horn', shoot: 'coil' };
 const PART_NAME = { chimney: '背中の煙突', fins: 'ヒレ', horn: 'ツノ', coil: 'アンテナ', nightcap: 'ナイトキャップ' };
 const KAIJU_NAME = { chimney: 'モクモクドン', fins: 'ザブングラ', horn: 'ツノグラー', coil: 'ビリビリンガ', nightcap: 'ネムグラ' };
 
@@ -1428,7 +1432,7 @@ function sceneMenu(view = 'main') {
 function countAct(id) { G.actCount[id] = (G.actCount[id] || 0) + 1; G.ever = G.ever || {}; G.ever[id] = true; G.counts[id] = (G.counts[id] || 0) + 1; }
 function runCommand(id) {
   countAct(id);
-  ({ pullup: scenePullup, juggle: sceneJuggle, sandbag: sceneSandbag, nunchaku: sceneNunchaku, rope: sceneRope, swim: sceneSwim, run: sceneRun, skip: sceneSkip, eat: sceneEat, sleep: sceneSleep })[id]();
+  ({ whack: sceneWhack, shoot: sceneShoot, pullup: scenePullup, juggle: sceneJuggle, sandbag: sceneSandbag, nunchaku: sceneNunchaku, rope: sceneRope, swim: sceneSwim, run: sceneRun, skip: sceneSkip, eat: sceneEat, sleep: sceneSleep })[id]();
 }
 
 
@@ -2137,6 +2141,190 @@ function sceneJuggle() {
   });
 }
 
+// screen point -> SVG (1200x750) coordinates; works with the rotated TV too
+function svgPt(e) {
+  if (!e || e.clientX === undefined) return null;
+  const pt = $fx.createSVGPoint(); pt.x = e.clientX; pt.y = e.clientY;
+  const m = $fx.getScreenCTM(); return m ? pt.matrixTransform(m.inverse()) : null;
+}
+// the kaiju's own foot seen from above (toes forward)
+function footTop(x, y, s = 1, lift = 0) {
+  const P = LOOK.armSkin && LOOK.base === 'composite' ? palOf(COMP.aqua) : LOOK;
+  return `<g transform="translate(${x} ${y}) scale(${s * (1 + lift * 0.25)})">
+    <ellipse cx="0" cy="40" rx="${110}" ry="${130}" fill="${P.skin}" stroke="${INK}" stroke-width="7"/>
+    ${[-70, -24, 24, 70].map((dx, i) => `<ellipse cx="${dx}" cy="${-70 - (i === 1 || i === 2 ? 14 : 0)}" rx="28" ry="36" fill="${P.skin}" stroke="${INK}" stroke-width="6"/><path d="M${dx - 14} ${-96 - (i === 1 || i === 2 ? 14 : 0)} q 14 -16 28 0" fill="#f4f0e2" stroke="${INK}" stroke-width="4"/>`).join('')}
+    <path d="M-60 60 q 60 30 120 0" stroke="${P.dark}" stroke-width="6" fill="none" opacity="0.6"/></g>`;
+}
+function tankTop(x, y, rot, flat) {
+  if (flat) return `<g transform="translate(${x} ${y}) rotate(${rot})"><rect x="-38" y="-14" width="76" height="28" rx="4" fill="#5d6650" stroke="${INK}" stroke-width="3"/><path d="M-30 -10 l 60 18" stroke="${INK}" stroke-width="3"/></g>`;
+  return `<g transform="translate(${x} ${y}) rotate(${rot})">
+    <rect x="-34" y="-22" width="68" height="44" rx="6" fill="#7d8a6a" stroke="${INK}" stroke-width="3"/>
+    <rect x="-34" y="-26" width="68" height="8" fill="#4a4f42"/><rect x="-34" y="18" width="68" height="8" fill="#4a4f42"/>
+    <circle cx="-4" cy="0" r="14" fill="#8e9c78" stroke="${INK}" stroke-width="3"/><rect x="6" y="-3" width="40" height="6" fill="#6b7759" stroke="${INK}" stroke-width="2"/></g>`;
+}
+
+// ---- minigame: whack-a-mole with tanks, from the kaiju's own eyes (looking down at its feet) ----
+function sceneWhack() {
+  const LIMIT = 300, th = thingHere('whack');
+  const S = { mode: 'play', tanks: [], stomp: null, crushed: 0, miss: 0, craters: [], next: 10, endAt: 0, foot: 0 };
+  const spawn = f => {
+    const lanes = [[220, 260], [600, 230], [980, 260], [330, 470], [870, 470], [600, 420]];
+    const [x, y] = lanes[Math.floor(Math.random() * lanes.length)];
+    S.tanks.push({ x, y, born: f, life: Math.max(28, 52 - S.crushed * 1.5), rot: Math.random() * 360, dx: (Math.random() - 0.5) * 3, dy: (Math.random() - 0.5) * 2, dead: -1 });
+  };
+  const doStomp = (x, y) => {
+    if (S.mode !== 'play' || (S.stomp && frame - S.stomp.f < 6)) return;
+    S.foot ^= 1;
+    S.stomp = { f: frame, x, y, side: S.foot };
+  };
+  setScene({
+    bg: () => {
+      // the ground far below, seen from above: streets, roofs, trees
+      let g = `<rect width="1200" height="750" fill="#8a8572"/>`;
+      for (let i = 0; i < 6; i++) g += `<rect x="${i * 220 - 40}" y="0" width="60" height="750" fill="#6f6b5e"/><rect x="0" y="${i * 160 - 30}" width="1200" height="50" fill="#6f6b5e"/>`;
+      const cols = ['#d9cfb4', '#c8d6d9', '#d9c3c0', '#dfe3d2'];
+      for (let i = 0; i < 5; i++) for (let j = 0; j < 5; j++) if ((i + j) % 2) g += `<rect x="${i * 220 + 40}" y="${j * 160 + 40}" width="120" height="80" fill="${cols[(i + j) % 4]}" stroke="${INK}" stroke-width="3"/><rect x="${i * 220 + 60}" y="${j * 160 + 55}" width="30" height="20" fill="#9aa3a0"/>`;
+      else g += `<circle cx="${i * 220 + 100}" cy="${j * 160 + 80}" r="28" fill="#5e8a50" stroke="${INK}" stroke-width="3"/>`;
+      return DEFS_BG() + g + todTint();
+    },
+    enter() { h(`<div class="prompt" id="pr">戦車をタップして踏みつぶせ！（${LIMIT / 20}秒）</div>`); },
+    onTap(e) {
+      const p = svgPt(e);
+      if (p) return doStomp(p.x, p.y);
+      const t = S.tanks.find(t => t.dead < 0);        // keyboard: stomp the oldest tank in view
+      if (t) doStomp(t.x, t.y);
+    },
+    tick(f) {
+      if (f === 60) { const pr = document.getElementById('pr'); if (pr) pr.remove(); }
+      if (S.mode !== 'play') { if (f - S.endAt > 30) this.finish(); return; }
+      if (f >= S.next) { spawn(f); S.next = f + Math.max(8, 20 - Math.floor(f / 40)); }
+      for (const t of S.tanks) if (t.dead < 0) { t.x += t.dx; t.y += t.dy; }
+      S.tanks = S.tanks.filter(t => t.dead >= 0 ? f - t.dead < 60 : f - t.born < t.life + 10);
+      if (S.stomp && f - S.stomp.f === 4) {   // the foot lands
+        const { x, y } = S.stomp; let hit = 0;
+        for (const t of S.tanks) if (t.dead < 0 && Math.hypot(t.x - x, t.y - y) < 95) { t.dead = f; hit++; }
+        if (hit) S.crushed += hit; else { S.miss++; S.craters.push({ x, y }); }
+        S.stomp.hit = hit;
+      }
+      if (f >= LIMIT) { S.mode = 'end'; S.endAt = f; }
+    },
+    shake(f) { if (S.stomp) { const j = f - S.stomp.f - 4; if (j >= 0 && j < 4) return [[0, 16], [0, -10], [0, 6], [0, -2]][j]; } return null; },
+    draw(f) {
+      let o = '';
+      for (const c of S.craters) o += `<ellipse cx="${c.x}" cy="${c.y}" rx="70" ry="44" fill="#4a463c" stroke="${INK}" stroke-width="3"/><path d="M${c.x - 60} ${c.y} l -30 -20 M${c.x + 60} ${c.y} l 34 16 M${c.x} ${c.y - 40} l 6 -34" stroke="${INK}" stroke-width="3"/>`;
+      for (const t of S.tanks) {
+        const age = f - t.born, pop = clamp(age / 6, 0, 1), fade = t.dead < 0 ? clamp((t.life + 10 - age) / 10, 0, 1) : 1;
+        o += `<g opacity="${Math.min(pop, fade)}">${tankTop(t.x, t.y, t.rot, t.dead >= 0)}</g>`;
+        if (t.dead < 0 && age > 4 && age % 20 < 3) o += `<circle cx="${t.x + 40 * Math.cos(t.rot * D2R)}" cy="${t.y + 40 * Math.sin(t.rot * D2R)}" r="10" fill="#ffd34d"/>`;
+      }
+      // feet: resting at the bottom corners; the stomping one comes down on the target
+      const st = S.stomp, sj = st ? f - st.f : 99;
+      const restL = `${footTop(250, 820, 1.25)}`, restR = `${footTop(950, 820, 1.25)}`;
+      if (st && sj < 14) {
+        const down = sj < 4 ? sj / 4 : 1, up = sj > 8 ? (sj - 8) / 6 : 0;
+        const fx = st.side ? 950 : 250, fy = 820;
+        const x = fx + (st.x - fx) * (down - up), y = fy + (st.y + 40 - fy) * (down - up);
+        o += `<ellipse cx="${st.x}" cy="${st.y + 20}" rx="${130 - 60 * down}" ry="${80 - 36 * down}" fill="#000" opacity="${0.25 * (1 - up)}"/>`;
+        o += (st.side ? restL : restR) + footTop(x, y, 1.25 - 0.35 * (down - up), 1 - down + up);
+        if (sj >= 4 && sj < 10) o += star(st.x, st.y, 70 - (sj - 4) * 6) + sfx(st.x - 70, st.y - 110, st.hit ? (st.hit > 1 ? `${st.hit}両まとめて！` : 'グシャ') : 'ドスン', 44, -6);
+      } else o += restL + restR;
+      o += `<g font-family="${SFX_FONT}" fill="#fff" stroke="${INK}" stroke-width="7" paint-order="stroke" text-anchor="end"><text x="1160" y="110" font-size="48">${Math.max(0, (LIMIT - f) / 20).toFixed(1)}秒</text><text x="1160" y="170" font-size="40">${S.crushed}両</text></g>`;
+      if (S.mode === 'end') o += sfx(420, 360, 'ふみふみ完了', 56, -6);
+      return o + liveBadge('中継：' + here().name + '（怪獣目線）');
+    },
+    finish() {
+      if (this.ended) return; this.ended = true;
+      G.stock[G.loc].whack -= 1;
+      G.armyCut = (G.armyCut || 0) + S.crushed;
+      G.epLog.push('whack');
+      showNews({
+        loc: G.loc, ok: true, head: `怪獣、${th.thing}を足もとで次々と踏みつぶす　${S.crushed}両`,
+        lines: [`防衛隊の地上戦力が大きく減り、今週の${foeLabel() || 'ヒーロー'}への援護が手薄に`, S.miss ? `踏み外した足あとで道路に穴が${S.miss}か所` : '一歩も踏み外さなかった', `${th.thing}：残り${G.stock[G.loc].whack}回`],
+        gains: { pow: 2 + Math.round(S.crushed / 3), tec: 2 + Math.round(S.crushed / 4), sta: 2, hp: -20 }, dmg: S.crushed * 1.1e9 + S.miss * 0.4e9, alert: 10 + S.crushed, kpop: 3 + Math.round(S.crushed / 2), hpop: 2, cat: '防衛',
+      });
+    },
+  });
+}
+
+// ---- minigame: shooting aircraft down, from the kaiju's own eyes (its snout at the bottom) ----
+function sceneShoot() {
+  const LIMIT = 300, th = thingHere('shoot');
+  const S = { mode: 'play', air: [], shots: [], downs: 0, next: 12, endAt: 0, hurt: -99, aim: { x: 600, y: 300 } };
+  const spawn = f => {
+    const jet = Math.random() < 0.45, fromL = Math.random() < 0.5;
+    S.air.push(jet ? { kind: 'jet', x: fromL ? -80 : 1280, y: 90 + Math.random() * 220, vx: (fromL ? 1 : -1) * (14 + Math.random() * 6), vy: (Math.random() - 0.5) * 2, born: f, dead: -1 }
+      : { kind: 'heli', x: fromL ? -60 : 1260, y: 160 + Math.random() * 230, vx: (fromL ? 1 : -1) * (3 + Math.random() * 2), vy: 0, born: f, dead: -1 });
+  };
+  const fire = (x, y) => {
+    if (S.mode !== 'play' || S.shots.some(s => frame - s.f < 4)) return;
+    S.aim = { x, y };
+    const hit = S.air.find(a => a.dead < 0 && Math.hypot(a.x - x, a.y - y) < (a.kind === 'jet' ? 70 : 60));
+    if (hit) { hit.dead = frame; S.downs++; }
+    S.shots.push({ f: frame, x, y, hit: !!hit });
+  };
+  setScene({
+    bg: () => DEFS_BG() + `<rect width="1200" height="750" fill="url(#sky)"/>${skyDeco()}
+      <g fill="#fff" opacity="0.8"><ellipse cx="250" cy="140" rx="110" ry="30"/><ellipse cx="900" cy="100" rx="90" ry="24"/><ellipse cx="620" cy="260" rx="70" ry="18"/></g>
+      <g filter="url(#blurFar)" fill="#8fa3ad">${[0, 1, 2, 3, 4, 5, 6, 7, 8].map(i => `<rect x="${i * 140}" y="${520 + (i % 3) * 20}" width="100" height="240"/>`).join('')}</g>${todTint()}`,
+    enter() { h(`<div class="prompt" id="pr">ヘリや戦闘機をタップして光線で撃ち落とせ！（${LIMIT / 20}秒）</div>`); },
+    onTap(e) {
+      const p = svgPt(e);
+      if (p) return fire(p.x, p.y);
+      const a = S.air.find(a => a.dead < 0 && a.x > 40 && a.x < 1160);   // keyboard: auto-aim
+      if (a) fire(a.x, a.y);
+    },
+    tick(f) {
+      if (f === 60) { const pr = document.getElementById('pr'); if (pr) pr.remove(); }
+      if (S.mode !== 'play') { if (f - S.endAt > 34) this.finish(); return; }
+      if (f >= S.next) { spawn(f); S.next = f + Math.max(10, 24 - Math.floor(f / 30)); }
+      for (const a of S.air) {
+        if (a.dead < 0) { a.x += a.vx; a.y += a.vy + (a.kind === 'heli' ? Math.sin((f - a.born) * 0.1) * 1.2 : 0); if (a.kind === 'jet' && (f - a.born) % 40 === 20 && Math.random() < 0.5) S.hurt = f; }
+        else { a.vy = (a.vy || 0) + 1.2; a.x += a.vx * 0.4; a.y += a.vy; }
+      }
+      S.air = S.air.filter(a => a.dead >= 0 ? a.y < 820 : a.x > -150 && a.x < 1350);
+      if (f >= LIMIT) { S.mode = 'end'; S.endAt = f; }
+    },
+    shake(f) { const j = f - S.hurt; return j >= 0 && j < 4 ? [[8, -6], [-6, 4], [4, -2], [0, 0]][j] : null; },
+    draw(f) {
+      let o = '';
+      for (const a of S.air) {
+        const spin = a.dead >= 0 ? (f - a.dead) * 25 : 0, dir = a.vx > 0 ? 1 : -1;
+        if (a.kind === 'jet') o += `${a.dead < 0 ? `<path d="M${a.x - dir * 30} ${a.y} l ${-dir * 160} 0" stroke="#fff" stroke-width="5" opacity="0.7"/>` : ''}<g transform="translate(${a.x} ${a.y}) rotate(${spin}) scale(${dir} 1)"><path d="M-46 0 L 40 -6 L 52 0 L 40 6 Z" fill="#9aa3ad" stroke="${INK}" stroke-width="3"/><path d="M-6 -4 L -26 -30 L -14 -30 L 14 -4 Z M-6 4 L -26 30 L -14 30 L 14 4 Z" fill="#7d8792" stroke="${INK}" stroke-width="3"/><path d="M-44 -2 L -54 -20 L -40 -20 L -34 -2 Z" fill="#7d8792" stroke="${INK}" stroke-width="3"/></g>`;
+        else o += `<g transform="translate(${a.x} ${a.y}) rotate(${spin})"><ellipse cx="0" cy="0" rx="36" ry="20" fill="#5d6650" stroke="${INK}" stroke-width="3"/><path d="M${-dir * 30} -4 L ${-dir * 80} -8 L ${-dir * 84} 6 L ${-dir * 30} 6 Z" fill="#5d6650" stroke="${INK}" stroke-width="3"/>
+          <ellipse cx="${dir * 14}" cy="-4" rx="12" ry="9" fill="#bfe6f5" stroke="${INK}" stroke-width="2"/><line x1="0" y1="-20" x2="0" y2="-28" stroke="${INK}" stroke-width="4"/><ellipse cx="0" cy="-30" rx="${40 * Math.abs(Math.cos(f * 0.9))}" ry="4" fill="#333" opacity="0.7"/></g>`;
+        if (a.dead >= 0 && f - a.dead < 14) o += star(a.x, a.y, 50 - (f - a.dead) * 2, '#ffd34d') + `<circle cx="${a.x}" cy="${a.y}" r="${30 + (f - a.dead) * 4}" fill="#ff8a3d" opacity="${0.8 - (f - a.dead) * 0.05}"/>`;
+        if (a.dead >= 0) o += `<circle cx="${a.x + 10}" cy="${a.y - 20}" r="16" fill="#555" opacity="0.6"/>`;
+      }
+      // crashes on the skyline
+      for (const a of S.air) if (a.dead >= 0 && a.y > 600 && a.y < 700) o += `<circle cx="${a.x}" cy="560" r="${40 + (a.y - 600)}" fill="#ff8a3d" opacity="0.7"/>` + sfx(a.x - 60, 520, '墜落', 34, 0);
+      // beams from the kaiju's mouth (bottom center)
+      for (const s of S.shots) { const k = f - s.f; if (k < 6) o += `<path d="M600 760 L ${s.x} ${s.y}" stroke="#ffd34d" stroke-width="${38 - k * 5}" stroke-linecap="round" opacity="0.85"/><path d="M600 760 L ${s.x} ${s.y}" stroke="#fff" stroke-width="${14 - k * 2}" stroke-linecap="round"/>`; }
+      if (f - S.hurt < 6) o += `<rect width="1200" height="750" fill="#ff5a3d" opacity="${0.35 - (f - S.hurt) * 0.06}"/>` + sfx(520, 420, 'ミサイルが当たった！', 36, 0);
+      // own snout at the bottom, nostrils and a bit of teeth
+      const P = LOOK;
+      o += `<path d="M330 760 Q 360 610 600 590 Q 840 610 870 760 Z" fill="${P.snout}" stroke="${INK}" stroke-width="7"/>
+        <ellipse cx="530" cy="660" rx="24" ry="14" fill="${INK}"/><ellipse cx="670" cy="660" rx="24" ry="14" fill="${INK}"/>`;
+      // crosshair
+      const c = S.aim;
+      o += `<g stroke="#fff" stroke-width="4" fill="none" opacity="0.8"><circle cx="${c.x}" cy="${c.y}" r="34"/><path d="M${c.x - 50} ${c.y} h 30 M${c.x + 20} ${c.y} h 30 M${c.x} ${c.y - 50} v 30 M${c.x} ${c.y + 20} v 30"/></g>`;
+      o += `<g font-family="${SFX_FONT}" fill="#fff" stroke="${INK}" stroke-width="7" paint-order="stroke" text-anchor="end"><text x="1160" y="110" font-size="48">${Math.max(0, (LIMIT - f) / 20).toFixed(1)}秒</text><text x="1160" y="170" font-size="40">${S.downs}機</text></g>`;
+      if (S.mode === 'end') o += sfx(420, 360, '空がしずかになった', 48, -6);
+      return o + liveBadge('中継：' + here().name + '（怪獣目線）');
+    },
+    finish() {
+      if (this.ended) return; this.ended = true;
+      G.stock[G.loc].shoot -= 1;
+      G.armyCut = (G.armyCut || 0) + S.downs;
+      G.epLog.push('shoot');
+      showNews({
+        loc: G.loc, ok: true, head: `怪獣、光線で${th.thing}を次々と撃ち落とす　${S.downs}機`,
+        lines: [`防衛隊の航空戦力が大きく減り、今週の${foeLabel() || 'ヒーロー'}への援護が手薄に`, S.downs ? `墜落した機体が街に落ち、被害が広がった` : '一機も落とせなかった', `${th.thing}：残り${G.stock[G.loc].shoot}回`],
+        gains: { tec: 3 + Math.round(S.downs / 2), sta: 2, pow: 1, hp: -20 }, dmg: S.downs * 1.6e9, alert: 10 + S.downs, kpop: 3 + Math.round(S.downs / 2), hpop: 2, cat: '防衛',
+      });
+    },
+  });
+}
+
 // ---- minigame: highway running (alternate steps, jump the toll gates) ----
 function sceneRun() {
   const GOAL = 2900, OBST = [760, 1240, 1700, 2150, 2560];
@@ -2506,6 +2694,8 @@ function reactions() {
   if (L.includes('move')) add('SNS', 'うちの近所に向かって歩いてるの、見えてます');
   if (L.includes('sandbagBig')) add('SNS', 'ビルを殴る音が気持ちよすぎて、録音して目覚ましにした');
   if (L.includes('sandbag')) add('ハガキ・不動産', '駅前の物件、すべて更地になりました');
+  if (L.includes('whack')) add('SNS', '怪獣目線の映像、足がでかすぎて笑った');
+  if (L.includes('shoot')) add('ハガキ・元パイロット', '光線の照準が正確すぎる');
   if (L.includes('run')) add('ハガキ・料金所職員', '料金所を飛び越えるとき、ちゃんと会釈していました');
   if (L.includes('runFail')) add('SNS', '高速が通行止めで帰省できない');
   if (L.includes('skip')) add('ハガキ・小4', '水切りの回数、家族で数えました');
@@ -2755,12 +2945,13 @@ function battleMoves() {
     { id: 'dive', name: '急降下キック', stat: 'sta', ok: hasB('bird'), sfx: 'ギュイーン' },
     { id: 'water', name: '水流ブレス', stat: 'tec', ok: hasB('aqua'), sfx: 'ドバァ' },
     { id: 'rockdrop', name: '岩石落とし', stat: 'pow', ok: hasB('rock'), sfx: 'ゴゴーン', bonus: () => 4 },
+    { id: 'kbeam', name: '怪獣光線', stat: 'tec', ok: E.shoot, sfx: 'ビビビーッ', bonus: () => 6 },
     { id: 'tackle', name: '体当たり', stat: 'pow', ok: true, sfx: 'ドスン' },
     { id: 'bthrow', name: 'ビルぶん投げ', stat: 'pow', ok: E.sandbag, sfx: 'ドガシャーン', bonus: () => 4 },
     { id: 'nunchaku', name: 'ヌンチャク打ち', stat: 'tec', ok: E.nunchaku, sfx: 'バシィ' },
     { id: 'fire', name: '火炎放射', stat: 'pow', ok: G.oil > 0, sfx: 'ゴオォ', bonus: () => G.oil * 6 },
     { id: 'throw', name: '投げ飛ばし', stat: 'tec', ok: E.skip || E.juggle, sfx: 'ガシャーン' },
-    { id: 'stomp', name: 'ジャンプ踏みつけ', stat: 'sta', ok: E.run || E.rope || E.pullup, sfx: 'ズシン' },
+    { id: 'stomp', name: 'ジャンプ踏みつけ', stat: 'sta', ok: E.run || E.rope || E.pullup || E.whack, sfx: 'ズシン' },
     { id: 'tail', name: 'しっぽビンタ', stat: 'sta', ok: E.swim, sfx: 'ビターン' },
   ];
   return all.filter(m => m.ok).slice(0, 4);
@@ -2774,7 +2965,7 @@ function sceneBattle() {
   const main = FOES[keys[0]];
   const assist = EP().assist && !G.flags.robotDown;
   const hpMult = (kind === 'tag' ? 1.6 : kind === 'tagFinal' ? 2.1 : main.hp) + (assist ? 0.3 : 0);
-  const atkMult = kind === 'tag' ? 1.2 : kind === 'tagFinal' ? 1.35 : main.atk;
+  const atkMult = (kind === 'tag' ? 1.2 : kind === 'tagFinal' ? 1.35 : main.atk) * (1 - Math.min(0.3, (G.armyCut || 0) * 0.02));
   const foeName = keys.length > 1 ? `${FOES.justia.name}＆${FOES.blazer.name}` : main.name;
   const bossMul = G.boss ? 1.5 : 1;
   const heroMax = Math.round((90 + idx * 14) * hpMult);
@@ -2918,9 +3109,9 @@ function sceneBattle() {
       if (S.mode === 'kaiju') {
         const m = S.move.id;
         const M = [KX - 600 + 712, 336], H = [HX - 20, 420];
-        if ((m === 'fire' || m === 'water' || m === 'dark') && t >= 3 && t < 16) {
+        if ((m === 'fire' || m === 'water' || m === 'dark' || m === 'kbeam') && t >= 3 && t < 16) {
           const u = clamp((t - 3) / 6, 0, 1), E = [M[0] + (H[0] - M[0]) * u, M[1] + (H[1] - M[1]) * u];
-          const c = m === 'fire' ? ['#d33a2c', '#ff8a3d'] : m === 'water' ? ['#2f7fd8', '#9fe3ff'] : ['#3a1f5c', '#a07bff'];
+          const c = m === 'fire' ? ['#d33a2c', '#ff8a3d'] : m === 'water' ? ['#2f7fd8', '#9fe3ff'] : m === 'kbeam' ? ['#c9a400', '#fff6a8'] : ['#3a1f5c', '#a07bff'];
           out += beamLine(M, E, c[0], c[1], m === 'fire' ? 1 + G.oil * 0.15 : 1.2);
         }
         if ((m === 'throw' || m === 'bthrow') && t >= 6 && t <= 10) {
@@ -3058,7 +3249,7 @@ function scenePreview(prev) {
         <div class="preview">${fillK(nx.pv(prev))}</div>
         <div class="foot" style="margin-top:calc(var(--u)*20)"><button class="btn" id="next">次の話へ</button></div></div>`);
       focusBtn('next').onclick = () => {
-        G.ep++; G.turn = 0; G.epLog = []; G.epStartDmg = G.dmg; G.survived = 0;
+        G.ep++; G.turn = 0; G.epLog = []; G.epStartDmg = G.dmg; G.survived = 0; G.armyCut = 0;
         G.repaired = doRepairs();
         if (!G.titled) { G.titled = true; sceneGreenlight(); } else sceneEpisodeTitle();
       };
