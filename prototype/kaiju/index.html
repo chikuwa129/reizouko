@@ -1542,6 +1542,14 @@ function sceneRope() {
         out += `<g transform="translate(${x - 600} ${yy - 450}) rotate(${rot} 600 640)">${kb()}${arm(735, 470)}${head(j < 22 ? 'surprised' : 'dizzy')}${tangle}</g>`;
         if (j < 6) out += star(600, 650, 60 - j * 6) + sfx(380, 560, 'バチバチッ', 48, -6);
         if (j >= 22 && j < 30) out += sfx(820, 430, 'ドシーン', 56, -6);
+        // the fall flattens the buildings it lands on
+        if (j >= 16) {
+          const u = clamp((j - 16) / 14, 0, 1);
+          [[880, 70, 190, '#e7d9b8', -1], [980, 80, 230, '#c8d6d9', 1], [1080, 70, 170, '#d9c3c0', 1]].forEach(([bx, bw, bh, col, dir]) => {
+            out += u < 1 ? `<g transform="rotate(${dir * 70 * u} ${bx + bw / 2} 640)" opacity="${1 - u * 0.4}">${bldArt(bx, 640, bw, bh, col, 1)}</g>` : bldArt(bx, 640, bw, bh, col, 2);
+          });
+          if (j < 40) out += `<g fill="#e8e1cf" opacity="${0.9 - (j - 16) * 0.035}"><ellipse cx="990" cy="${620 - (j - 16) * 2}" rx="${120 + (j - 16) * 8}" ry="${40 + (j - 16) * 3}"/></g>` + sfx(900, 520, 'ガラガラガラ', 40, 4);
+        }
         if (j >= 28) out += `<rect width="1200" height="750" fill="#fff" opacity="${Math.max(0, 0.9 - (j - 28) * 0.3)}"/>`;
         if (j >= 31) out += `<rect width="1200" height="750" fill="#07102a" opacity="${Math.min(0.6, (j - 31) * 0.1)}"/>` + sfx(480, 300, 'ブツッ', 64, 0);
       }
@@ -1560,12 +1568,13 @@ function sceneRope() {
         });
       } else {
         G.stock[G.loc].rope = 0; G.flags.blackout = true;
+        if (G.loc === 'city') breakCity(3);
         G.epLog.push('ropeFail');
         showNews({
           loc: 'city', ok: false,
           head: '怪獣、送電線の縄跳びで足を取られ変電所に転倒　県全域で停電',
-          lines: ['電線が足に絡まり、そのまま変電所へ倒れ込んだ', '県内全域で停電、復旧のめどは立っていない', '送電線はすべて使用不能に'],
-          gains: { sta: 2, tec: 1, hp: -25 }, dmg: 25.4e9, alert: 28, kpop: 2, hpop: 5, cat: '電力',
+          lines: ['電線が足に絡まり、そのまま倒れ込んだ', '倒れた先のビル3棟と変電所がまとめて倒壊', '県内全域で停電、復旧のめどは立っていない'],
+          gains: { sta: 2, tec: 1, hp: -25 }, dmg: 33.8e9, alert: 28, kpop: 4, hpop: 5, cat: '電力・建物',
         });
       }
     },
@@ -1831,34 +1840,42 @@ function sceneSandbag() {
 
 // ---- minigame: highway running (alternate steps, jump the toll gates) ----
 function sceneRun() {
-  const GOAL = 2600, OBST = [520, 980, 1420, 1900, 2300];
+  const GOAL = 2900, OBST = [760, 1240, 1700, 2150, 2560];
   const JT = Math.round(15 * (0.75 + 0.25 * G.hp / 100) * (1 + G.sta / 200));
-  const S = { mode: 'run', d: 0, v: 0, jumpT: -1, passed: new Set(), failAt: 0, doneAt: 0, phase: 0, failObs: 0 };
+  const S = { mode: 'run', d: 0, v: 0, jumpT: -1, passed: new Set(), smashed: new Set(), smashAt: -99, doneAt: 0, phase: 0, lastLand: -99, why: '', debris: [] };
+  const GATE = G.loc === 'airport' ? '給油車' : '料金所';
+  const takeoffX = () => KX - 10 + S.v * JT / 2;   // tap when a gate reaches this line
   const KX = 470;  // kaiju's front foot on screen
   const top = 10 + G.sta / 12;
   setScene({
     bg: DEFS_BG() + `<rect width="1200" height="750" fill="url(#sky)"/>${skyDeco()}
       <g fill="#fff" opacity="0.8"><ellipse cx="190" cy="120" rx="90" ry="26"/><ellipse cx="1040" cy="90" rx="80" ry="22"/></g>${todTint()}`,
-    enter() { h(`<div class="prompt" id="pr">料金所の手前でタップしてジャンプ！</div>`); },
+    enter() { h(`<div class="prompt" id="pr">${GATE}が黄色い線に来たらタップでジャンプ！（跳べなくても蹴散らして進む）</div>`); },
     yoff() { return S.jumpT >= 0 ? -160 * Math.sin(Math.PI * S.jumpT / JT) : 0; },
     onTap() { if (S.mode === 'run' && S.jumpT < 0) S.jumpT = 0; },
     tick(f) {
-      if (f === 40) { const pr = document.getElementById('pr'); if (pr) pr.remove(); }
+      if (f === 60) { const pr = document.getElementById('pr'); if (pr) pr.remove(); }
       if (S.mode === 'run') {
-        S.v = Math.min(top + S.d / 600, S.v + 0.6);
+        const target = S.d < 900 ? top * 0.7 : top + (S.d - 900) / 700;   // the first gate comes slowly
+        S.v = Math.min(target, S.v + 0.6);
         S.d += S.v; S.phase += S.v / 40;
-        if (S.jumpT >= 0) { S.jumpT++; if (S.jumpT >= JT) S.jumpT = -1; }
+        if (S.jumpT >= 0) { S.jumpT++; if (S.jumpT >= JT) { S.jumpT = -1; S.lastLand = f; } }
         for (const o of OBST) {
           const x = KX + 60 + (o - S.d);
           if (S.passed.has(o) || x > KX + 70 || x < KX - 90) continue;
           if (this.yoff() < -70) { if (x < KX - 60) S.passed.add(o); }
-          else { S.mode = 'fail'; S.failAt = f; S.failObs = o; $ui.innerHTML = ''; return; }
+          else {
+            // no clean jump: plough straight through it and keep running
+            S.why = S.jumpT >= 0 ? (S.jumpT > JT / 2 ? 'early' : 'late') : (f - S.lastLand < 14 ? 'early' : 'late');
+            S.passed.add(o); S.smashed.add(o); S.smashAt = f; S.v *= 0.55;
+            for (let i = 0; i < 7; i++) S.debris.push({ f, x, y: 560, vx: 6 + Math.random() * 14, vy: -6 - Math.random() * 14, s: 10 + Math.random() * 12 });
+          }
         }
         if (S.d >= GOAL) { S.mode = 'done'; S.doneAt = f; $ui.innerHTML = ''; }
-      } else if (S.mode === 'done' && f - S.doneAt > 30) this.finish(true);
-      else if (S.mode === 'fail' && f - S.failAt > 52) this.finish(false);
+      } else if (S.mode === 'done' && f - S.doneAt > 30) this.finish();
+      S.debris = S.debris.filter(q => f - q.f < 22);
     },
-    shake(f) { if (S.mode === 'fail') { const j = f - S.failAt - 10; if (j >= 0 && j < 5) return [[0, 16], [0, -12], [8, 6], [-4, -2], [2, 1]][j]; } return null; },
+    shake(f) { const j = f - S.smashAt; if (j >= 0 && j < 5) return [[14, -8], [-10, 6], [7, -4], [-4, 2], [2, -1]][j]; return null; },
     draw(f) {
       const d = S.d;
       let out = '';
@@ -1869,57 +1886,70 @@ function sceneRun() {
       out += `<rect x="0" y="600" width="1200" height="42" fill="#7d7a72" stroke="${INK}" stroke-width="3"/><rect x="0" y="590" width="1200" height="10" fill="#c9c5ba" stroke="${INK}" stroke-width="2"/>`;
       for (let i = -1; i < 14; i++) { const x = ((i * 100 - d) % 1400 + 1400) % 1400 - 100; out += `<rect x="${x}" y="619" width="50" height="5" fill="#f4f0e2"/>`; }
       for (let i = 0; i < 6; i++) { const x = ((i * 330 + 120 - d * 1.15) % 1980 + 1980) % 1980 - 200; out += `<g transform="translate(${x} 604)"><rect x="-22" y="-14" width="44" height="16" rx="4" fill="${['#d33a2c', '#3f7fc0', '#f4f0e2'][i % 3]}" stroke="${INK}" stroke-width="2"/></g>`; }
+      // takeoff line + timing ring for the next gate
+      let guide = '';
+      if (S.mode === 'run') {
+        const tx = takeoffX();
+        guide += `<rect x="${tx - 14}" y="590" width="28" height="52" fill="#ffd34d" opacity="0.85" stroke="${INK}" stroke-width="3"/>
+          <path d="M${tx} 520 L ${tx} 590" stroke="#ffd34d" stroke-width="6" stroke-dasharray="10 8"/><path d="M${tx} 520 L ${tx} 590" stroke="${INK}" stroke-width="1"/>
+          <text x="${tx + 70}" y="512" font-family="'M PLUS 1p',sans-serif" font-weight="800" font-size="22" fill="#ffd34d" stroke="${INK}" stroke-width="6" paint-order="stroke" text-anchor="middle">ここで跳ぶ</text>`;
+        const next = OBST.map(o => [o, KX + 60 + (o - d)]).find(([o, x]) => !S.passed.has(o) && x > KX - 90);
+        if (next && S.jumpT < 0) {
+          const dx = next[1] - tx;
+          if (dx > -S.v * 2 && dx < 260) {
+            guide += `<circle cx="${next[1]}" cy="560" r="${Math.max(30, 30 + dx * 0.45)}" fill="none" stroke="#fff" stroke-width="6" opacity="0.95"/><circle cx="${next[1]}" cy="560" r="30" fill="none" stroke="#ffd34d" stroke-width="6"/>`;
+            if (Math.abs(dx) < S.v * 2.2) guide += sfx(next[1] - 40, 470, '今！', 52, -6);
+          }
+        }
+      }
       // toll gates
       for (const o of OBST) {
         const x = KX + 60 + (o - d);
         if (x < -150 || x > 1350) continue;
-        const broken = S.mode === 'fail' && S.failObs === o && f - S.failAt > 4;
+        const broken = S.smashed.has(o);
         out += broken
           ? `<g transform="translate(${x} 600)" stroke="${INK}" stroke-width="3"><rect x="-70" y="-30" width="50" height="16" fill="#d9d4c3" transform="rotate(-30 -45 -22)"/><rect x="10" y="-20" width="60" height="16" fill="#d9d4c3" transform="rotate(25 40 -12)"/><rect x="-30" y="-14" width="22" height="14" fill="#f4f0e2"/></g>`
           : `<g transform="translate(${x} 600)" stroke="${INK}" stroke-width="3">
               <rect x="-60" y="-78" width="120" height="16" fill="#d9d4c3"/><rect x="-56" y="-62" width="8" height="62" fill="#b9b4a3"/><rect x="48" y="-62" width="8" height="62" fill="#b9b4a3"/>
               <rect x="-22" y="-40" width="18" height="40" fill="#f4f0e2"/><rect x="6" y="-40" width="18" height="40" fill="#f4f0e2"/>
-              <text x="0" y="-65" font-family="'M PLUS 1p',sans-serif" font-weight="800" font-size="13" fill="${INK}" stroke="none" text-anchor="middle">料金所</text></g>`;
+              <text x="0" y="-65" font-family="'M PLUS 1p',sans-serif" font-weight="800" font-size="13" fill="${INK}" stroke="none" text-anchor="middle">${GATE}</text></g>`;
       }
       // kaiju
       const y = this.yoff();
-      if (S.mode === 'fail') {
-        const j = f - S.failAt, t = clamp(j / 12, 0, 1);
-        out += `<g transform="translate(${KX - 600 - 60} ${-40}) rotate(${6 + 80 * easeInOut(t)} 560 640)">${kb()}${arm(760, 470)}${head(j < 12 ? 'surprised' : 'dizzy')}</g>`;
-        if (j > 10 && j < 30) out += sfx(560, 360, 'ズデーン', 64, -6);
-        if (j > 24) out += `<g stroke="${INK}" stroke-width="3" fill="#7d7a72"><path d="M700 600 l40 30 l-30 20 Z"/><path d="M820 600 l-20 40 l40 10 Z"/></g>` + sfx(760, 480, 'ガラガラ', 40, 6);
-      } else {
+      {
+        const sj = f - S.smashAt, wob = sj >= 0 && sj < 12 ? 14 * Math.sin(sj / 12 * Math.PI) : 0;
         const bob = -Math.abs(Math.sin(S.phase * Math.PI)) * 12;
-        out += `<g transform="translate(${KX - 600 - 60} ${y + bob - 40}) rotate(6 560 640)">${kb()}${arm(780, 440)}${head(S.mode === 'done' ? 'happy' : 'serious')}</g>`;
+        out += `<g transform="translate(${KX - 600 - 60} ${y + bob - 40}) rotate(${6 + wob} 560 640)">${kb()}${arm(780, 440)}${head(S.mode === 'done' ? 'happy' : sj >= 0 && sj < 12 ? 'roar' : 'serious')}</g>`;
         if (y === 0) out += `<g fill="#e8e1cf" opacity="0.8"><ellipse cx="${KX - 160}" cy="598" rx="${20 + S.v * 2}" ry="10"/></g>` + (Math.floor(S.phase) % 2 ? sfx(KX - 260, 560, 'ドスドス', 36, -4) : '');
+        if (sj >= 0 && sj < 16) out += star(KX + 40, 560, 56 - sj * 3) + sfx(KX - 40, 420, 'ドガッ', 56, -6) + sfx(KX + 120, 330, 'けちらした！', 40, -4);
+        for (const q of S.debris) { const k = f - q.f; out += `<rect x="${q.x + q.vx * k}" y="${q.y + q.vy * k + 1.3 * k * k}" width="${q.s}" height="${q.s * 0.6}" fill="#d9d4c3" stroke="${INK}" stroke-width="2" transform="rotate(${k * 30} ${q.x + q.vx * k} ${q.y + q.vy * k + 1.3 * k * k})"/>`; }
         if (S.mode === 'done') out += sfx(700, 240, 'ゴール！', 64, -6);
       }
+      out += guide;   // drawn over the kaiju so the takeoff line is never hidden
       const prog = clamp(S.d / GOAL, 0, 1);
       out += `<rect x="300" y="160" width="600" height="14" rx="7" fill="#0f2a4a" opacity="0.7"/><rect x="300" y="160" width="${600 * prog}" height="14" rx="7" fill="#ffd34d"/>
         <text x="910" y="174" font-family="'M PLUS 1p',sans-serif" font-weight="800" font-size="20" fill="#fff" stroke="${INK}" stroke-width="4" paint-order="stroke">ゴール</text>`;
       return out + liveBadge('中継：' + here().name);
     },
-    finish(ok) {
+    finish() {
       if (this.ended) return; this.ended = true;
-      if (ok) {
-        G.stock[G.loc].run -= 1;
-        G.epLog.push('run');
-        showNews({
-          loc: G.loc, ok: true,
-          head: `怪獣、${thingHere('run').thing}をランニング　障害物を${OBST.length}か所とび越える`,
-          lines: ['料金は払っていない模様', '足あとで路面が波打ち、あちこちで段差', `走れる高速道路：残り${G.stock[G.loc].run}回`],
-          gains: { sta: 7, pow: 3, hp: -25 }, dmg: 2.2e9, alert: 10, kpop: 5, cat: '道路',
-        });
-      } else {
-        G.stock[G.loc].run = 0;
-        G.epLog.push('runFail');
-        showNews({
-          loc: 'city', ok: false,
-          head: '怪獣、料金所でつまずきジャンクションごと転倒',
-          lines: ['ジャンプのタイミングが合わず、料金所に足を引っかけた', '転倒の衝撃でジャンクションの高架が崩落', '首都圏の高速道路は終日通行止め'],
-          gains: { sta: 2, hp: -25 }, dmg: 34.5e9, alert: 26, kpop: 2, hpop: 5, cat: '道路',
-        });
-      }
+      const sm = S.smashed.size, jumped = OBST.length - sm, wreck = sm >= 3;
+      G.stock[G.loc].run = wreck ? 0 : G.stock[G.loc].run - 1;
+      G.epLog.push(wreck ? 'runFail' : 'run');
+      const th = thingHere('run').thing;
+      showNews({
+        loc: G.loc, ok: !wreck,
+        head: sm === 0 ? `怪獣、${th}をランニング　${GATE}を${OBST.length}か所すべてとび越える`
+          : jumped === 0 ? `怪獣、${th}を爆走　${GATE}を${sm}か所すべてなぎ倒す`
+          : `怪獣、${th}をランニング　${jumped}か所とび越え、${sm}か所なぎ倒す`,
+        lines: [
+          sm === 0 ? (G.loc === 'airport' ? '給油車は無事だった模様' : '料金は払っていない模様') : `なぎ倒された${GATE}の破片が周囲に散乱`,
+          wreck ? (G.loc === 'airport' ? '滑走路に大穴があき、全便が欠航' : '衝撃でジャンクションの高架まで崩落、終日通行止め') : '足あとで路面が波打ち、あちこちで段差',
+          `走れる${th}：残り${G.stock[G.loc].run}回`,
+        ],
+        gains: { sta: 3 + Math.round(jumped * 1.4), tec: jumped, pow: sm, hp: -25 },
+        dmg: 1.2e9 + sm * 4.5e9 + (wreck ? 15e9 : 0), alert: 8 + sm * 4, kpop: 3 + jumped + sm, hpop: wreck ? 4 : 0, cat: '道路',
+      });
     },
   });
 }
@@ -1962,15 +1992,17 @@ function sceneSkip() {
       if (t >= 0 && t < 10) out += sfx(560, 220, 'どっせい', 48, -6);
       if (S.mode === 'power' || S.mode === 'angle') {
         // power gauge
-        out += `<g><rect x="300" y="170" width="600" height="24" rx="12" fill="#0f2a4a" opacity="0.8"/>
+        out += `<g><rect x="250" y="146" width="700" height="72" rx="14" fill="#0f2a4a" opacity="0.88" stroke="#fff" stroke-width="3"/><rect x="300" y="170" width="600" height="24" rx="12" fill="#3a4a63"/>
           <rect x="${300 + 600 * 0.6}" y="170" width="${600 * 0.25}" height="24" fill="#ffd34d"/>
           <rect x="${300 + 600 * 0.92}" y="170" width="${600 * 0.08}" height="24" fill="#d33a2c"/>
           <rect x="${300 + 600 * (S.mode === 'power' ? S.pv : S.power) - 5}" y="160" width="10" height="44" rx="3" fill="#fff" stroke="${INK}" stroke-width="3"/>
           <text x="290" y="190" font-family="'M PLUS 1p',sans-serif" font-weight="800" font-size="20" fill="#fff" stroke="${INK}" stroke-width="4" paint-order="stroke" text-anchor="end">強さ</text></g>`;
         if (S.mode === 'angle') {
           const a = (8 + S.av * 52) * D2R;
-          out += `<path d="M${REL[0]} ${REL[1] + 120} l -200 0" stroke="#fff" stroke-width="3" stroke-dasharray="8 6"/>
-            <path d="M${REL[0]} ${REL[1] + 120} l ${-200 * Math.cos(a)} ${-200 * Math.sin(a)}" stroke="#ffd34d" stroke-width="8" stroke-linecap="round"/>
+          out += `<path d="M${REL[0] + 10} ${REL[1] + 120} l -230 0 l 0 ${-230 * Math.sin(60 * D2R)} Z" fill="#0f2a4a" opacity="0.55"/>
+            <path d="M${REL[0]} ${REL[1] + 120} l -200 0" stroke="${INK}" stroke-width="9"/><path d="M${REL[0]} ${REL[1] + 120} l -200 0" stroke="#fff" stroke-width="4" stroke-dasharray="10 7"/>
+            <path d="M${REL[0]} ${REL[1] + 120} l ${-200 * Math.cos(a)} ${-200 * Math.sin(a)}" stroke="${INK}" stroke-width="16" stroke-linecap="round"/>
+            <path d="M${REL[0]} ${REL[1] + 120} l ${-200 * Math.cos(a)} ${-200 * Math.sin(a)}" stroke="#ffd34d" stroke-width="9" stroke-linecap="round"/>
             <text x="${REL[0] - 220}" y="${REL[1] + 100}" font-family="'M PLUS 1p',sans-serif" font-weight="800" font-size="20" fill="#fff" stroke="${INK}" stroke-width="4" paint-order="stroke" text-anchor="end">角度</text>`;
         }
       }
@@ -2153,6 +2185,15 @@ function showNews(r, after = nextTurn) {
 }
 
 // ---- episode end: ratings, reactions, villain's word, preview ----
+// who the kaiju actually faced this episode (for the audience's voices)
+function foeLabel() {
+  const f = EPISODES[G.ep] && EPISODES[G.ep].foe;
+  if (f === 'robot') return 'ガードロン';
+  if (f === 'blazer') return 'ブレイザー';
+  if (f === 'tag' || f === 'tagFinal') return 'ジャスティアとブレイザー';
+  if (f === 'justia') return EPISODES[G.ep].assist && !G.flags.robotDown ? 'ジャスティアとガードロン' : 'ジャスティア';
+  return null;
+}
 function reactions() {
   const L = G.epLog, pool = [];
   const add = (who, text) => pool.push({ who, text });
@@ -2171,13 +2212,19 @@ function reactions() {
   if (L.includes('skip')) add('ハガキ・小4', '水切りの回数、家族で数えました');
   if (L.includes('skipFail')) add('ハガキ・港湾関係', '対岸の港で働いています。今日は休みになりました');
   if (L.filter(x => x === 'sleep').length >= 2) add('SNS', '今週ほぼ寝てただけでは？');
-  if (G.survived > 6) add('ハガキ・小2', `${G.kaiju}がんばってた。ジャスティアがんばりすぎ`);
+  const foe = foeLabel(), f = EPISODES[G.ep] && EPISODES[G.ep].foe;
+  if (G.survived > 6 && foe) add('ハガキ・小2', `${G.kaiju}がんばってた。${foe}がんばりすぎ`);
+  if (L.includes('won') && foe) add('SNS', `${foe}が負けるなんて……来週どうなるの`);
+  if (f === 'robot') { add('ハガキ・小4', 'ガードロンのプラモデル、クリスマスにほしい'); add('SNS', 'ガードロンの燃費が気になって話が入ってこない'); }
+  if (f === 'blazer') add('SNS', 'ブレイザー、登場の仕方がかっこよすぎる');
+  if (f === 'tag' || f === 'tagFinal') add('SNS', '二人がかりはずるいと思う（怪獣派）');
+  if (!foe) add('SNS', '今週ヒーロー出てこなかった。総帥の回だった');
   const generic = [
     ['ハガキ・小3', '被害額のケタが多くて数えられません'],
     ['SNS', '今週の怪獣、背中にファスナーが見えた気がする'],
     ['避難所から', '避難所のテレビで見ていました。うちの家が映ってた'],
     ['ハガキ・模型店', 'ミニチュアの線路の出来がすばらしい'],
-    ['SNS', `${HERO}、今週も登場が遅い`],
+    ...(foeLabel() ? [['SNS', `${foeLabel()}、今週も登場が遅い`]] : []),
     ['ハガキ・会社員', '今日も通勤電車が運休でした'],
   ];
   if (L.includes('sandbag') || L.includes('sandbagBig')) { add('SNS・会社員', 'オフィスがなくなって、今日は休みになりました。壊してくれてありがとう'); add('SNS', '次はうちの本社もお願いします（切実）'); }
@@ -2717,15 +2764,48 @@ function scenePreview(prev) {
    ENDING: aftermath, the studio, credits, the real bill, after the credits
    ===================================================================== */
 function sceneEnding(kind) {
+  // in the composite route the villain has stayed hidden: show him come down and fall first
+  if (kind === 'good' && !G.boss && !G.bossFell) { G.bossFell = true; return sceneBossFall(() => sceneEnding(kind)); }
+  const n = G.kaijuList.length;
   const lines = kind === 'bad'
-    ? [`${HERO}は、立ち上がらなかった。`, 'エンドロールは、音もなく流れた。', '「子どもが泣いた」「ヒーローを返して」――放送局の電話は鳴りやまなかった。', `それでも最終回の視聴率は、番組史上最高の${Math.max(...G.ratings, 20).toFixed(1)}%だった。`]
-    : ['怪獣は倒れ、街に平和が戻った。', '人々は、がれきの片づけを始めた。', '……という、番組でした。'];
+    ? [`${HERO}は、立ち上がらなかった。`, '宇宙のかなたで、総帥の笑い声が響いた。', 'エンドロールは、音もなく流れた。', '「子どもが泣いた」「ヒーローを返して」――放送局の電話は鳴りやまなかった。', `それでも最終回の視聴率は、番組史上最高の${Math.max(...G.ratings, 20).toFixed(1)}%だった。`]
+    : [G.boss ? '二大超人のダブル光線が、宇宙総帥ガルバドスをつらぬいた。' : '正体を現した宇宙総帥ガルバドスも、二大超人のダブル光線に倒れた。',
+       '「わしの……育成計画が……」',
+       '総帥は宇宙のかなたへ消え、地球に平和が戻った。',
+       `${n}体の怪獣たちと戦った13週間が、終わった。`,
+       '……という、番組でした。'];
   let i = 0;
   setScene({
     bg: `<rect width="1200" height="750" fill="#07090d"/>`, draw: () => '', noTod: true,
     enter() { this.paint(); },
     paint() { h(`<div class="titlecard" style="background:transparent"><div class="ep-title" style="font-size:calc(var(--u)*40);max-width:80%;line-height:1.6">${lines[i]}</div><div class="skip">タップで進む</div></div>`); },
     onTap() { i++; if (i >= lines.length) sceneStudio(kind); else this.paint(); },
+  });
+}
+
+// composite route: the hidden villain finally shows himself and is beaten
+function sceneBossFall(next) {
+  setScene({
+    bg: () => bgFor(G.loc, 'night'),
+    tick(f) { if (f > 96) this.onTap(); },
+    onTap() { if (this.done || frame < 20) return; this.done = true; next(); },
+    shake(f) { return f >= 60 && f < 70 ? [[14, -8], [-12, 8], [9, -5], [-6, 3], [4, -2], [-3, 1], [2, -1], [-1, 1], [1, 0], [0, 0]][f - 60] : null; },
+    draw(f) {
+      const drop = clamp(f / 30, 0, 1), up = clamp((f - 62) / 30, 0, 1);
+      const by = -380 + 360 * easeOut(drop) - 500 * up, bs = 0.62 - 0.3 * up;
+      let o = `<g transform="translate(${600 - 600 * bs} ${by}) scale(${bs})" opacity="${1 - up * 0.6}">${bossArt(f, f > 30 && f < 56)}</g>`;
+      o += `<g transform="translate(860 700) scale(0.75)">${heroArtP(f > 40 ? 'beam' : 'stand', HPAL.justia)}</g><g transform="translate(1040 690) scale(0.7)">${heroArtP(f > 40 ? 'beam' : 'stand', HPAL.blazer)}</g>`;
+      if (f > 40 && f < 66) {
+        const T = [600, by + 260 * bs + 160];
+        const beam = (a, c1, c2) => `<path d="M${a[0]} ${a[1]} L ${T[0]} ${T[1]}" stroke="${c1}" stroke-width="34" stroke-linecap="round" opacity="0.85"/><path d="M${a[0]} ${a[1]} L ${T[0]} ${T[1]}" stroke="${c2}" stroke-width="18" stroke-linecap="round"/><path d="M${a[0]} ${a[1]} L ${T[0]} ${T[1]}" stroke="#fff" stroke-width="6" stroke-linecap="round"/>`;
+        o += beam([740, 437], '#2f7fd8', '#7fe3ff') + beam([928, 445], '#c0392b', '#ffe066') + star(T[0], T[1], 70, '#fff6a8');
+      }
+      if (f > 10 && f < 40) o += sfx(380, 140, 'おのれ、光の巨人ども……！', 40, -4);
+      if (f > 40 && f < 62) o += sfx(640, 690, 'ダブル光線！', 48, -6);
+      if (f >= 60 && f < 64) o += `<rect width="1200" height="750" fill="#fff" opacity="${0.9 - (f - 60) * 0.2}"/>`;
+      if (f > 64) o += sfx(330, 300, 'わしの……育成計画が……', 42, -4);
+      return o;
+    },
   });
 }
 function actorKaiju(x, y, s) {
@@ -2811,6 +2891,28 @@ function sceneRealBill(kind) {
     },
   });
 }
+
+function realCityBg() {
+  TOD = 'night';
+  let o = `<defs><linearGradient id="rsky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#05070f"/><stop offset="1" stop-color="#1c2340"/></linearGradient></defs>
+    <rect width="1200" height="750" fill="url(#rsky)"/>`;
+  let seed = 3; const rnd = () => (seed = (seed * 9301 + 49297) % 233280) / 233280;
+  // three rows of detailed, lit, undamaged towers
+  [[0.55, '#232a3e', 420], [0.8, '#2c3550', 520], [1, '#38425f', 640]].forEach(([k, col, base]) => {
+    let x = -20;
+    while (x < 1220) {
+      const w = (40 + rnd() * 70) * k, h = (120 + rnd() * 260) * k;
+      o += `<rect x="${x}" y="${base - h}" width="${w}" height="${h}" fill="${col}"/>`;
+      for (let yy = base - h + 8; yy < base - 8; yy += 12 * k) for (let xx = x + 5; xx < x + w - 6; xx += 9 * k) if (rnd() < 0.55) o += `<rect x="${xx}" y="${yy}" width="${4 * k}" height="${5 * k}" fill="${rnd() < 0.8 ? '#ffe08a' : '#bfe6f5'}" opacity="${0.5 + 0.5 * k}"/>`;
+      if (rnd() < 0.2) o += `<rect x="${x + w / 2 - 1}" y="${base - h - 30 * k}" width="2" height="${30 * k}" fill="#555"/><circle cx="${x + w / 2}" cy="${base - h - 30 * k}" r="3" fill="#ff4040"/>`;
+      x += w + 4 + rnd() * 10;
+    }
+  });
+  o += `<rect x="0" y="640" width="1200" height="110" fill="#14161c"/>`;
+  for (let i = 0; i < 24; i++) o += `<rect x="${i * 52}" y="690" width="26" height="4" fill="#f4f0e2" opacity="0.6"/>`;
+  for (let i = 0; i < 9; i++) o += `<circle cx="${40 + i * 140}" cy="${672 + (i % 2) * 30}" r="5" fill="#fff6d0"/><circle cx="${60 + i * 140}" cy="${672 + (i % 2) * 30}" r="5" fill="#fff6d0"/>`;
+  return o;
+}
 function scenePostCredits(kind) {
   setScene({
     bg: `<rect width="1200" height="750" fill="#000"/>`, noTod: true,
@@ -2824,7 +2926,7 @@ function scenePostCredits(kind) {
       if (f < 46) return sfx(420, 380, 'ゴゴゴゴ……', 70, 0);
       const a = clamp((f - 46) / 30, 0, 1);
       TOD = 'night';
-      o += `<g opacity="${a}">${cityBg({ trains: 3, wires: 2 })}</g>`;
+      o += `<g opacity="${a}">${realCityBg()}</g>`;
       // the shadow of the very first kaiju, as it looked in episode 1
       const keep = [LOOK, G.parts]; LOOK = BASE_LOOK; G.parts = [];
       const sil = `<g transform="translate(560 ${470 - 40 * a}) scale(1.05) translate(-600 -450)" filter="url(#silh)" opacity="${0.92 * a}">${kb()}${arm(735, 470)}${head('serious')}</g>`;
