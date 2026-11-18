@@ -112,7 +112,7 @@ body {
 /* program title card */
 .titlecard { position: absolute; inset: 0; display: grid; place-items: center; background: radial-gradient(circle at 50% 45%, #2b4d78 0, #0c1626 70%); }
 .logo {
-  font-family: var(--f-display); font-size: calc(var(--u) * 120); color: var(--gold);
+  font-family: var(--f-display); font-size: calc(var(--u) * 100); color: var(--gold); white-space: nowrap;
   -webkit-text-stroke: calc(var(--u) * 5) var(--red); paint-order: stroke fill;
   text-shadow: calc(var(--u) * 6) calc(var(--u) * 8) 0 #0a0f18; letter-spacing: 0.02em; line-height: 1.05; text-align: center;
   animation: zoomIn 0.5s cubic-bezier(.2,1.6,.4,1) both;
@@ -152,17 +152,19 @@ body {
 
 .cmds {
   position: absolute; right: calc(var(--u) * 18); top: calc(var(--u) * 82); bottom: calc(var(--u) * 18); width: calc(var(--u) * 430);
-  display: flex; flex-direction: column; gap: calc(var(--u) * 10);
+  display: flex; flex-direction: column; gap: calc(var(--u) * 8);
 }
 .cmds h2 { margin: 0; font-family: var(--f-display); font-weight: 400; font-size: calc(var(--u) * 26); text-shadow: 0 2px 0 #000; }
 .cmd {
   display: grid; grid-template-columns: 1fr auto; gap: 0 calc(var(--u) * 10); align-items: center; text-align: left;
   font-family: var(--f-body); color: var(--text); background: var(--panel);
   border: calc(var(--u) * 3) solid #2c4a6e; border-radius: calc(var(--u) * 12);
-  padding: calc(var(--u) * 9) calc(var(--u) * 16); cursor: pointer; font-size: calc(var(--u) * 20);
+  padding: calc(var(--u) * 7) calc(var(--u) * 16); cursor: pointer; font-size: calc(var(--u) * 19);
 }
 .cmd:hover:not(:disabled) { border-color: var(--gold); }
-.cmd strong { font-size: calc(var(--u) * 27); font-weight: 800; }
+.cmd strong { font-size: calc(var(--u) * 25); font-weight: 800; }
+.cmd .rest { font-size: calc(var(--u) * 17); color: var(--gold); margin-left: 0.6em; font-weight: 500; }
+.cmd .what { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
 .cmd .what { color: var(--muted); grid-column: 1 / 2; }
 .cmd .risk { grid-row: 1 / 3; grid-column: 2; text-align: center; font-weight: 800; font-variant-numeric: tabular-nums; }
 .cmd .risk small { display: block; font-size: calc(var(--u) * 16); color: var(--muted); font-weight: 500; }
@@ -230,8 +232,32 @@ body {
 .bill .line { display: flex; justify-content: space-between; gap: calc(var(--u) * 20); font-variant-numeric: tabular-nums; border-bottom: 1px dashed rgba(58,47,37,0.3); }
 .bill .total { font-weight: 800; font-size: calc(var(--u) * 32); border-bottom: none; color: var(--red); }
 
+
+/* dialogue (villain monologue) */
+.dialog {
+  position: absolute; left: calc(var(--u) * 40); right: calc(var(--u) * 40); bottom: calc(var(--u) * 30);
+  min-height: calc(var(--u) * 190); background: rgba(8, 6, 18, 0.9); border: calc(var(--u) * 4) solid #7a4cff;
+  border-radius: calc(var(--u) * 14); padding: calc(var(--u) * 26) calc(var(--u) * 34);
+  font-size: calc(var(--u) * 32); line-height: 1.6; color: #f2ecff;
+}
+.dialog .who {
+  position: absolute; top: calc(var(--u) * -24); left: calc(var(--u) * 28); background: #7a4cff; color: #fff;
+  font-weight: 800; font-size: calc(var(--u) * 22); padding: calc(var(--u) * 4) calc(var(--u) * 18); border-radius: calc(var(--u) * 6);
+}
+.dialog .more { position: absolute; right: calc(var(--u) * 20); bottom: calc(var(--u) * 12); font-size: calc(var(--u) * 20); color: #b9a6ff; }
+.skipbtn { position: absolute; right: calc(var(--u) * 24); top: calc(var(--u) * 20); font-size: calc(var(--u) * 20); padding: calc(var(--u) * 6) calc(var(--u) * 18); }
+/* new-kaiju card */
+.kcard { position: absolute; left: 50%; top: calc(var(--u) * 70); transform: translateX(-50%); text-align: center; }
+.kcard .kind { color: var(--gold); font-weight: 800; letter-spacing: 0.25em; font-size: calc(var(--u) * 24); }
+.kcard .kname { font-family: var(--f-display); font-size: calc(var(--u) * 80); color: #fff; -webkit-text-stroke: calc(var(--u) * 3) var(--ink); paint-order: stroke fill; line-height: 1.1; animation: zoomIn 0.4s ease-out both; }
+.kcard .kpart { margin-top: calc(var(--u) * 6); display: inline-block; background: var(--panel); padding: calc(var(--u) * 6) calc(var(--u) * 18); border-radius: calc(var(--u) * 8); font-size: calc(var(--u) * 22); }
+.cmds .back { align-self: flex-start; }
+.cmds .note { font-size: calc(var(--u) * 19); color: var(--gold); background: var(--panel); border-radius: calc(var(--u) * 10); padding: calc(var(--u) * 6) calc(var(--u) * 14); }
+.reveal { font-size: calc(var(--u) * 26); margin: 0; }
+.reveal b { color: var(--red); }
+
 @media (prefers-reduced-motion: reduce) {
-  .logo, .ep-title, .news li { animation: none; }
+  .logo, .ep-title, .news li, .kcard .kname { animation: none; }
 }
 </style>
 
@@ -272,7 +298,15 @@ const TANK = `<rect x="-46" y="-18" width="92" height="30" rx="6" fill="#7d8a6a"
   <rect x="20" y="-32" width="70" height="9" fill="#6b7759" stroke="${INK}" stroke-width="3"/>
   ${[-30, -10, 10, 30].map(x => `<circle cx="${x}" cy="14" r="8" fill="#444" stroke="${INK}" stroke-width="2"/>`).join('')}`;
 
-const DEFS_DYN = `<defs><g id="car">${CAR}</g><g id="house">${HOUSE}</g><g id="tanker">${TANKER}</g><g id="tank">${TANK}</g></defs>`;
+
+const GONDOLA = `<rect x="-80" y="-30" width="160" height="56" rx="14" fill="#e2574c" stroke="${INK}" stroke-width="3"/>
+  <rect x="-66" y="-20" width="132" height="22" rx="5" fill="#bfe6f5" stroke="${INK}" stroke-width="2"/>
+  <rect x="-80" y="12" width="160" height="6" fill="#f3efe2"/>`;
+const FREIGHT = `<rect x="-80" y="-24" width="160" height="42" rx="3" fill="#3c7a5a" stroke="${INK}" stroke-width="3"/>
+  ${[-56, -28, 0, 28, 56].map(x => `<line x1="${x}" y1="-20" x2="${x}" y2="14" stroke="#2c5a42" stroke-width="3"/>`).join('')}
+  <rect x="-80" y="18" width="160" height="5" fill="#333"/>
+  ${[-52, -36, 36, 52].map(x => `<circle cx="${x}" cy="24" r="6" fill="#333"/>`).join('')}`;
+const DEFS_DYN = `<defs><g id="car">${CAR}</g><g id="house">${HOUSE}</g><g id="tanker">${TANKER}</g><g id="tank">${TANK}</g><g id="gondola">${GONDOLA}</g><g id="freight">${FREIGHT}</g></defs>`;
 const DEFS_BG = `<defs>
   <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9fcde0"/><stop offset="0.6" stop-color="#d8ebe9"/><stop offset="1" stop-color="#f4e6c6"/></linearGradient>
   <linearGradient id="ground" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b7b29b"/><stop offset="1" stop-color="#9c967d"/></linearGradient>
@@ -283,8 +317,25 @@ const DEFS_BG = `<defs>
 
 const kaijuTail = `<path d="M505 545 C 430 600 360 630 280 612 C 330 600 390 575 470 500 Z" fill="${SKIN}" stroke="${INK}" stroke-width="5" stroke-linejoin="round"/>`;
 const tailSpikes = `<path d="M440 548 Q 412 540 418 572 Z"/><path d="M372 590 Q 350 580 352 605 Z"/>`;
+function backParts() {
+  const P = (typeof G !== 'undefined' && G.parts) || [];
+  let o = '';
+  if (P.includes('chimney')) o += `<g transform="rotate(-18 470 330)"><rect x="440" y="250" width="40" height="110" rx="4" fill="#8d8f93" stroke="${INK}" stroke-width="4"/>
+    <rect x="434" y="244" width="52" height="16" rx="3" fill="#6d6f73" stroke="${INK}" stroke-width="4"/></g>`;
+  if (P.includes('fins')) o += `<path d="M470 520 Q 400 470 380 540 Q 420 560 470 560 Z" fill="#e2a64c" stroke="${INK}" stroke-width="4"/>`;
+  return o;
+}
+function headParts() {
+  const P = (typeof G !== 'undefined' && G.parts) || [];
+  let o = '';
+  if (P.includes('horn')) o += `<path d="M585 222 Q 600 150 640 132 Q 622 175 622 220 Z" fill="#f1e6c8" stroke="${INK}" stroke-width="4"/>`;
+  if (P.includes('fins')) o += `<path d="M520 270 Q 470 230 480 300 Q 505 300 520 290 Z" fill="#e2a64c" stroke="${INK}" stroke-width="4"/>`;
+  if (P.includes('coil')) o += `<path d="M560 214 L 548 160 l 14 -6 l -12 -14 l 14 -6 l -10 -16" stroke="${INK}" stroke-width="5" fill="none"/><circle cx="556" cy="114" r="12" fill="#ffd34d" stroke="${INK}" stroke-width="4"/>`;
+  if (P.includes('nightcap')) o += `<path d="M540 230 Q 600 150 680 215 Q 640 120 560 140 Q 520 170 540 230 Z" fill="#5c7fd1" stroke="${INK}" stroke-width="4"/><circle cx="560" cy="140" r="12" fill="#fff" stroke="${INK}" stroke-width="3"/>`;
+  return o;
+}
 function torso(opts = {}) {
-  return `${opts.noTail ? '' : kaijuTail}
+  return `${backParts()}${opts.noTail ? '' : kaijuTail}
   <g fill="#e2a64c" stroke="${INK}" stroke-width="4" stroke-linejoin="round">
     <path d="M545 232 Q 500 205 506 262 Z"/><path d="M520 296 Q 466 280 480 338 Z"/>
     <path d="M500 362 Q 446 354 466 412 Z"/><path d="M494 432 Q 442 432 466 480 Z"/>${opts.noTail ? '' : tailSpikes}
@@ -303,7 +354,7 @@ function torso(opts = {}) {
 }
 const backArmStub = `<path d="M520 420 Q 490 460 508 490" stroke="${INK}" stroke-width="30" stroke-linecap="round" fill="none"/>
   <path d="M520 420 Q 490 460 508 490" stroke="#628b6d" stroke-width="22" stroke-linecap="round" fill="none"/>`;
-const KAIJU_BODY = torso() + backArmStub;
+const kb = () => torso() + backArmStub;
 
 function head(expr = 'serious', tilt = 0) {
   let eyes = '', mouth = '', extra = '';
@@ -335,7 +386,7 @@ function head(expr = 'serious', tilt = 0) {
     <ellipse cx="660" cy="316" rx="62" ry="46" fill="#7aa585" stroke="${INK}" stroke-width="4"/>
     <circle cx="700" cy="300" r="3.5" fill="${INK}"/><circle cx="712" cy="306" r="3.5" fill="${INK}"/>
     ${eyes}${mouth}
-    <ellipse cx="596" cy="300" rx="14" ry="7" fill="#e88f86" opacity="0.55"/>${extra}
+    <ellipse cx="596" cy="300" rx="14" ry="7" fill="#e88f86" opacity="0.55"/>${extra}${headParts()}
   </g>`;
 }
 function arm(hx, hy, sx = 672, sy = 410) {
@@ -354,7 +405,7 @@ function carBetween(ax, ay, bx, by, opts = {}) {
   const dx = bx - ax, dy = by - ay, len = Math.hypot(dx, dy);
   const ang = Math.atan2(dy, dx) / D2R;
   const sx = Math.max(len / 160, 0.22);
-  return `<use href="#car" transform="translate(${(ax + bx) / 2} ${(ay + by) / 2}) rotate(${ang}) scale(${sx} ${opts.sy || 1})" opacity="${opts.op ?? 1}"/>`;
+  return `<use href="#${opts.href || 'car'}" transform="translate(${(ax + bx) / 2} ${(ay + by) / 2}) rotate(${ang}) scale(${sx} ${opts.sy || 1})" opacity="${opts.op ?? 1}"/>`;
 }
 function star(cx, cy, r, fill = '#ffe066') {
   let d = '';
@@ -451,6 +502,79 @@ const seaBg = () => DEFS_BG + `<rect width="1200" height="750" fill="url(#sky)"/
   <rect x="0" y="450" width="1200" height="300" fill="#4f9fc4"/>
   <g stroke="#bfe6f5" stroke-width="3" opacity="0.8">${[40, 260, 480, 880, 1080].map(x => `<line x1="${x}" y1="${480 + (x % 3) * 30}" x2="${x + 70}" y2="${480 + (x % 3) * 30}"/>`).join('')}</g>`;
 
+
+/* ---------- more backgrounds ---------- */
+function portBg() {
+  const tank = (x, y, r, h) => `<g stroke="${INK}" stroke-width="3"><rect x="${x - r}" y="${y - h}" width="${r * 2}" height="${h}" fill="#e4e1d8"/>
+    <ellipse cx="${x}" cy="${y - h}" rx="${r}" ry="${r * 0.25}" fill="#f1eee6"/><line x1="${x - r}" y1="${y - h * 0.5}" x2="${x + r}" y2="${y - h * 0.5}" stroke="#c9c5ba"/></g>`;
+  return DEFS_BG + `<rect width="1200" height="750" fill="url(#sky)"/>
+  <g fill="#fff" opacity="0.8"><ellipse cx="200" cy="110" rx="90" ry="24"/><ellipse cx="700" cy="80" rx="70" ry="20"/></g>
+  <g filter="url(#blurFar)" fill="#8fa3ad"><rect x="0" y="400" width="80" height="50"/><rect x="90" y="380" width="50" height="70"/><rect x="300" y="405" width="120" height="45"/></g>
+  <rect x="0" y="450" width="1200" height="300" fill="#4f9fc4"/>
+  <g stroke="#bfe6f5" stroke-width="3" opacity="0.8">${[40, 260, 480].map(x => `<line x1="${x}" y1="${500 + (x % 3) * 30}" x2="${x + 70}" y2="${500 + (x % 3) * 30}"/>`).join('')}</g>
+  <path d="M860 520 L1200 500 L1200 750 L840 750 Z" fill="#b9b4a3" stroke="${INK}" stroke-width="3"/>
+  <g stroke="#7d7a72" stroke-width="10" fill="none"><path d="M880 300 L880 240 L1180 240"/><path d="M1040 240 L1040 420"/></g>
+  <rect x="1150" y="140" width="22" height="300" fill="#c9c5ba" stroke="${INK}" stroke-width="3"/>
+  <path d="M1161 140 q -14 -26 0 -46 q 14 20 0 46" fill="#ff8a3d" stroke="${INK}" stroke-width="2"/>
+  ${tank(960, 520, 60, 120)}${tank(1090, 520, 55, 150)}${tank(1010, 600, 70, 90)}
+  <path d="M880 240 L 880 300 L 860 300" stroke="#7d7a72" stroke-width="10" fill="none"/>
+  <rect x="846" y="296" width="30" height="18" rx="3" fill="#d33a2c" stroke="${INK}" stroke-width="3"/>
+  <g filter="url(#blurNear)"><rect x="-20" y="700" width="1240" height="70" fill="#3f86ac"/></g>`;
+}
+function spaceBg() {
+  let st = '';
+  let seed = 7;
+  const rnd = () => (seed = (seed * 9301 + 49297) % 233280) / 233280;
+  for (let i = 0; i < 90; i++) st += `<circle cx="${(rnd() * 1200).toFixed(0)}" cy="${(rnd() * 750).toFixed(0)}" r="${(rnd() * 2 + 0.6).toFixed(1)}" fill="#fff" opacity="${(0.4 + rnd() * 0.6).toFixed(2)}"/>`;
+  return `<defs><radialGradient id="neb" cx="0.3" cy="0.3" r="0.9"><stop offset="0" stop-color="#3a1f5c"/><stop offset="1" stop-color="#05040c"/></radialGradient>
+    <radialGradient id="earth" cx="0.35" cy="0.35" r="0.7"><stop offset="0" stop-color="#7fc4ea"/><stop offset="1" stop-color="#1d4d86"/></radialGradient></defs>
+    <rect width="1200" height="750" fill="url(#neb)"/>${st}
+    <circle cx="1040" cy="620" r="150" fill="url(#earth)"/>
+    <path d="M960 560 q 40 -30 80 0 q 30 30 70 10 l 10 40 q -60 30 -120 0 Z" fill="#7fae6a" opacity="0.85"/>`;
+}
+function bossArt(f, talking) {
+  const bob = Math.sin(f * 0.08) * 6;
+  const glow = 0.7 + 0.3 * Math.sin(f * 0.2);
+  return `<g transform="translate(0 ${bob})">
+    <path d="M280 750 L340 300 L600 260 L860 300 L920 750 Z" fill="#100d1a" stroke="#7a4cff" stroke-width="5" opacity="0.95"/>
+    <path d="M330 750 Q 380 420 470 360 L 600 340 L 730 360 Q 820 420 870 750 Z" fill="#1b1430" stroke="#7a4cff" stroke-width="3"/>
+    <path d="M520 250 Q 460 120 400 80 Q 470 110 540 190 Z" fill="#1b1430" stroke="#7a4cff" stroke-width="4"/>
+    <path d="M680 250 Q 760 140 830 120 Q 760 160 690 210 Z" fill="#1b1430" stroke="#7a4cff" stroke-width="4"/>
+    <ellipse cx="600" cy="260" rx="105" ry="95" fill="#1b1430" stroke="#7a4cff" stroke-width="5"/>
+    <path d="M548 250 L 588 262" stroke="#ff5a5a" stroke-width="10" stroke-linecap="round" opacity="${glow}"/>
+    <path d="M622 262 L 662 246" stroke="#ff5a5a" stroke-width="10" stroke-linecap="round" opacity="${glow}"/>
+    <circle cx="600" cy="420" r="26" fill="#ff5a5a" opacity="${glow * 0.8}"/>
+    ${talking ? `<path d="M575 312 Q 600 ${322 + 6 * Math.abs(Math.sin(f * 0.9))} 625 312" stroke="#ff5a5a" stroke-width="4" fill="none"/>` : `<path d="M575 312 L 625 312" stroke="#ff5a5a" stroke-width="4"/>`}
+  </g>`;
+}
+// original hero: white and navy armour, gold crest. Faces left. Feet at (0,0).
+function heroArt(pose = 'stand', t = 0) {
+  const arms = pose === 'beam'
+    ? `<path d="M-40 -380 L -150 -360" stroke="${INK}" stroke-width="40" stroke-linecap="round"/><path d="M-40 -380 L -150 -360" stroke="#f2f4f8" stroke-width="30" stroke-linecap="round"/>
+       <path d="M30 -380 L -150 -340" stroke="${INK}" stroke-width="40" stroke-linecap="round"/><path d="M30 -380 L -150 -340" stroke="#e3e8f0" stroke-width="30" stroke-linecap="round"/>
+       <circle cx="-160" cy="-350" r="24" fill="#fff6a8" stroke="${INK}" stroke-width="4"/>`
+    : pose === 'fly'
+    ? `<path d="M-40 -380 L -130 -470" stroke="${INK}" stroke-width="40" stroke-linecap="round"/><path d="M-40 -380 L -130 -470" stroke="#f2f4f8" stroke-width="30" stroke-linecap="round"/>
+       <path d="M40 -380 L 90 -300" stroke="${INK}" stroke-width="40" stroke-linecap="round"/><path d="M40 -380 L 90 -300" stroke="#e3e8f0" stroke-width="30" stroke-linecap="round"/>`
+    : `<path d="M-50 -385 L -80 -270" stroke="${INK}" stroke-width="40" stroke-linecap="round"/><path d="M-50 -385 L -80 -270" stroke="#f2f4f8" stroke-width="30" stroke-linecap="round"/>
+       <path d="M50 -385 L 80 -270" stroke="${INK}" stroke-width="40" stroke-linecap="round"/><path d="M50 -385 L 80 -270" stroke="#e3e8f0" stroke-width="30" stroke-linecap="round"/>`;
+  return `<g>
+    <path d="M-38 -250 L -46 -10 L -6 -10 L -2 -250 Z" fill="#f2f4f8" stroke="${INK}" stroke-width="5"/>
+    <path d="M38 -250 L 46 -10 L 6 -10 L 2 -250 Z" fill="#e3e8f0" stroke="${INK}" stroke-width="5"/>
+    <path d="M-50 -60 L -4 -60 L -2 0 L -58 0 Z" fill="#23407e" stroke="${INK}" stroke-width="5"/>
+    <path d="M50 -60 L 4 -60 L 2 0 L 58 0 Z" fill="#23407e" stroke="${INK}" stroke-width="5"/>
+    <path d="M-70 -410 L 70 -410 L 52 -250 L -52 -250 Z" fill="#23407e" stroke="${INK}" stroke-width="5"/>
+    <path d="M-50 -405 L 50 -405 L 36 -320 L -36 -320 Z" fill="#f2f4f8" stroke="${INK}" stroke-width="4"/>
+    <path d="M0 -392 L 9 -372 L 30 -370 L 13 -356 L 19 -335 L 0 -347 L -19 -335 L -13 -356 L -30 -370 L -9 -372 Z" fill="#ffd34d" stroke="${INK}" stroke-width="3"/>
+    <rect x="-56" y="-270" width="112" height="20" fill="#ffd34d" stroke="${INK}" stroke-width="4"/>
+    ${arms}
+    <ellipse cx="0" cy="-460" rx="46" ry="54" fill="#f2f4f8" stroke="${INK}" stroke-width="5"/>
+    <path d="M-44 -462 Q 0 -438 40 -462 L 38 -446 Q 0 -426 -42 -446 Z" fill="#23407e" stroke="${INK}" stroke-width="3"/>
+    <path d="M-36 -456 L -10 -452" stroke="#7fe3ff" stroke-width="6" stroke-linecap="round"/>
+    <path d="M0 -514 L -10 -560 L 14 -520 Z" fill="#ffd34d" stroke="${INK}" stroke-width="4"/>
+  </g>`;
+}
+
 /* ---------- nunchaku kata (2D) ---------- */
 const easeOut = t => 1 - (1 - t) * (1 - t);
 const easeInOut = t => t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
@@ -470,7 +594,7 @@ function kataGeom(st) {
   const dx = Math.cos(st.psi * D2R), dy = Math.sin(st.psi * D2R);
   const tx = st.hx + 150 * dx, ty = st.hy + 150 * dy;
   const fx = Math.cos(st.phi * D2R), fy = Math.sin(st.phi * D2R);
-  return { held: carBetween(st.hx - 12 * dx, st.hy - 12 * dy, tx, ty), tx, ty, ax: tx + 38 * fx, ay: ty + 38 * fy, bx: tx + 198 * fx, by: ty + 198 * fy };
+  return { held: (href) => carBetween(st.hx - 12 * dx, st.hy - 12 * dy, tx, ty, { href }), tx, ty, ax: tx + 38 * fx, ay: ty + 38 * fy, bx: tx + 198 * fx, by: ty + 198 * fy };
 }
 function kataKaiju(track, f, o = {}) {
   const st = track(f), g = kataGeom(st);
@@ -482,13 +606,13 @@ function kataKaiju(track, f, o = {}) {
       const s2 = track(f - k);
       if (Math.abs(s2.phi - st.phi) < 12) continue;
       const g2 = kataGeom(s2);
-      ghosts += carBetween(g2.ax, g2.ay, g2.bx, g2.by, { op });
+      ghosts += carBetween(g2.ax, g2.ay, g2.bx, g2.by, { op, href: o.href });
     }
-    nun = ghosts + `<path d="M${g.tx} ${g.ty} L ${g.ax} ${g.ay}" stroke="${INK}" stroke-width="9" fill="none" stroke-dasharray="8 6" stroke-linecap="round"/>` + carBetween(g.ax, g.ay, g.bx, g.by);
+    nun = ghosts + `<path d="M${g.tx} ${g.ty} L ${g.ax} ${g.ay}" stroke="${INK}" stroke-width="9" fill="none" stroke-dasharray="8 6" stroke-linecap="round"/>` + carBetween(g.ax, g.ay, g.bx, g.by, { href: o.href });
   }
   const behind = st.behind;
-  return (behind ? nun : '') + KAIJU_BODY + arm(st.hx, st.hy) + head(o.expr || 'serious', o.tilt || 0) + (behind ? '' : nun) +
-    g.held + `<circle cx="${st.hx}" cy="${st.hy}" r="27" fill="${SKIN}" stroke="${INK}" stroke-width="5"/>`;
+  return (behind ? nun : '') + kb() + arm(st.hx, st.hy) + head(o.expr || 'serious', o.tilt || 0) + (behind ? '' : nun) +
+    g.held(o.href) + `<circle cx="${st.hx}" cy="${st.hy}" r="27" fill="${SKIN}" stroke="${INK}" stroke-width="5"/>`;
 }
 const KATA_R = makeTrack([
   { f: 0, hx: 760, hy: 300, psi: -70, phi: -100 },
@@ -518,7 +642,7 @@ const dust = (k, x = 400) => `<g fill="#e8e1cf" opacity="${Math.max(0, 0.9 - k *
 /* ---------- swimmer ---------- */
 const swimTail = w => `<path d="M520 540 C 500 660 ${545 + w} 760 ${585 + w * 1.6} 860 C ${600 + w} 760 610 650 640 560 Z" fill="${SKIN}" stroke="${INK}" stroke-width="5" stroke-linejoin="round"/>
   <g fill="#e2a64c" stroke="${INK}" stroke-width="4" stroke-linejoin="round"><path d="M${520 + w * 0.3} 640 Q 495 660 ${520 + w * 0.4} 680 Z"/><path d="M${545 + w * 0.8} 730 Q 520 750 ${548 + w * 0.9} 770 Z"/></g>`;
-const TORSO_SWIM = torso({ noTail: true });
+const TORSO_SWIM = () => torso({ noTail: true });
 function swimmer(cx, cy, s, rot, beta, o = {}) {
   const T = `translate(${cx} ${cy}) rotate(${rot}) scale(${s}) translate(-600 -450)`;
   const a = rot * D2R, lx = 72, ly = -40;
@@ -531,7 +655,7 @@ function swimmer(cx, cy, s, rot, beta, o = {}) {
       <circle cx="${hx}" cy="${hy}" r="${w * 0.75}" fill="${col}" stroke="${INK}" stroke-width="4"/>`; };
   return {
     far: armPath(beta + 180, '#5c8466', 30 * s * 1.6),
-    body: `<g transform="${T}">${swimTail(o.wag || 0)}${TORSO_SWIM}${head(o.expr || 'serious', -40 * (o.breathe || 0))}</g>`,
+    body: `<g transform="${T}">${swimTail(o.wag || 0)}${TORSO_SWIM()}${head(o.expr || 'serious', -40 * (o.breathe || 0))}</g>`,
     near: armPath(beta, SKIN, 34 * s * 1.6),
     hand: handAt(beta),
   };
@@ -543,33 +667,43 @@ function waterClip(inner, waterY) {
     <g opacity="0.33">${inner}</g><g clip-path="url(#${id})">${inner}</g>`;
 }
 function kaijuAt(x, y, s, rot, expr, flip = false) {
-  return `<g transform="translate(${x} ${y}) rotate(${rot}) scale(${s * (flip ? -1 : 1)} ${s}) translate(-600 -450)">${KAIJU_BODY}${head(expr)}</g>`;
+  return `<g transform="translate(${x} ${y}) rotate(${rot}) scale(${s * (flip ? -1 : 1)} ${s}) translate(-600 -450)">${kb()}${head(expr)}</g>`;
 }
 
 /* =====================================================================
    GAME STATE
    ===================================================================== */
-const SHOW = '大怪獣ズングラ';
-const EPISODES = [
-  { no: 1, title: 'ズングラ、上陸す' },
-  { no: 2, title: '新兵器、5秒の攻防' },
-  { no: 3, title: '電車がない！' },
-];
+const SHOW = '銀河超人ジャスティア';
+const HERO = 'ジャスティア';
 const TIMES = ['朝', '昼', '晩'];
+const LOCS = {
+  city: { name: '駅前', acts: { nunchaku: { n: 3, thing: '電車', unit: '両', href: 'car' }, rope: { n: 2, thing: '電線', unit: '本' } } },
+  dam: { name: '山あいのダム', acts: { swim: { n: 2, thing: 'ダム湖', unit: '回' }, nunchaku: { n: 2, thing: 'ロープウェイのゴンドラ', unit: '台', href: 'gondola' } } },
+  port: { name: '臨海コンビナート', acts: { eat: { n: 3, thing: 'コンビナートの石油', unit: '杯' }, nunchaku: { n: 2, thing: '貨物列車', unit: '両', href: 'freight' } } },
+};
+// action names only: what gets used is a surprise until the minigame/news
+const ACTIONS = [
+  { id: 'nunchaku', name: 'ヌンチャク', what: '技術・腕力が上がる　体力−25', base: 18 },
+  { id: 'rope', name: '縄跳び', what: '持久力・技術が上がる　体力−25', base: 15 },
+  { id: 'swim', name: '水泳', what: '持久力が上がる　体力−30', base: 20 },
+  { id: 'eat', name: '食事', what: '腕力が上がる　体力回復', safe: true },
+  { id: 'sleep', name: '寝る', what: '体力が全回復', safe: true, always: true },
+  { id: 'move', name: '移動して探す', what: '別の場所に、新しい道具があるかも', safe: true, always: true },
+];
+const PART_OF = { eat: 'chimney', swim: 'fins', nunchaku: 'horn', rope: 'coil', sleep: 'nightcap', move: 'horn' };
+const PART_NAME = { chimney: '背中の煙突', fins: 'ヒレ', horn: 'ツノ', coil: 'アンテナ', nightcap: 'ナイトキャップ' };
+const KAIJU_NAME = { chimney: 'モクモクドン', fins: 'ザブングラ', horn: 'ツノグラー', coil: 'ビリビリンガ', nightcap: 'ネムグラ' };
+
 function newGame() {
+  const stock = {};
+  for (const [k, v] of Object.entries(LOCS)) { stock[k] = {}; for (const [a, d] of Object.entries(v.acts)) stock[k][a] = d.n; }
   return {
-    ep: 0, turn: 0,
+    ep: 0, turn: 0, loc: 'city',
+    kaiju: 'ズングラ', parts: [],
     pow: 10, sta: 10, tec: 10, hp: 100,
-    dmg: 0, alert: 0, kpop: 10, hpop: 10,
-    oil: 0,
-    res: { trains: 3, wires: 2, dam: true },
-    flags: { blackout: false, cracks: false },
-    log: [],            // {cat, amount}
-    epLog: [],          // events this episode (for reactions)
-    sleptTurns: 0,
-    perfectKata: false,
-    titled: false,
-    epStartDmg: 0,
+    dmg: 0, alert: 0, kpop: 10, hpop: 10, oil: 0,
+    stock, flags: { blackout: false, cracks: false, damBroken: false },
+    log: [], epLog: [], actCount: {}, epStartDmg: 0, titled: false, survived: 0,
   };
 }
 let G = newGame();
@@ -583,19 +717,14 @@ function alertLevel(a = G.alert) {
   return { lv: 3, name: '緊急特番', src: '特別報道体制' };
 }
 const failRate = base => clamp(Math.round(base + (100 - G.hp) * 0.45 - G.tec * 0.15), 3, 95);
-
-const COMMANDS = [
-  { id: 'nunchaku', name: '電車ヌンチャク', what: '技術・腕力が上がる／体力 −25', base: 18,
-    usable: () => G.res.trains > 0, empty: 'ヌンチャクにする電車がもうない…' },
-  { id: 'rope', name: '電線で縄跳び', what: '持久力・技術が上がる／体力 −25', base: 15,
-    usable: () => G.res.wires > 0, empty: '跳べる電線がもう残っていない…' },
-  { id: 'swim', name: 'ダム湖で水泳', what: '持久力が上がる／体力 −30', base: 20,
-    usable: () => G.res.dam, empty: 'ダムがもうない。泳ぐ水もない…' },
-  { id: 'eat', name: '石油タンカーを飲む', what: '腕力・体力が上がる／お腹に石油がたまる', base: 0, safe: true,
-    usable: () => true },
-  { id: 'sleep', name: '寝る', what: '体力が全回復する', base: 0, safe: true,
-    usable: () => true },
-];
+const here = () => LOCS[G.loc];
+const thingHere = id => here().acts[id];
+const left = id => (G.stock[G.loc][id] ?? 0);
+function bgFor(loc = G.loc) {
+  if (loc === 'dam') return DEFS_BG + (G.flags.damBroken ? damBg(570, 1, 1) : damBg(420, 0, 0));
+  if (loc === 'port') return portBg();
+  return cityBg({ trains: G.stock.city.nunchaku, wires: G.stock.city.rope, blackout: G.flags.blackout, cracks: G.flags.cracks });
+}
 
 /* =====================================================================
    RUNTIME (fixed 20 fps animation clock)
@@ -632,150 +761,250 @@ function loop(ts) {
   }
   requestAnimationFrame(loop);
 }
-function tap(e) { if (scene && scene.onTap) scene.onTap(e); }
 $screen.addEventListener('pointerdown', e => {
   if (e.target.closest('button')) return;
-  if (scene && scene.onSide) {
+  if (!scene) return;
+  if (scene.onSide) {
     const r = $screen.getBoundingClientRect();
     scene.onSide(e.clientX - r.left < r.width / 2 ? 'L' : 'R');
-  } else tap(e);
+  } else if (scene.onTap) scene.onTap(e);
 });
 window.addEventListener('keydown', e => {
   if (!scene) return;
   if ((e.key === 'ArrowLeft' || e.key === 'a') && scene.onSide) { scene.onSide('L'); e.preventDefault(); return; }
   if ((e.key === 'ArrowRight' || e.key === 'd') && scene.onSide) { scene.onSide('R'); e.preventDefault(); return; }
   if (e.key === ' ' || e.key === 'Enter') {
-    if (document.activeElement && document.activeElement.tagName === 'BUTTON' && e.key === 'Enter') return;
+    if (document.activeElement && document.activeElement.tagName === 'BUTTON') return;
     if (scene.onTap) { scene.onTap(e); e.preventDefault(); }
     else if (scene.onSide && scene.wantsTap) { scene.onSide('T'); e.preventDefault(); }
   }
 });
 const h = (html) => { $ui.innerHTML = html; };
+const focusBtn = id => { const b = document.getElementById(id); if (b) b.focus(); return b; };
 
 /* =====================================================================
    SCENES
    ===================================================================== */
 
-// ---- 0. proposal sheet (title) ----
+// ---- proposal sheet (title) ----
 function sceneProposal() {
   setScene({
-    bg: '', draw: () => '',
+    bg: `<rect width="1200" height="750" fill="#2a2420"/>`, draw: () => '',
     enter() {
-      $bg.innerHTML = `<rect width="1200" height="750" fill="#2a2420"/>`;
       h(`<div class="sheet">
         <div class="meta"><span>企画書　No.0001</span><span>制作部　第2班</span></div>
         <h1>怪獣育成（仮）</h1>
         <p class="lede">ずんぐりした怪獣が、街のインフラで大真面目に筋トレする。<br>強くなるほど、街の請求書がふくらむ。</p>
-        <ul><li>朝・昼・晩に1つずつ、トレーニングを選ぶ</li><li>ミニゲームで成功すると強くなる。失敗すると被害が広がる</li><li>結果はニュースで知らされる</li></ul>
+        <ul><li>朝・昼・晩に1つずつ、行動を選ぶ</li><li>ミニゲームで成功すると強くなる。失敗すると被害が広がる</li><li>何で何をしたかは、ニュースで知らされる</li></ul>
         <div class="row"><span class="stamp">検討中</span><button class="btn" id="go">企画を通す</button></div>
       </div>`);
-      document.getElementById('go').onclick = () => sceneEpisodeTitle();
-      document.getElementById('go').focus();
+      focusBtn('go').onclick = () => sceneEpisodeTitle();
     },
-    onTap() {},
   });
+}
+
+function epTitle() {
+  if (G.ep === 0) return `${G.kaiju}、上陸`;
+  if (G.ep === 1) return `改造怪獣${G.kaiju}の逆襲`;
+  return `${G.kaiju}、電車がない！`;
 }
 
 // ---- episode title card ----
 function sceneEpisodeTitle() {
-  const ep = EPISODES[G.ep];
   setScene({
     bg: '', draw: () => '',
     enter() {
-      $bg.innerHTML = '';
       h(`<div class="titlecard"><div>
         ${G.titled ? `<div class="logo" style="font-size:calc(var(--u)*70)">${SHOW}</div>` : `<div class="ep-title" style="margin-bottom:calc(var(--u)*10);font-size:calc(var(--u)*30);color:var(--muted)">怪獣育成（仮）</div>`}
-        <div class="ep-title"><span class="num">第${ep.no}話</span>「${ep.title}」</div></div>
+        <div class="ep-title"><span class="num">第${G.ep + 1}話</span>「${epTitle()}」</div></div>
         <div class="skip">タップで進む</div></div>`);
     },
     tick(f) { if (f === 40) this.onTap(); },
     onTap() {
       if (this.done) return; this.done = true;
-      if (G.ep === 1) sceneSneezeGag();
-      else if (G.ep === 2) sceneHeroLate();
-      else sceneMenu();
+      if (G.ep === 0) sceneBoss(BOSS_INTRO, () => sceneMenu());
+      else if (G.ep === 1) sceneBoss(bossEp2(), () => sceneNewKaiju(() => sceneSneezeGag()));
+      else sceneNewKaiju(() => sceneHeroLate());
     },
   });
 }
 
-// ---- command menu ----
-function sceneMenu() {
+// ---- villain monologue ----
+const BOSS_INTRO = [
+  '……聞こえるか、ズングラよ。',
+  'わしは宇宙の果てより来た者。名は……まだ明かすまい。',
+  'わしの星では、鍛えぬいた者だけが生き残る。わしも昔は、ひ弱な怪獣だった。',
+  '毎朝、小惑星を持ち上げ、彗星で縄跳びをした。気づけば、星をひとつ平らにしておった。',
+  'この地球は、実によい。電車、電線、ダム……鍛えるための器具が、そこらじゅうに転がっている。',
+  'ズングラよ。この星まるごとを、お前のトレーニングジムにするのだ。',
+  '世界中を使って、育成しようではないか。……フフフ。',
+  'まずは手始めに、その駅前からだ。',
+];
+function bossEp2() {
+  return [
+    'ズングラは、よく戦った。……だが、あの光の巨人め。',
+    '案ずるな。体は、いくらでも作り直せる。',
+    `お前の努力の跡を、そのまま形にしてやろう。${PART_NAME[G.parts[G.parts.length - 1]]}を授ける。`,
+    `今日からお前は、${G.kaiju}だ。`,
+  ];
+}
+function sceneBoss(lines, next) {
+  let i = 0, shown = 0;
   setScene({
-    bg: () => cityBg({ trains: G.res.trains, wires: G.res.wires, blackout: G.flags.blackout, cracks: G.flags.cracks }),
+    bg: spaceBg(),
+    draw(f) { return bossArt(f, shown < lines[i].length); },
+    tick() { if (shown < lines[i].length) { shown = Math.min(lines[i].length, shown + 2); this.paint(); } },
+    enter() {
+      h(`<button class="btn skipbtn" id="skip">スキップ</button>
+        <div class="dialog"><span class="who">？？？（悪の総帥）</span><span id="line"></span><span class="more">▼ タップ</span></div>`);
+      document.getElementById('skip').onclick = () => this.end();
+      this.paint();
+    },
+    paint() { const el = document.getElementById('line'); if (el) el.textContent = lines[i].slice(0, shown); },
+    onTap() {
+      if (shown < lines[i].length) { shown = lines[i].length; this.paint(); return; }
+      i++; shown = 0;
+      if (i >= lines.length) this.end(); else this.paint();
+    },
+    end() { if (this.ended) return; this.ended = true; next(); },
+  });
+}
+
+// ---- new (modified) kaiju card for episode 2+ ----
+function sceneNewKaiju(next) {
+  setScene({
+    bg: () => bgFor(),
+    draw(f) {
+      const s = Math.min(1, f / 8);
+      return `<g transform="translate(600 450) scale(${0.6 + 0.4 * s}) translate(-600 -450) translate(0 ${40 - 40 * s})">${kb()}${arm(735, 470)}${head('serious')}</g>` + (f > 8 && f < 20 ? sfx(820, 300, 'ガオー', 60, -6) : '');
+    },
+    tick(f) { if (f === 60) this.onTap(); },
+    enter() {
+      h(`<div class="kcard"><div class="kind">今週の怪獣</div><div class="kname">${G.kaiju}</div>
+        <div class="kpart">着ぐるみ改造：${G.parts.map(p => PART_NAME[p]).join('・')}を追加</div></div><div class="skip">タップで進む</div>`);
+    },
+    onTap() { if (this.done) return; this.done = true; next(); },
+  });
+}
+
+// ---- command menu ----
+function sceneMenu(view = 'main') {
+  setScene({
+    bg: () => bgFor(),
     draw(f) {
       const bob = Math.sin(f * 0.25) * 4;
-      return `<g transform="translate(-120 ${bob})">${KAIJU_BODY}${arm(735, 470)}${head(G.hp < 35 ? 'dizzy' : 'serious')}</g>`;
+      return `<g transform="translate(-120 ${bob})">${kb()}${arm(735, 470)}${head(G.hp < 35 ? 'dizzy' : 'serious')}</g>`;
     },
     tick() {},
     enter() {
-      const ep = EPISODES[G.ep], al = alertLevel();
+      const al = alertLevel();
       const bar = (v, cls = '') => `<div class="bar ${cls}"><i style="width:${clamp(v, 0, 100)}%"></i></div>`;
-      const cmds = COMMANDS.map(c => {
-        const ok = c.usable();
-        const rate = c.safe ? null : failRate(c.base);
-        return `<button class="cmd" data-id="${c.id}" ${ok ? '' : 'disabled'}>
-          <strong>${c.name}</strong>
-          <span class="risk ${rate !== null && rate >= 40 ? 'high' : ''}">${rate === null ? '—' : rate + '%'}<small>${rate === null ? '' : '失敗率'}</small></span>
-          <span class="what">${ok ? c.what : c.empty}</span></button>`;
-      }).join('');
+      let list;
+      if (view === 'move') {
+        list = Object.entries(LOCS).filter(([k]) => k !== G.loc).map(([k, v]) => {
+          const n = Object.values(G.stock[k]).reduce((a, b) => a + b, 0);
+          return `<button class="cmd" data-dest="${k}"><strong>${v.name}へ</strong><span class="risk">${n > 0 ? '◎' : '△'}<small>${n > 0 ? '何かありそう' : '荒れ地'}</small></span>
+            <span class="what">移動中にも少し被害が出る／体力 −5</span></button>`;
+        }).join('') + `<button class="btn back" id="back">もどる</button>`;
+      } else {
+        let usable = 0;
+        list = ACTIONS.map(a => {
+          const avail = a.always || thingHere(a.id) !== undefined;
+          const n = a.always ? Infinity : left(a.id);
+          const ok = avail && n > 0;
+          if (ok && !a.always) usable++;
+          const rate = a.safe ? null : failRate(a.base);
+          const why = !avail ? 'ここには使えそうなものがない' : 'ここの道具は使い切った';
+          const rest = !a.always && ok ? `<small class="rest">あと${n}回</small>` : '';
+          return `<button class="cmd" data-id="${a.id}" ${ok ? '' : 'disabled'}>
+            <strong>${a.name}${rest}</strong>
+            <span class="risk ${rate !== null && rate >= 40 ? 'high' : ''}">${rate === null ? '—' : rate + '%'}<small>${rate === null ? '' : '失敗率'}</small></span>
+            <span class="what">${ok ? a.what : why}</span></button>`;
+        }).join('');
+        if (usable === 0) list = `<div class="note">ここでは、もうトレーニングできそうにない。移動して探そう。</div>` + list;
+      }
       h(`<div class="topbar">
-          <span class="ep">${G.titled ? SHOW + '　' : ''}第${ep.no}話「${ep.title}」</span>
+          <span class="ep">${G.titled ? SHOW + '　' : ''}第${G.ep + 1}話</span>
           <span class="chip time">${TIMES[G.turn]}</span>
           <span class="chip alert lv${al.lv + 1}">警戒：${al.name}</span>
           <span class="money"><span>被害額</span>${yen(G.dmg)}</span>
         </div>
         <div class="status">
-          <h2>ズングラ</h2>
+          <h2>${G.kaiju}</h2>
+          <div class="belly">現在地：${here().name}</div>
           <div class="stat"><span>体力</span>${bar(G.hp, 'hp')}<b>${G.hp}</b></div>
           <div class="stat"><span>腕力</span>${bar(G.pow)}<b>${G.pow}</b></div>
           <div class="stat"><span>持久力</span>${bar(G.sta)}<b>${G.sta}</b></div>
           <div class="stat"><span>技術</span>${bar(G.tec)}<b>${G.tec}</b></div>
-          <div class="belly">お腹の中：石油 ${G.oil} 隻分${G.oil >= 3 ? '（たぷたぷ）' : ''}</div>
-          <div class="belly">怪獣人気 ${G.kpop}　／　ヒーロー人気 ${G.hpop}</div>
+          <div class="belly">お腹の中：石油 ${G.oil} 杯${G.oil >= 3 ? '（たぷたぷ）' : ''}</div>
+          <div class="belly">怪獣人気 ${G.kpop}　ヒーロー人気 ${G.hpop}</div>
         </div>
-        <div class="cmds"><h2>${TIMES[G.turn]}の行動</h2>${cmds}</div>`);
-      $ui.querySelectorAll('.cmd').forEach(b => b.onclick = () => runCommand(b.dataset.id));
+        <div class="cmds"><h2>${view === 'move' ? 'どこへ探しに行く？' : TIMES[G.turn] + 'の行動'}</h2>${list}</div>`);
+      $ui.querySelectorAll('.cmd[data-id]').forEach(b => b.onclick = () => b.dataset.id === 'move' ? sceneMenu('move') : runCommand(b.dataset.id));
+      $ui.querySelectorAll('.cmd[data-dest]').forEach(b => b.onclick = () => sceneMove(b.dataset.dest));
+      const back = document.getElementById('back'); if (back) back.onclick = () => sceneMenu();
       const first = $ui.querySelector('.cmd:not(:disabled)'); if (first) first.focus();
     },
   });
 }
-
+function countAct(id) { G.actCount[id] = (G.actCount[id] || 0) + 1; }
 function runCommand(id) {
-  if (id === 'nunchaku') sceneNunchaku();
-  else if (id === 'rope') sceneRope();
-  else if (id === 'swim') sceneSwim();
-  else if (id === 'eat') sceneEat();
-  else if (id === 'sleep') sceneSleep();
+  countAct(id);
+  ({ nunchaku: sceneNunchaku, rope: sceneRope, swim: sceneSwim, eat: sceneEat, sleep: sceneSleep })[id]();
+}
+
+// ---- move: walk off to search somewhere else ----
+function sceneMove(dest) {
+  countAct('move');
+  setScene({
+    bg: () => bgFor(),
+    tick(f) { if (f > 40) this.finish(); },
+    onTap() { if (frame > 8) this.finish(); },
+    draw(f) {
+      const x = -120 + f * 22, bob = Math.abs(Math.sin(f * 0.5)) * -14;
+      let out = `<g transform="translate(${x} ${bob})">${kb()}${arm(735, 470)}${head('serious')}</g>`;
+      if (f % 10 < 5) out += sfx(200 + f * 10, 600, 'のっし', 40, 0);
+      return out + liveBadge('中継：' + here().name);
+    },
+    finish() {
+      if (this.ended) return; this.ended = true;
+      const from = here().name;
+      G.loc = dest;
+      G.epLog.push('move');
+      showNews({
+        loc: dest, ok: true,
+        head: `怪獣、${from}を離れ${LOCS[dest].name}方面へ`,
+        lines: ['「何かを探しているようだった」と目撃者', '移動ルートの国道が足あとで陥没', `${LOCS[dest].name}の周辺に注意が呼びかけられている`],
+        gains: { hp: -5 }, dmg: 0.4e9, alert: 4, kpop: 1, cat: '道路',
+      });
+    },
+  });
 }
 
 // ---- minigame: nunchaku kata (rhythm) ----
 function sceneNunchaku() {
-  const LEAD = 34;          // frames of intro before the kata starts
+  const LEAD = 34;
   const BEATS = [
     { f: 11, label: '振り下ろし' }, { f: 22, label: '受け' }, { f: 34, label: '持ち替え' },
     { f: 47, label: '振り下ろし' }, { f: 58, label: '受け' }, { f: 87, label: 'キメ' },
   ];
-  const W = clamp(2.3 * (0.55 + 0.45 * G.hp / 100) * (1 + G.tec / 120), 1.3, 4.2); // hit window (frames)
+  const W = clamp(2.3 * (0.55 + 0.45 * G.hp / 100) * (1 + G.tec / 120), 1.3, 4.2);
   const S = { mode: 'play', judged: BEATS.map(() => null), failAt: 0, failK: 0, flash: null };
-  G.res.trains -= 1;
+  const th = thingHere('nunchaku'), href = th.href, locName = here().name;
+  G.stock[G.loc].nunchaku -= 1;
   const k = f => f - LEAD;
   setScene({
-    bg: () => cityBg({ trains: G.res.trains, wires: G.res.wires, blackout: G.flags.blackout, cracks: G.flags.cracks }),
+    bg: () => bgFor(),
     enter() { h(`<div class="prompt">マーカーが円に重なった瞬間にタップ！</div>`); },
     tick(f) {
       const kk = k(f);
       if (S.mode === 'play') {
         if (kk === 0) $ui.innerHTML = '';
-        BEATS.forEach((b, i) => {
-          if (S.judged[i] === null && kk > b.f + W) { S.judged[i] = 'miss'; this.fail(f, kk); }
-        });
+        BEATS.forEach((b, i) => { if (S.judged[i] === null && kk > b.f + W) { S.judged[i] = 'miss'; this.fail(f, kk); } });
         if (kk >= 112) this.finish(true);
       } else if (S.mode === 'fail' && f - S.failAt > 66) this.finish(false);
     },
-    fail(f, kk) {
-      if (S.mode !== 'play') return;
-      S.mode = 'fail'; S.failAt = f; S.failK = clamp(kk, 0, 111);
-    },
+    fail(f, kk) { if (S.mode !== 'play') return; S.mode = 'fail'; S.failAt = f; S.failK = clamp(kk, 0, 111); },
     onTap() {
       if (S.mode !== 'play') return;
       const kk = k(frame);
@@ -786,20 +1015,15 @@ function sceneNunchaku() {
       else if (bd <= 9) { S.judged[best] = 'miss'; this.fail(frame, kk); }
     },
     shake(f) {
-      if (S.mode === 'play') {
-        const kk = k(f);
-        for (const sf of [11, 47]) if (kk >= sf && kk < sf + 3) return [[12, -6], [-9, 5], [5, -2]][kk - sf];
-      } else if (S.mode === 'fail') {
-        const j = f - S.failAt; if (j < 5) return [[14, -6], [-12, 8], [9, -4], [-6, 3], [3, -1]][j];
-      }
+      if (S.mode === 'play') { const kk = k(f); for (const sf of [11, 47]) if (kk >= sf && kk < sf + 3) return [[12, -6], [-9, 5], [5, -2]][kk - sf]; }
+      else if (S.mode === 'fail') { const j = f - S.failAt; if (j < 5) return [[14, -6], [-12, 8], [9, -4], [-6, 3], [3, -1]][j]; }
       return null;
     },
     draw(f) {
       const kk = k(f);
       let out = '';
       if (S.mode === 'play') {
-        const kf = clamp(kk, 0, 111);
-        out += kataAt(kf);
+        out += kataAt(clamp(kk, 0, 111), { href });
         if (kk >= 11 && kk < 19) out += dust(kk - 11, 380);
         if (kk >= 11 && kk < 18) out += sfx(250, 520, 'ズドン', 56, -6);
         if (kk >= 47 && kk < 55) out += mirror(dust(kk - 47, 380));
@@ -811,7 +1035,6 @@ function sceneNunchaku() {
         if (kk >= 95) out += `<g><rect x="420" y="80" width="360" height="60" rx="8" fill="#fff" stroke="${INK}" stroke-width="4"/>
           <text x="600" y="122" font-family="${SFX_FONT}" font-size="34" fill="${INK}" text-anchor="middle">型、完了。</text></g>`;
         if (S.flash && f - S.flash.f < 8) out += sfx(560, 190, S.flash.text, 40, -6);
-        // rhythm lane
         out += `<rect x="0" y="650" width="1200" height="100" fill="#0f2a4a" opacity="0.8"/>
           <circle cx="170" cy="700" r="${30 + W * 4}" fill="#ffd34d" opacity="0.25"/>
           <circle cx="170" cy="700" r="34" fill="none" stroke="#ffd34d" stroke-width="6"/>`;
@@ -827,11 +1050,11 @@ function sceneNunchaku() {
         const j = f - S.failAt;
         const kf = S.failK, mir = kf >= 34;
         if (j < 6) {
-          out += kataAt(kf, { expr: 'dizzy', tilt: -10, noGhost: true }) + star(mir ? 655 : 545, 270, 70 - j * 6) + sfx(330, 220, 'ゴンッ', 64, -8);
+          out += kataAt(kf, { expr: 'dizzy', tilt: -10, noGhost: true, href }) + star(mir ? 655 : 545, 270, 70 - j * 6) + sfx(330, 220, 'ゴンッ', 64, -8);
         } else {
-          const hand = `${KAIJU_BODY}${carBetween(765, 390, 810, 550)}${arm(770, 400)}`;
+          const hand = `${kb()}${carBetween(765, 390, 810, 550, { href })}${arm(770, 400)}`;
           const t = clamp((j - 6) / 13, 0, 1);
-          const fly = j < 20 ? `<use href="#car" transform="translate(${560 - 410 * t} ${330 + 65 * t - 260 * Math.sin(Math.PI * t)}) rotate(${j * 47}) scale(${1 - 0.85 * t})"/>` : '';
+          const fly = j < 20 ? `<use href="#${href}" transform="translate(${560 - 410 * t} ${330 + 65 * t - 260 * Math.sin(Math.PI * t)}) rotate(${j * 47}) scale(${1 - 0.85 * t})"/>` : '';
           const e = j - 20;
           const boom = e >= 0 && e < 22 ? `<circle cx="140" cy="380" r="${10 + Math.min(e, 10) * 9}" fill="#ffd34d" opacity="${Math.max(0, 0.9 - e * 0.05)}"/>
             <circle cx="140" cy="380" r="${6 + Math.min(e, 10) * 6}" fill="#ff8a3d" opacity="${Math.max(0, 0.9 - e * 0.05)}"/>` : '';
@@ -843,33 +1066,31 @@ function sceneNunchaku() {
           if (e > 6) out += sfx(mir ? 380 : 760, 230, 'あ', 60, 0);
         }
       }
-      return out + liveBadge('中継：駅前');
+      return out + liveBadge('中継：' + locName);
     },
     finish(ok) {
       if (this.ended) return; this.ended = true;
       const greats = S.judged.filter(x => x === 'great').length;
+      const restTxt = `残りの${th.thing}：${G.stock[G.loc].nunchaku}${th.unit}`;
       if (ok) {
         const perfect = greats === BEATS.length;
-        if (perfect) G.perfectKata = true;
         G.epLog.push(perfect ? 'kataPerfect' : 'kata');
         showNews({
-          loc: 'city', act: 'nunchaku', ok: true,
-          head: perfect ? '怪獣、電車ヌンチャクの型を完璧に披露' : '怪獣、駅前で電車をヌンチャクにしてトレーニング',
-          lines: ['車両1両を使用、駅前の線路に深いひび', perfect ? '専門家「持ち替えの所作が美しい。教本に載せたい」' : '近隣の住民「朝から地響きで目が覚めた」',
-            `○○線は運転見合わせ（残りの車両：${G.res.trains}両）`],
+          loc: G.loc, ok: true,
+          head: perfect ? `怪獣、${th.thing}でヌンチャクの型を完璧に披露` : `怪獣、${locName}で${th.thing}をヌンチャクにしてトレーニング`,
+          lines: [`${th.thing}を1${th.unit}使用、周辺の地面に深いひび`, perfect ? '専門家「持ち替えの所作が美しい。教本に載せたい」' : '近隣の住民「朝から地響きで目が覚めた」', restTxt],
           gains: { tec: perfect ? 9 : 6, pow: 5, hp: -25 }, dmg: 1.2e9 + greats * 0.1e9, alert: 12, kpop: perfect ? 8 : 4,
-          cat: '鉄道', flags: { cracks: true },
+          cat: '交通', flags: G.loc === 'city' ? { cracks: true } : null,
         });
       } else {
-        G.res.trains = Math.max(0, G.res.trains - 1);
+        G.stock[G.loc].nunchaku = Math.max(0, G.stock[G.loc].nunchaku - 1);
         G.flags.blackout = true;
         G.epLog.push('kataFail');
         showNews({
-          loc: 'city', act: 'nunchaku', ok: false,
-          head: 'すっぽ抜けた車両が隣県に落下　変電所が停止し3県で停電',
-          lines: ['怪獣はヌンチャクの型の途中で自分の頭を強打した模様', '落下した車両は隣県の変電所に直撃', '3県の約40万世帯で停電、信号機も停止', `回収不能の車両を含め、残りの車両：${G.res.trains}両`],
-          gains: { tec: 2, pow: 2, hp: -25 }, dmg: 12.1e9, alert: 26, kpop: 2, hpop: 4,
-          cat: '鉄道・電力',
+          loc: G.loc, ok: false,
+          head: `すっぽ抜けた${th.thing}が隣県に落下　変電所が停止し3県で停電`,
+          lines: ['怪獣はヌンチャクの型の途中で自分の頭を強打した模様', `落下した${th.thing}は隣県の変電所に直撃`, '3県の約40万世帯で停電、信号機も停止', `回収不能のものを含め、${restTxt}`],
+          gains: { tec: 2, pow: 2, hp: -25 }, dmg: 12.1e9, alert: 26, kpop: 2, hpop: 4, cat: '交通・電力',
         });
       }
     },
@@ -882,8 +1103,8 @@ function sceneRope() {
   const GOAL = 8;
   const S = { mode: 'intro', phi: Math.PI, om: 0.2, jumpT: -1, count: 0, failAt: 0 };
   setScene({
-    bg: () => cityBg({ trains: G.res.trains, wires: Math.max(0, G.res.wires - 1), blackout: G.flags.blackout, cracks: G.flags.cracks }),
-    enter() { h(`<div class="prompt">電線が足もとに来たらタップでジャンプ！（${GOAL}回）</div>`); },
+    bg: () => cityBg({ trains: G.stock.city.nunchaku, wires: Math.max(0, G.stock.city.rope - 1), blackout: G.flags.blackout, cracks: G.flags.cracks }),
+    enter() { h(`<div class="prompt">縄が足もとに来たらタップでジャンプ！（${GOAL}回）</div>`); },
     yoff() { return S.jumpT >= 0 ? -120 * Math.sin(Math.PI * S.jumpT / J) : 0; },
     tick(f) {
       if (S.mode === 'intro') { if (f >= 28) { S.mode = 'play'; $ui.innerHTML = ''; } return; }
@@ -920,31 +1141,31 @@ function sceneRope() {
         const t = clamp((j - 5) / 16, 0, 1);
         const rot = 75 * easeInOut(t), x = 600 + 260 * easeInOut(t), yy = 450 + 90 * easeInOut(t);
         const tangle = `<path d="M560 640 q 40 -30 80 0 q 40 30 80 0" stroke="#2e2e2e" stroke-width="7" fill="none"/>`;
-        out += `<g transform="translate(${x - 600} ${yy - 450}) rotate(${rot} 600 640)">${KAIJU_BODY}${arm(735, 470)}${head(j < 22 ? 'surprised' : 'dizzy')}${tangle}</g>`;
+        out += `<g transform="translate(${x - 600} ${yy - 450}) rotate(${rot} 600 640)">${kb()}${arm(735, 470)}${head(j < 22 ? 'surprised' : 'dizzy')}${tangle}</g>`;
         if (j < 6) out += star(600, 650, 60 - j * 6) + sfx(380, 560, 'バチバチッ', 48, -6);
         if (j >= 22 && j < 30) out += sfx(820, 430, 'ドシーン', 56, -6);
         if (j >= 28) out += `<rect width="1200" height="750" fill="#fff" opacity="${Math.max(0, 0.9 - (j - 28) * 0.3)}"/>`;
         if (j >= 31) out += `<rect width="1200" height="750" fill="#07102a" opacity="${Math.min(0.6, (j - 31) * 0.1)}"/>` + sfx(480, 300, 'ブツッ', 64, 0);
       }
-      return out + liveBadge('中継：送電線');
+      return out + liveBadge('中継：' + here().name);
     },
     finish(ok) {
       if (this.ended) return; this.ended = true;
       if (ok) {
-        G.res.wires -= 1;
+        G.stock.city.rope -= 1;
         G.epLog.push('rope');
         showNews({
-          loc: 'city', act: 'rope', ok: true,
-          head: '怪獣、送電線で縄跳び　8回連続',
-          lines: ['跳ぶたびに火花、一帯で瞬間的な停電が8回', '電力会社「縄跳びは想定していなかった」', `使える送電線：残り${G.res.wires}本`],
+          loc: 'city', ok: true,
+          head: '怪獣、送電線を引き抜いて縄跳び　8回連続',
+          lines: ['跳ぶたびに火花、一帯で瞬間的な停電が8回', '電力会社「縄跳びは想定していなかった」', `使える送電線：残り${G.stock.city.rope}本`],
           gains: { sta: 6, tec: 4, hp: -25 }, dmg: 0.8e9, alert: 10, kpop: 5, cat: '電力',
         });
       } else {
-        G.res.wires = 0; G.flags.blackout = true;
+        G.stock.city.rope = 0; G.flags.blackout = true;
         G.epLog.push('ropeFail');
         showNews({
-          loc: 'city', act: 'rope', ok: false,
-          head: '怪獣、縄跳びで足を取られ変電所に転倒　県全域で停電',
+          loc: 'city', ok: false,
+          head: '怪獣、送電線の縄跳びで足を取られ変電所に転倒　県全域で停電',
           lines: ['電線が足に絡まり、そのまま変電所へ倒れ込んだ', '県内全域で停電、復旧のめどは立っていない', '送電線はすべて使用不能に'],
           gains: { sta: 2, tec: 1, hp: -25 }, dmg: 25.4e9, alert: 28, kpop: 2, hpop: 5, cat: '電力',
         });
@@ -956,10 +1177,10 @@ function sceneRope() {
 // ---- minigame: dam lake front crawl ----
 function sceneSwim() {
   const LV = 420;
-  const tw = 0.075 * (0.6 + 0.4 * G.hp / 100) * (1 + G.tec / 150);   // half width of the turn timing zone
+  const tw = 0.075 * (0.6 + 0.4 * G.hp / 100) * (1 + G.tec / 150);
   const S = { mode: 'swim', x: 170, vx: 0, beta: 180, betaT: 180, last: null, strokes: 0, breatheT: -1, turnAt: 0, p: 0, endAt: 0, wrong: -10 };
   setScene({
-    bg: () => damStatic(G),
+    bg: () => bgFor('dam'),
     wantsTap: false,
     enter() {
       h(`<div class="prompt">左右を交互に押してクロール！</div>
@@ -999,10 +1220,7 @@ function sceneSwim() {
         if (S.mode === 'bad' && f - S.endAt > 70) this.finish(false);
       }
     },
-    shake(f) {
-      if (S.mode === 'bad') { const j = f - S.endAt - 10; if (j >= 0 && j < 4) return [[12, -5], [-10, 6], [7, -3], [-4, 2]][j]; }
-      return null;
-    },
+    shake(f) { if (S.mode === 'bad') { const j = f - S.endAt - 10; if (j >= 0 && j < 4) return [[12, -5], [-10, 6], [7, -3], [-4, 2]][j]; } return null; },
     draw(f) {
       let out = '';
       if (S.mode === 'swim' || S.mode === 'turn') {
@@ -1018,7 +1236,7 @@ function sceneSwim() {
         out += `<rect x="300" y="160" width="600" height="14" rx="7" fill="#0f2a4a" opacity="0.7"/><rect x="300" y="160" width="${600 * prog}" height="14" rx="7" fill="#ffd34d"/>
           <text x="910" y="174" font-family="'M PLUS 1p',sans-serif" font-weight="800" font-size="20" fill="#fff" stroke="${INK}" stroke-width="4" paint-order="stroke">壁まで</text>`;
         if (S.mode === 'turn') {
-          const cx = 600, cy = 230, r = 90;
+          const cx = 600, cy = 260, r = 90;
           const ang = p => (200 + p * 140) * D2R;
           const arc = (p0, p1, col, w) => `<path d="M${cx + r * Math.cos(ang(p0))} ${cy + r * Math.sin(ang(p0))} A ${r} ${r} 0 0 1 ${cx + r * Math.cos(ang(p1))} ${cy + r * Math.sin(ang(p1))}" stroke="${col}" stroke-width="${w}" fill="none" stroke-linecap="round"/>`;
           out += `<circle cx="${cx}" cy="${cy}" r="${r + 30}" fill="#0f2a4a" opacity="0.75"/>` + arc(0, 1, '#556', 18) + arc(0.7 - tw, 0.7 + tw, '#ffd34d', 20) +
@@ -1054,23 +1272,24 @@ function sceneSwim() {
           }
         }
       }
-      return out + liveBadge('中継：○○ダム');
+      return out + liveBadge('中継：' + LOCS.dam.name);
     },
     finish(ok) {
       if (this.ended) return; this.ended = true;
       if (ok) {
+        G.stock.dam.swim -= 1;
         G.epLog.push('swim');
         showNews({
-          loc: 'dam', act: 'swim', ok: true,
+          loc: 'dam', ok: true,
           head: '怪獣、ダム湖で本格クロール　ターンも完璧',
           lines: ['息継ぎは4かきに1回、教科書どおりのフォーム', '大波でボート乗り場が流される', 'ダム管理事務所「壁を蹴る瞬間は生きた心地がしなかった」'],
           gains: { sta: 8, hp: -30 }, dmg: 0.25e9, alert: 6, kpop: 5, cat: '水道・観光',
         });
       } else {
-        G.res.dam = false;
+        G.stock.dam.swim = 0; G.flags.damBroken = true;
         G.epLog.push('damFail');
         showNews({
-          loc: 'dam', act: 'swim', ok: false,
+          loc: 'dam', ok: false,
           head: 'ダム決壊　怪獣ごと下流へ　流域に避難指示',
           lines: ['クイックターンで壁を強く蹴りすぎた模様', '下流の住宅地が浸水、家屋が流される', '怪獣は約8km流されたのち、自力で岸に上がった', '下流の水力発電所も停止'],
           gains: { sta: 3, hp: -30 }, dmg: 87.3e9, alert: 34, kpop: 3, hpop: 6, cat: '治水・電力',
@@ -1080,31 +1299,42 @@ function sceneSwim() {
   });
 }
 
-// ---- eat oil tanker ----
+// ---- eat: a mug of crude straight from the refinery ----
 function sceneEat() {
   setScene({
-    bg: seaBg,
-    tick(f) { if (f > 46) this.finish(); },
-    onTap() { if (frame > 10) this.finish(); },
+    bg: () => bgFor('port'),
+    tick(f) { if (f > 54) this.finish(); },
+    onTap() { if (frame > 12) this.finish(); },
     draw(f) {
-      const sip = f > 10 && f < 34;
-      const shrink = clamp((f - 10) / 24, 0, 1);
-      const tanker = `<g transform="translate(770 ${330 - (f < 10 ? (10 - f) * 18 : 0)}) rotate(-80) scale(${1 - shrink * 0.12} 1)"><use href="#tanker"/></g>`;
-      const straw = `<path d="M778 220 L 712 322" stroke="#ff6fa5" stroke-width="10" stroke-linecap="round"/>`;
-      let out = `<g transform="translate(0 70)">${KAIJU_BODY}${tanker}${f > 6 ? straw : ''}${arm(770, 380)}${head(f >= 34 ? 'happy' : 'serious')}</g>`;
-      if (sip) out += sfx(860, 200, 'ちゅー', 50, -6);
-      if (f >= 34) out += sfx(780, 260, 'ぷはー', 56, -4);
-      return out + liveBadge('中継：湾岸');
+      // phases: pour (0-16) -> lift (16-22) -> gulp (22-40) -> ahh (40+)
+      const level = f < 16 ? f / 16 : f < 22 ? 1 : f < 40 ? 1 - (f - 22) / 18 : 0;
+      const lift = clamp((f - 16) / 6, 0, 1);
+      const hx = 820 - 90 * lift, hy = 400 - 70 * lift;
+      const tilt = f >= 22 && f < 40 ? -55 : f >= 40 ? -10 : -10 * lift;
+      const mug = `<g transform="translate(${hx + 40} ${hy - 30}) rotate(${tilt})">
+        <rect x="-55" y="-85" width="110" height="160" rx="12" fill="#dfeff7" opacity="0.55" stroke="${INK}" stroke-width="5"/>
+        <rect x="-49" y="${69 - 148 * level}" width="98" height="${148 * level}" rx="8" fill="#2a1d12"/>
+        ${level > 0.05 ? `<ellipse cx="0" cy="${69 - 148 * level}" rx="50" ry="14" fill="#cdb98a" stroke="${INK}" stroke-width="3"/>` : ''}
+        <path d="M55 -50 q 45 0 45 45 q 0 45 -45 45" fill="none" stroke="${INK}" stroke-width="16"/>
+        <path d="M55 -50 q 45 0 45 45 q 0 45 -45 45" fill="none" stroke="#dfeff7" stroke-width="8"/>
+      </g>`;
+      const pour = f < 16 ? `<path d="M861 314 Q 862 340 862 ${hy - 110}" stroke="#2a1d12" stroke-width="16" fill="none"/>` : '';
+      const mustache = f >= 40 ? `<ellipse cx="686" cy="336" rx="24" ry="8" fill="#cdb98a" stroke="${INK}" stroke-width="2"/>` : '';
+      let out = `${kb()}${pour}${mug}${arm(hx, hy)}${head(f >= 40 ? 'happy' : 'serious')}${mustache}`;
+      if (f < 16) out += sfx(940, 200, 'ドボドボ', 44, -6);
+      if (f >= 22 && f < 40) out += sfx(820, 200, 'ゴクゴク', 54, -6);
+      if (f >= 40) out += sfx(760, 230, 'ぷはー', 60, -4);
+      return out + liveBadge('中継：' + LOCS.port.name);
     },
     finish() {
       if (this.ended) return; this.ended = true;
-      G.oil += 1;
+      G.oil += 1; G.stock.port.eat -= 1;
       G.epLog.push('eat');
       showNews({
-        loc: 'sea', act: 'eat', ok: true,
-        head: '怪獣、石油タンカーをストローで完飲',
-        lines: ['原油約30万トンが怪獣の体内へ', '専門家「体内に石油がたまると、倒された時が心配」', `お腹の中の石油：${G.oil}隻分`],
-        gains: { pow: 6, hp: 25 }, dmg: 3.4e9, alert: 8, kpop: 3, cat: '燃料',
+        loc: 'port', ok: true,
+        head: '怪獣、コンビナートの原油をジョッキで一気飲み',
+        lines: ['貯蔵タンクの配管から直接ジョッキに注いだ模様', '専門家「体内に石油がたまると、倒された時が心配」', `お腹の中の石油：${G.oil}杯`],
+        gains: { pow: 6, hp: 25 }, dmg: 3.4e9, alert: 8, kpop: 4, cat: '燃料',
       });
     },
   });
@@ -1113,21 +1343,20 @@ function sceneEat() {
 // ---- sleep ----
 function sceneSleep() {
   setScene({
-    bg: () => cityBg({ trains: G.res.trains, wires: G.res.wires, blackout: G.flags.blackout, cracks: G.flags.cracks }),
+    bg: () => bgFor(),
     tick(f) { if (f > 40) this.finish(); },
     onTap() { if (frame > 8) this.finish(); },
     draw(f) {
       const breath = 1 + 0.02 * Math.sin(f * 0.3);
-      return `<g transform="translate(600 560) rotate(-90) scale(${0.85 * breath} 0.85) translate(-600 -450)">${KAIJU_BODY}${head('sleep')}</g>` +
-        sfx(760 + (f % 20), 300 - (f % 20) * 4, 'Zzz', 48 + (f % 20), -10) + liveBadge('中継：市街地');
+      return `<g transform="translate(600 560) rotate(-90) scale(${0.85 * breath} 0.85) translate(-600 -450)">${kb()}${head('sleep')}</g>` +
+        sfx(760 + (f % 20), 300 - (f % 20) * 4, 'Zzz', 48 + (f % 20), -10) + liveBadge('中継：' + here().name);
     },
     finish() {
       if (this.ended) return; this.ended = true;
-      G.sleptTurns += 1;
       G.epLog.push('sleep');
       showNews({
-        loc: 'city', act: 'sleep', ok: true,
-        head: '怪獣、市街地のど真ん中で昼寝',
+        loc: G.loc, ok: true,
+        head: `怪獣、${here().name}のど真ん中で昼寝`,
         lines: ['いびきの振動で窓ガラス約2,000枚が割れる', '寝返りで駐車場が1つなくなった', '起こしに行く人はいなかった'],
         gains: { hp: 100 }, dmg: 0.06e9, alert: 3, kpop: 2, cat: '建物',
       });
@@ -1136,9 +1365,8 @@ function sceneSleep() {
 }
 
 // ---- news (result) ----
-function showNews(r) {
+function showNews(r, after = nextTurn) {
   const before = G.dmg;
-  // apply
   const g = r.gains || {};
   for (const k of ['pow', 'sta', 'tec']) if (g[k]) G[k] = clamp(G[k] + g[k], 0, 100);
   if (g.hp) G.hp = clamp(G.hp + g.hp, 0, 100);
@@ -1148,7 +1376,6 @@ function showNews(r) {
   if (r.flags) Object.assign(G.flags, r.flags);
   G.log.push({ cat: r.cat, amount: r.dmg });
   const al = alertLevel();
-
   const keepFx = $fx.innerHTML;
   setScene({
     bg: undefined, draw: () => null,
@@ -1167,11 +1394,9 @@ function showNews(r) {
           </div>
         </div>
         <div style="position:absolute;right:calc(var(--u)*40);top:calc(var(--u)*24)"><button class="btn" id="next">次へ</button></div>`);
-      const btn = document.getElementById('next');
-      btn.onclick = () => nextTurn();
-      btn.focus();
+      focusBtn('next').onclick = () => after();
       const t0 = performance.now(), dur = 1200;
-      const step = (now) => {
+      const step = now => {
         const el = document.getElementById('cnt'); if (!el) return;
         const t = Math.min(1, (now - t0) / dur);
         el.textContent = yen(before + (G.dmg - before) * easeOut(t));
@@ -1184,11 +1409,85 @@ function showNews(r) {
 
 function nextTurn() {
   G.turn++;
-  if (G.turn >= 3) sceneEpisodeEnd();
+  if (G.turn >= 3) sceneHero();
   else sceneMenu();
 }
 
-// ---- episode end: ratings, reactions, preview ----
+// ---- the hero arrives: hold out against the beam, then go out with a bang ----
+function sceneHero() {
+  const S = { mode: 'arrive', p: 0.75, t0: 0, endAt: 0, taps: 0 };
+  const push = 0.05 * (1 + (G.pow + G.sta) / 160);
+  setScene({
+    bg: () => bgFor(),
+    enter() { h(`<div class="prompt">${HERO}が現れた！</div>`); },
+    tick(f) {
+      if (S.mode === 'arrive' && f >= 36) {
+        S.mode = 'beam'; S.t0 = f;
+        h(`<div class="prompt">連打で光線を押し返せ！</div><div class="pads" style="justify-content:center"><button class="pad next" id="padP">踏んばる</button></div>`);
+        document.getElementById('padP').onpointerdown = e => { e.stopPropagation(); this.onTap(); };
+      } else if (S.mode === 'beam') {
+        const sec = (f - S.t0) / 20;
+        S.p -= 0.012 + Math.max(0, sec - 5) * 0.012;  // hero gets serious after a while
+        if (S.p <= 0) { S.mode = 'boom'; S.endAt = f; G.survived = sec; $ui.innerHTML = ''; }
+      } else if (S.mode === 'boom' && f - S.endAt > 64) this.finish();
+    },
+    onTap() { if (S.mode === 'beam') { S.p = Math.min(0.95, S.p + push); S.taps++; } },
+    shake(f) { if (S.mode === 'boom') { const j = f - S.endAt; if (j < 10) return [[16, -8], [-14, 10], [12, -6], [-10, 6], [8, -4], [-6, 3], [4, -2], [-3, 1], [2, -1], [0, 0]][j]; } return null; },
+    draw(f) {
+      const KX = 340, HX = 960;
+      let out = '';
+      const heroY = S.mode === 'arrive' ? Math.max(0, 600 - f * 20) : 0;
+      const kaiju = `<g transform="translate(${KX - 600} 0)">${kb()}${arm(760, 380)}${head(S.mode === 'beam' && S.p < 0.3 ? 'surprised' : 'serious')}</g>`;
+      const hero = `<g transform="translate(${HX} ${690 - heroY}) scale(0.9)">${heroArt(S.mode === 'arrive' && heroY > 0 ? 'fly' : S.mode === 'beam' ? 'beam' : 'stand')}</g>`;
+      if (S.mode === 'arrive') {
+        out += kaiju + hero;
+        if (f > 20) out += sfx(820, 140, 'ジャスティア！', 52, -4);
+      } else if (S.mode === 'beam') {
+        const hand = [HX - 146, 690 - 0.9 * 350];
+        const kfront = [KX + 170, 380];
+        const cx = kfront[0] + (hand[0] - kfront[0]) * (1 - S.p);
+        const cy = kfront[1] + (hand[1] - kfront[1]) * (1 - S.p);
+        out += kaiju + hero +
+          `<path d="M${hand[0]} ${hand[1]} L ${cx} ${cy}" stroke="#fff6a8" stroke-width="34" stroke-linecap="round" opacity="0.9"/>
+           <path d="M${hand[0]} ${hand[1]} L ${cx} ${cy}" stroke="#fff" stroke-width="12" stroke-linecap="round"/>
+           <path d="M${kfront[0]} ${kfront[1]} L ${cx} ${cy}" stroke="#7fe3ff" stroke-width="26" stroke-linecap="round" opacity="0.7"/>` +
+          star(cx, cy, 46 + 8 * Math.sin(f), '#fff6a8') + (f % 6 < 3 ? sfx(KX - 60, 200, 'ぐぬぬ', 44, -6) : '');
+        const sec = ((f - S.t0) / 20).toFixed(1);
+        out += `<text x="1160" y="110" font-family="${SFX_FONT}" font-size="48" fill="#fff" stroke="${INK}" stroke-width="7" paint-order="stroke" text-anchor="end">${sec}秒</text>`;
+      } else {
+        const j = f - S.endAt;
+        const big = 1 + G.oil * 0.35;
+        out += hero;
+        if (j < 4) out += kaiju + `<rect width="1200" height="750" fill="#fff" opacity="${0.9 - j * 0.2}"/>`;
+        else if (j < 26) {
+          const r = Math.min(j - 4, 10) * 26 * big;
+          out += `<circle cx="${KX}" cy="460" r="${r}" fill="#ffd34d" opacity="${Math.max(0, 1 - (j - 4) * 0.04)}"/><circle cx="${KX}" cy="460" r="${r * 0.7}" fill="#ff8a3d"/><circle cx="${KX}" cy="460" r="${r * 0.4}" fill="#fff6a8"/>`;
+        } else {
+          const e = j - 26;
+          out += `<g fill="#555" opacity="${Math.max(0.2, 0.9 - e * 0.02)}"><circle cx="${KX - 80}" cy="${430 - e * 4}" r="${90 * big + e * 2}"/><circle cx="${KX + 70}" cy="${400 - e * 5}" r="${80 * big + e * 2}"/><circle cx="${KX}" cy="${330 - e * 6}" r="${70 * big + e * 2}"/></g>`;
+          if (G.oil > 0) out += `<g fill="#ff8a3d" opacity="0.8">${[0, 1, 2, 3].map(i => `<path d="M${KX - 150 + i * 90} 660 q 20 -${60 + 20 * G.oil} 40 0 Z"/>`).join('')}</g>`;
+          out += sfx(820, 170, 'ハッ！', 50, -4);
+        }
+        if (j >= 4 && j < 26) out += sfx(KX - 120, 220, 'ドカーン', 80, -8);
+      }
+      return out + liveBadge('中継：' + here().name);
+    },
+    finish() {
+      if (this.ended) return; this.ended = true;
+      const fire = G.oil * 15e9;
+      G.epLog.push('defeated');
+      showNews({
+        loc: G.loc, ok: false,
+        head: `${HERO}、${G.kaiju}を撃破${G.oil ? '　体内の石油に引火し周辺が炎上' : ''}`,
+        lines: [`${G.kaiju}は光線を${G.survived.toFixed(1)}秒こらえたのち爆発`, G.oil ? `体内の石油${G.oil}杯分に引火、消火に数日かかる見込み` : '爆発の破片で周辺の建物が損傷',
+          '倒されたあとの被害が、生きていたときの被害を上回るのではと専門家'],
+        gains: {}, dmg: 2e9 + fire, alert: 0, kpop: Math.round(G.survived * 1.5), hpop: 8, cat: '撃破後の被害',
+      }, () => sceneEpisodeEnd());
+    },
+  });
+}
+
+// ---- episode end: ratings, reactions, villain's word, preview ----
 function reactions() {
   const L = G.epLog, pool = [];
   const add = (who, text) => pool.push({ who, text });
@@ -1198,47 +1497,63 @@ function reactions() {
   if (L.includes('damFail')) add('ハガキ・農家', 'ダムの水が引いたら、うちの畑の水も引きました');
   if (L.includes('swim')) add('SNS', 'クロールのフォームが綺麗すぎる。息継ぎの角度まで正しい');
   if (L.includes('rope') || L.includes('ropeFail')) add('ハガキ・主婦', '縄跳びのたびに電子レンジが止まります');
-  if (L.includes('eat')) add('SNS', 'タンカーをストローで飲むの、かわいいけどガソリン代が心配');
-  if (G.sleptTurns > 0 && L.filter(x => x === 'sleep').length >= 2) add('SNS', '今週ほぼ寝てただけでは？');
+  if (L.includes('eat')) add('SNS', 'ジョッキで原油を飲む怪獣、ちょっとうらやましい');
+  if (L.includes('move')) add('SNS', 'うちの近所に向かって歩いてるの、見えてます');
+  if (L.filter(x => x === 'sleep').length >= 2) add('SNS', '今週ほぼ寝てただけでは？');
+  if (G.survived > 6) add('ハガキ・小2', `${G.kaiju}がんばってた。ジャスティアがんばりすぎ`);
   const generic = [
     ['ハガキ・小3', '被害額のケタが多くて数えられません'],
     ['SNS', '今週の怪獣、背中にファスナーが見えた気がする'],
     ['避難所から', '避難所のテレビで見ていました。うちの家が映ってた'],
     ['ハガキ・模型店', 'ミニチュアの線路の出来がすばらしい'],
-    ['SNS', 'ヒーローはまだ来ないんですか'],
+    ['SNS', `${HERO}、今週も登場が遅い`],
     ['ハガキ・会社員', '今日も通勤電車が運休でした'],
   ];
   generic.sort(() => Math.random() - 0.5).forEach(([w, t]) => add(w, t));
   return pool.slice(0, 4);
 }
+function bossWord() {
+  const epDmg = G.dmg - G.epStartDmg;
+  if (epDmg > 1e11) return '……見事だ。この星が、少し平らになった。';
+  if (G.survived > 6) return `光の巨人を相手に${G.survived.toFixed(1)}秒。悪くない。`;
+  return 'まだまだだ。この星には、鍛える道具がいくらでもある。';
+}
 function sceneEpisodeEnd() {
   const epDmg = G.dmg - G.epStartDmg;
   const rating = (5.5 + Math.log10(epDmg / 1e8 + 1) * 3.2 + G.kpop * 0.08 + Math.random() * 1.2).toFixed(1);
   setScene({
-    bg: () => cityBg({ trains: G.res.trains, wires: G.res.wires, blackout: G.flags.blackout, cracks: G.flags.cracks }),
-    bgClass: 'dim',
-    draw: () => `<g transform="translate(-120 0)" opacity="0.6">${KAIJU_BODY}${arm(735, 470)}${head('serious')}</g>`,
+    bg: () => bgFor(), bgClass: 'dim', draw: () => '',
     enter() {
       const v = reactions();
       h(`<div class="board">
-        <h2>第${EPISODES[G.ep].no}話　放送終了</h2>
+        <h2>第${G.ep + 1}話　放送終了</h2>
         <div class="kpi"><div>視聴率<b>${rating}%</b></div><div>今週の被害額<b>${yen(epDmg)}</b></div><div>怪獣人気<b>${G.kpop}</b></div><div>ヒーロー人気<b>${G.hpop}</b></div></div>
         <div style="font-weight:800">今週の反響</div>
         <div class="voices">${v.map((x, i) => `<div class="voice" style="--r:${(i % 2 ? 1 : -1) * (0.6 + i * 0.3)}deg">${x.text}<small>${x.who}</small></div>`).join('')}</div>
-        <div class="foot"><button class="btn" id="next">次回予告へ</button></div>
+        <div style="color:#c8b6ff">悪の総帥より：「${bossWord()}」</div>
+        <div class="foot"><button class="btn" id="next">${G.ep >= 2 ? '請求書を見る' : '次回予告へ'}</button></div>
       </div>`);
-      document.getElementById('next').onclick = () => scenePreview();
-      document.getElementById('next').focus();
+      focusBtn('next').onclick = () => G.ep >= 2 ? sceneBill() : scenePreview();
     },
   });
 }
+function evolve() {
+  // the most-used action of the episode decides the new suit part (Showa-style suit rework)
+  const order = ['eat', 'swim', 'rope', 'nunchaku', 'sleep', 'move'];
+  let best = null, bn = -1;
+  for (const a of order) { const n = G.actCount[a] || 0; if (n > bn) { bn = n; best = a; } }
+  let part = PART_OF[best];
+  if (G.parts.includes(part)) part = ['horn', 'fins', 'coil', 'chimney', 'nightcap'].find(p => !G.parts.includes(p));
+  G.parts.push(part);
+  G.kaiju = G.parts.length === 1 ? KAIJU_NAME[part] : 'ネオ' + KAIJU_NAME[part];
+  G.actCount = {};
+  G.hp = 100; G.alert = Math.max(0, G.alert - 25);
+}
 function scenePreview() {
   const texts = [
-    `次回、防衛隊の<em>新兵器</em>がついに出動！<br>ズングラ、<em>絶体絶命</em>か！？`,
-    `次回、ついに<em>ヒーロー</em>が登場！？<br>街の運命やいかに！`,
-    null,
+    `次回、防衛隊の<em>新兵器</em>がついに出動！<br>そして、<em>改造怪獣</em>が街を襲う！`,
+    `次回、<em>${HERO}</em>が来ない！？<br>街の運命やいかに！`,
   ];
-  if (G.ep >= EPISODES.length - 1) return sceneBill();
   setScene({
     bg: undefined, draw: () => '', bgClass: 'dim',
     enter() {
@@ -1246,38 +1561,37 @@ function scenePreview() {
         <div style="color:var(--gold);font-weight:800;letter-spacing:0.3em">次回予告</div>
         <div class="preview">${texts[G.ep]}</div>
         <div class="foot" style="margin-top:calc(var(--u)*20)"><button class="btn" id="next">次の話へ</button></div></div>`);
-      document.getElementById('next').onclick = () => {
-        G.ep++; G.turn = 0; G.epLog = []; G.sleptTurns = 0; G.epStartDmg = G.dmg;
+      focusBtn('next').onclick = () => {
+        G.ep++; G.turn = 0; G.epLog = []; G.epStartDmg = G.dmg; G.survived = 0;
+        evolve();
         if (!G.titled) { G.titled = true; sceneGreenlight(); } else sceneEpisodeTitle();
       };
-      document.getElementById('next').focus();
     },
   });
 }
-// after episode 1: the proposal title becomes the show's title
+// after episode 1: the reveal. It was a hero show all along.
 function sceneGreenlight() {
   setScene({
-    bg: '', draw: () => '',
+    bg: `<rect width="1200" height="750" fill="#2a2420"/>`, draw: () => '',
     enter() {
-      $bg.innerHTML = `<rect width="1200" height="750" fill="#2a2420"/>`;
       h(`<div class="sheet">
         <div class="meta"><span>企画書　No.0001</span><span>制作部　第2班</span></div>
         <h1><span class="strike">怪獣育成（仮）</span></h1>
-        <p class="lede">第1話の視聴率を受けて、番組タイトルが決まりました。</p>
-        <div class="row"><span class="stamp" style="font-size:calc(var(--u)*48)">放送決定</span><button class="btn" id="go">タイトルを見る</button></div>
+        <p class="lede">第1話の視聴率を受けて、正式な番組名が決まりました。</p>
+        <p class="reveal">※あなたが育てていたのは、<b>ヒーロー番組の「今週の怪獣」</b>です。<br>怪獣は毎週やられます。着ぐるみは改造して使い回します。</p>
+        <div class="row"><span class="stamp" style="font-size:calc(var(--u)*48)">放送決定</span><button class="btn" id="go">番組名を見る</button></div>
       </div>`);
-      document.getElementById('go').onclick = () => {
+      focusBtn('go').onclick = () => {
         h(`<div class="titlecard"><div class="logo"><small>毎週日曜 夕方6時</small>${SHOW}</div><div class="skip">タップで進む</div></div>`);
         setTimeout(() => { scene.onTap = () => sceneEpisodeTitle(); }, 300);
       };
-      document.getElementById('go').focus();
     },
   });
 }
 // episode 2 opener: the hyped new weapon lasts five seconds
 function sceneSneezeGag() {
   setScene({
-    bg: () => cityBg({ trains: G.res.trains, wires: G.res.wires, blackout: G.flags.blackout, cracks: G.flags.cracks }),
+    bg: () => bgFor(),
     tick(f) { if (f > 62) this.finish(); },
     onTap() { if (frame > 30) this.finish(); },
     shake(f) { return f >= 24 && f < 28 ? [[10, -4], [-8, 5], [5, -2], [-2, 1]][f - 24] : null; },
@@ -1285,8 +1599,8 @@ function sceneSneezeGag() {
       const t = clamp((f - 25) / 20, 0, 1);
       const tank = f < 25 ? `<use href="#tank" transform="translate(${1000 - Math.min(f, 15) * 8} 600)"/>`
         : `<use href="#tank" transform="translate(${880 + 300 * t} ${600 - 420 * Math.sin(Math.PI * t * 0.8)}) rotate(${f * 40}) scale(${1 - 0.6 * t})"/>`;
-      let out = `<g transform="translate(-120 0)">${KAIJU_BODY}${arm(735, 470)}${head(f < 18 ? 'serious' : f < 25 ? 'surprised' : 'happy', f >= 22 && f < 26 ? 8 : 0)}</g>` + tank;
-      if (f < 18) out += sfx(820, 470, '新兵器 メガ放水砲 出動！', 30, 0);
+      let out = `<g transform="translate(-120 0)">${kb()}${arm(735, 470)}${head(f < 18 ? 'serious' : f < 25 ? 'surprised' : 'happy', f >= 22 && f < 26 ? 8 : 0)}</g>` + tank;
+      if (f < 18) out += sfx(760, 470, '新兵器 メガ放水砲 出動！', 30, 0);
       if (f >= 14 && f < 24) out += sfx(420, 200, 'へ…へ…', 44, -6);
       if (f >= 24 && f < 40) out += sfx(560, 230, 'ヘックシ', 64, -8);
       out += `<text x="1160" y="110" font-family="${SFX_FONT}" font-size="54" fill="#fff" stroke="${INK}" stroke-width="8" paint-order="stroke" text-anchor="end">${Math.max(0, 5 - Math.floor(f / 5))}秒</text>`;
@@ -1295,9 +1609,8 @@ function sceneSneezeGag() {
     finish() {
       if (this.ended) return; this.ended = true;
       G.turn = -1;
-      G.epLog.push('gag');
       showNews({
-        loc: 'city', act: 'gag', ok: true,
+        loc: G.loc, ok: true,
         head: '新兵器「メガ放水砲」、怪獣のくしゃみで5秒で全損',
         lines: ['先週の予告で大きく宣伝された新兵器', '出動から5秒、怪獣のくしゃみで空のかなたへ', '防衛隊「次回作に期待してほしい」'],
         gains: {}, dmg: 30e9, alert: 6, kpop: 4, hpop: -2, cat: '防衛',
@@ -1307,12 +1620,12 @@ function sceneSneezeGag() {
 }
 // episode 3 opener: the hero is stuck because there are no trains
 function sceneHeroLate() {
-  const trainsGone = G.res.trains <= 1;
+  const trainsGone = G.stock.city.nunchaku <= 1;
   G.turn = -1;
   showNews({
-    loc: 'city', act: 'gag', ok: true,
-    head: trainsGone ? '予告のヒーロー、電車が動かず現場に到着できず' : '予告のヒーロー、渋滞で到着が遅れる',
-    lines: trainsGone ? ['怪獣が電車をヌンチャクに使い続けたため、在来線が全線運休', 'ヒーローは駅で振替輸送を待っている模様', '視聴者からは「予告詐欺」の声も'] : ['ヒーローは現在、高速道路の渋滞に巻き込まれている', '到着は来週以降の見込み'],
+    loc: G.loc, ok: true,
+    head: trainsGone ? `${HERO}、電車が動かず現場に到着できず` : `${HERO}、渋滞で到着が遅れる`,
+    lines: trainsGone ? ['怪獣が電車をヌンチャクに使い続けたため、在来線が全線運休', `${HERO}は駅で振替輸送を待っている模様`, '視聴者からは「予告詐欺」の声も'] : [`${HERO}は現在、高速道路の渋滞に巻き込まれている`, '到着は今週の終わりごろの見込み'],
     gains: {}, dmg: 0.01e9, alert: 0, kpop: 3, hpop: -3, cat: 'その他',
   });
 }
@@ -1331,11 +1644,10 @@ function sceneBill() {
           ${rows.map(([c, v]) => `<div class="line"><span>${c}</span><span>${yen(v)}</span></div>`).join('')}
           <div class="line total"><span>合計</span><span>${yen(G.dmg)}</span></div>
         </div>
-        <div style="color:var(--muted);font-size:calc(var(--u)*20)">お腹の中の石油：${G.oil}隻分（倒されたときに燃えます）／ 腕力 ${G.pow}・持久力 ${G.sta}・技術 ${G.tec}</div>
-        <div class="foot"><span style="margin-right:auto;color:var(--muted)">試作版はここまで。第4話でヒーローと初対決（予定）</span><button class="btn" id="again">最初から</button></div>
+        <div style="color:var(--muted);font-size:calc(var(--u)*20)">最後の怪獣：${G.kaiju}（改造：${G.parts.map(p => PART_NAME[p]).join('・') || 'なし'}）／ 腕力 ${G.pow}・持久力 ${G.sta}・技術 ${G.tec}</div>
+        <div class="foot"><span style="margin-right:auto;color:var(--muted)">試作版はここまで。</span><button class="btn" id="again">最初から</button></div>
       </div>`);
-      document.getElementById('again').onclick = () => { G = newGame(); sceneProposal(); };
-      document.getElementById('again').focus();
+      focusBtn('again').onclick = () => { G = newGame(); sceneProposal(); };
     },
   });
 }
@@ -1343,4 +1655,5 @@ function sceneBill() {
 /* boot */
 sceneProposal();
 requestAnimationFrame(loop);
+
 </script>
