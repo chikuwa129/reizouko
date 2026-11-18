@@ -33,7 +33,7 @@ const defs = `
 </defs>`;
 
 // ---------- kaiju parts (local coords as in the original sketch) ----------
-const kaijuBody = `
+const kaijuTorso = `
   <path d="M505 545 C 430 600 360 630 280 612 C 330 600 390 575 470 500 Z" fill="${SKIN}" stroke="${INK}" stroke-width="5" stroke-linejoin="round"/>
   <g fill="#e2a64c" stroke="${INK}" stroke-width="4" stroke-linejoin="round">
     <path d="M545 232 Q 500 205 506 262 Z"/><path d="M520 296 Q 466 280 480 338 Z"/>
@@ -51,8 +51,11 @@ const kaijuBody = `
     <line x1="560" y1="450" x2="676" y2="450"/><line x1="548" y1="490" x2="688" y2="490"/>
     <line x1="550" y1="530" x2="686" y2="530"/><line x1="562" y1="570" x2="674" y2="570"/>
   </g>
+`;
+const backArmStub = `
   <path d="M520 420 Q 490 460 508 490" stroke="${INK}" stroke-width="30" stroke-linecap="round" fill="none"/>
   <path d="M520 420 Q 490 460 508 490" stroke="#628b6d" stroke-width="22" stroke-linecap="round" fill="none"/>`;
+const kaijuBody = kaijuTorso + backArmStub;
 
 function head(expr = 'serious', tilt = 0) {
   let eyes, mouth, extra = '';
@@ -251,14 +254,17 @@ const KATA_KEYS = [
   { f: 82, hx: 760, hy: 300, psi: -70, phi: -1180 },                // back to start
 ];
 
-function kataFrame(track, f, extra = {}) {
+function kataKaiju(track, f, extra = {}) {
   const { st, nun } = kataLayers(track, f, extra);
   const behind = st.behind;
-  return cityBackground() + (extra.cracks || '') + (behind ? nun : '') + kaijuBody + arm(st.hx, st.hy) +
+  return (behind ? nun : '') + kaijuBody + arm(st.hx, st.hy) +
     head(extra.expr || 'serious', extra.tilt || 0) + (behind ? '' : nun) +
-    // re-draw handle + hand on top so the grip reads clearly
     kataGeom(st).held + `<circle cx="${st.hx}" cy="${st.hy}" r="27" fill="${SKIN}" stroke="${INK}" stroke-width="5"/>`;
 }
+function kataFrame(track, f, extra = {}) {
+  return cityBackground() + (extra.cracks || '') + kataKaiju(track, f, extra);
+}
+const mirror = (inner) => `<g transform="translate(1200 0) scale(-1 1)">${inner}</g>`;
 
 const slamCracks = `<g stroke="${INK}" stroke-width="3" fill="none"><path d="M360 600 l-25 18 l-20 -6"/><path d="M400 598 l18 22 l25 2"/><path d="M380 603 l-4 28"/></g>
   <g fill="#efeadf" stroke="#c9c2b0"><rect x="330" y="585" width="14" height="9"/><rect x="420" y="590" width="10" height="8"/></g>`;
@@ -266,7 +272,7 @@ const dust = (k) => `<g fill="#e8e1cf" opacity="${0.9 - k * 0.12}">
   <ellipse cx="${380 - k * 14}" cy="${600 - k * 4}" rx="${30 + k * 10}" ry="${16 + k * 4}"/>
   <ellipse cx="${430 + k * 12}" cy="${598 - k * 5}" rx="${24 + k * 8}" ry="${14 + k * 3}"/></g>`;
 
-scenes.nunchaku_kata = () => {
+scenes.nunchaku_kata_onesided = () => {
   const track = makeTrack(KATA_KEYS);
   const frames = [];
   const tl = (f) => telop('relay', '怪獣、電車ヌンチャクの型を披露', `被害額　¥${(4820316000 + Math.max(0, f - 10) * 21000000).toLocaleString()}`);
@@ -281,6 +287,55 @@ scenes.nunchaku_kata = () => {
     if (f >= 56 && f < 74) extra += sfx(860, 260, 'アチョー', 56, -8) + `<g fill="#fff6a8">${star(560, 250, 14, '#fff6a8')}</g>`;
     if (f >= 3 && f < 8) extra += sfx(860, 200, 'スッ', 36, 0);
     frames.push(svg(kataFrame(track, f, { cracks }) + extra + foreground() + tl(f), sh));
+  }
+  return frames;
+};
+
+
+// both sides: right-handed form -> switch hands (turn) -> mirrored form -> final pose
+scenes.nunchaku_kata = () => {
+  const R = makeTrack(KATA_KEYS.slice(0, 6));          // f0..32 right-handed, ends in armpit catch
+  const L = makeTrack([
+    { f: 36, hx: 648, hy: 430, psi: 165, phi: 95 },
+    { f: 43, hx: 770, hy: 300, psi: -75, phi: -150 },
+    { f: 47, hx: 700, hy: 470, psi: 150, phi: 165, ease: easeOut },
+    { f: 50, hx: 700, hy: 470, psi: 150, phi: 165 },
+    { f: 58, hx: 648, hy: 430, psi: 165, phi: 95 },
+    { f: 63, hx: 648, hy: 430, psi: 165, phi: 95 },
+    { f: 69, hx: 730, hy: 285, psi: -90, phi: 95 },
+    { f: 81, hx: 730, hy: 285, psi: -90, phi: -625, ease: t => t },
+    { f: 87, hx: 700, hy: 335, psi: -55, phi: -930, ease: easeOut, behind: true },
+    { f: 112, hx: 700, hy: 335, psi: -55, phi: -930, behind: true },
+  ]);
+  const frames = [];
+  const tl = (f) => telop('relay', '怪獣、電車ヌンチャクの型を披露', `被害額　¥${(4820316000 + Math.max(0, f - 10) * 21000000).toLocaleString()}`);
+  const cracksR = slamCracks, cracksL = mirror(slamCracks);
+  for (let f = 0; f < 112; f++) {
+    let extra = '', sh = [0, 0];
+    const cracks = (f >= 11 ? cracksR : '') + (f >= 47 ? cracksL : '');
+    let kaiju;
+    if (f < 34) kaiju = kataKaiju(R, Math.min(f, 32));
+    else kaiju = mirror(kataKaiju(L, Math.max(f, 36)));
+    // right-handed form
+    if (f >= 3 && f < 8) extra += sfx(860, 200, 'スッ', 36, 0);
+    if (f >= 11 && f < 14) sh = [[12, -6], [-9, 5], [5, -2]][f - 11];
+    if (f >= 11 && f < 19) extra += dust(f - 11);
+    if (f >= 11 && f < 18) extra += sfx(250, 520, 'ズドン', 56, -6);
+    if (f >= 22 && f < 31) extra += sfx(760, 250, 'フッ', 44, 0);
+    // switch hands
+    if (f >= 31 && f < 38) extra += sfx(560, 150, '持ち替え', 40, 0) + sfx(780, 300, 'クルッ', 44, 8);
+    // mirrored form
+    if (f >= 39 && f < 44) extra += sfx(200, 200, 'スッ', 36, 0);
+    if (f >= 47 && f < 50) sh = [[-12, -6], [9, 5], [-5, -2]][f - 47];
+    if (f >= 47 && f < 55) extra += mirror(dust(f - 47));
+    if (f >= 47 && f < 54) extra += sfx(800, 520, 'ズドン', 56, 6);
+    if (f >= 58 && f < 63) extra += sfx(300, 250, 'フッ', 44, 0);
+    if (f >= 69 && f < 87) extra += sfx(120, 150, 'ヒュンヒュン', 40, 10);
+    // final pose
+    if (f >= 87) extra += sfx(110, 270, 'アチョー', 64, 8) + star(640, 250, 16, '#fff6a8');
+    if (f >= 92) extra += `<g font-family="${FONT}"><rect x="420" y="70" width="360" height="56" rx="6" fill="#fff" stroke="${INK}" stroke-width="4"/>
+      <text x="600" y="110" font-size="32" font-weight="bold" fill="${INK}" text-anchor="middle">型、完了。</text></g>`;
+    frames.push(svg(cityBackground() + cracks + kaiju + extra + foreground() + tl(f), sh));
   }
   return frames;
 };
@@ -437,24 +492,78 @@ function kaijuInWater(x, y, s, rot, expr, waterY, clip = true, flipX = false) {
     <g opacity="0.35"><g transform="translate(${x} ${y}) rotate(${rot}) scale(${s * fx} ${s}) translate(-600 -450)">${kaijuBody}</g></g>`;
 }
 
+
+const kaijuTorsoSwim = kaijuTorso
+  .replace(`  <path d="M505 545 C 430 600 360 630 280 612 C 330 600 390 575 470 500 Z" fill="${SKIN}" stroke="${INK}" stroke-width="5" stroke-linejoin="round"/>`, '')
+  .replace('<path d="M440 548 Q 412 540 418 572 Z"/><path d="M372 590 Q 350 580 352 605 Z"/>', '');
+const swimTail = (w) => `<path d="M520 540 C 500 660 ${545 + w} 760 ${585 + w * 1.6} 860 C ${600 + w} 760 610 650 640 560 Z" fill="${SKIN}" stroke="${INK}" stroke-width="5" stroke-linejoin="round"/>
+  <g fill="#e2a64c" stroke="${INK}" stroke-width="4" stroke-linejoin="round"><path d="M${520 + w * 0.3} 640 Q 495 660 ${520 + w * 0.4} 680 Z"/><path d="M${545 + w * 0.8} 730 Q 520 750 ${548 + w * 0.9} 770 Z"/></g>`;
+// front crawl seen from the side: body horizontal, face down, arms windmill, breathing every 2 strokes
+function swimmer(cx, cy, s, rot, beta, opts = {}) {
+  // body in local coords, rotated so head points along rot (90 = to the right, face down)
+  const T = `translate(${cx} ${cy}) rotate(${rot}) scale(${s}) translate(-600 -450)`;
+  // shoulder position in screen coords
+  const a = rot * D2R;
+  const lx = 672 - 600, ly = 410 - 450;
+  const sx = cx + s * (lx * Math.cos(a) - ly * Math.sin(a)), sy = cy + s * (lx * Math.sin(a) + ly * Math.cos(a));
+  const R = 120 * s;
+  const handAt = (b) => [sx + R * Math.cos(b * D2R), sy + R * Math.sin(b * D2R)];
+  const armPath = (b, col, w) => { const [hx, hy] = handAt(b);
+    return `<path d="M${sx} ${sy} L${hx} ${hy}" stroke="${INK}" stroke-width="${w + 8}" stroke-linecap="round"/>
+            <path d="M${sx} ${sy} L${hx} ${hy}" stroke="${col}" stroke-width="${w}" stroke-linecap="round"/>
+            <circle cx="${hx}" cy="${hy}" r="${w * 0.75}" fill="${col}" stroke="${INK}" stroke-width="4"/>`; };
+  const far = armPath(beta + 180, '#5c8466', 30 * s * 1.6);
+  const near = armPath(beta, SKIN, 34 * s * 1.6);
+  const breathe = opts.breathe || 0;
+  const body = `<g transform="${T}">${swimTail(opts.wag || 0)}${kaijuTorsoSwim}${head(opts.expr || 'serious', -40 * breathe)}</g>`;
+  return { far, body, near, hand: handAt(beta) };
+}
+
+function waterClip(inner, waterY) {
+  const id = 'w' + Math.random().toString(36).slice(2, 8);
+  return `<clipPath id="${id}"><rect x="0" y="0" width="1200" height="${waterY + 4}"/></clipPath>
+    <g opacity="0.33">${inner}</g><g clip-path="url(#${id})">${inner}</g>`;
+}
+
 scenes.dam_fail = () => {
   const frames = [];
   const LV = 420;
-  const tOK = () => telop('relay', '怪獣、ダム湖で水泳トレーニング中', '被害額　¥0（いまのところ）');
-  // swim toward the dam
-  for (let f = 0; f < 26; f++) {
-    const x = 180 + f * 20, bob = 6 * Math.sin(f * 0.9);
-    const splash = `<g fill="#fff" opacity="0.9"><ellipse cx="${x - 120}" cy="${LV + 2}" rx="${18 + 6 * Math.sin(f)}" ry="8"/><ellipse cx="${x - 60}" cy="${LV + 4}" rx="14" ry="6"/></g>`;
-    frames.push(svg(damBackground(LV, 0, 0) + kaijuInWater(x, LV + 90 + bob, 0.55, 8, 'serious', LV) + splash +
-      (f % 8 < 4 ? sfx(x - 200, LV - 40, 'ざぶ', 34, -6) : '') + tOK()));
+  const tOK = () => telop('relay', '怪獣、ダム湖で本格クロール（フォーム重視）', '被害額　¥0（いまのところ）');
+  // crawl toward the dam: 3 strokes cycles, breathing on every 2nd stroke
+  const SW = 44;
+  for (let f = 0; f < SW; f++) {
+    const x = 170 + f * 10.5;
+    const beta = 180 + f * (360 / 14);              // windmill (clockwise: back -> over -> forward -> pull)
+    const strokeIdx = Math.floor(f / 14);
+    const ph = (f % 14) / 14;
+    const breathe = (strokeIdx % 2 === 1 && ph > 0.15 && ph < 0.6) ? Math.sin((ph - 0.15) / 0.45 * Math.PI) : 0;
+    const sw = swimmer(x, LV + 2 + 4 * Math.sin(f * 0.9), 0.5, 90, beta, { breathe, wag: 25 * Math.sin(f * 1.3) });
+    const kick = `<g fill="#fff" opacity="0.9">
+      <ellipse cx="${x - 175}" cy="${LV - 4 - 8 * Math.abs(Math.sin(f * 1.3))}" rx="${16 + 6 * Math.sin(f * 1.3)}" ry="8"/>
+      <ellipse cx="${x - 150}" cy="${LV - 2 - 6 * Math.abs(Math.cos(f * 1.3))}" rx="12" ry="6"/></g>`;
+    const [hx, hy] = sw.hand;
+    const entry = (hy > LV - 10 && hy < LV + 30 && hx > x) ? `<ellipse cx="${hx}" cy="${LV}" rx="26" ry="9" fill="#fff" opacity="0.95"/>` : '';
+    let extra = '';
+    if (entry) extra += sfx(hx - 30, LV - 50, 'バシャ', 32, -6);
+    if (breathe > 0.6) extra += sfx(x + 40, LV - 90, 'ぷはっ', 34, 0);
+    frames.push(svg(damBackground(LV, 0, 0) + waterClip(sw.far + sw.body + sw.near, LV) + kick + entry + extra + tOK()));
   }
-  // flip turn: kick the wall
+  // flip turn: tuck and somersault, feet to the wall
+  for (let k = 0; k < 10; k++) {
+    const t = k / 9;
+    const rot = 90 + 180 * easeInOut(t);
+    const x = 640 + 70 * t, y = LV + 22 + 70 * Math.sin(Math.PI * Math.min(1, t * 1.1));
+    const sw = swimmer(x, y, 0.5, rot, 200 + k * 10, {});
+    const bubbles = `<g fill="#dff3fb" stroke="#9fd0e3" stroke-width="2">${[0, 1, 2].map(i => `<circle cx="${x - 30 + i * 25}" cy="${LV + 10 - i * 8 - k * 2}" r="${5 + i}"/>`).join('')}</g>`;
+    frames.push(svg(damBackground(LV, 0, 0) + waterClip(sw.far + sw.body + sw.near, LV) + bubbles +
+      (k > 2 ? sfx(520, LV - 70, 'クイックターン', 36, -4) : '') + tOK()));
+  }
+  // push off: feet kick the wall
   for (let k = 0; k < 6; k++) {
     const sh = k < 4 ? [[12, -5], [-10, 6], [7, -3], [-4, 2]][k] : [0, 0];
-    frames.push(svg(damBackground(LV, 0, 0) +
-      kaijuInWater(700, LV + 70, 0.55, 80, 'serious', LV, false, true) +
-      `<rect x="0" y="${LV}" width="822" height="330" fill="#4f9fc4" opacity="0.55"/>` +
-      star(825, 520, 60 - k * 5) + sfx(640, 360, 'ドンッ', 60, -6) + tOK(), sh));
+    const sw = swimmer(700 - k * 4, LV + 92, 0.5, 270, 330, {});
+    frames.push(svg(damBackground(LV, 0, 0) + waterClip(sw.far + sw.body + sw.near, LV) +
+      star(822, LV + 95, 60 - k * 5) + sfx(600, 360, 'ドンッ', 60, -6) + tOK(), sh));
   }
   // cracks
   for (let k = 0; k < 10; k++) {
@@ -462,16 +571,18 @@ scenes.dam_fail = () => {
       <path d="M840 300 L850 360 L835 410 L858 470 L845 ${520 + k * 4}"/>
       ${k > 3 ? '<path d="M850 360 L875 380"/><path d="M835 410 L822 440"/>' : ''}</g>
       ${k > 5 ? `<path d="M862 ${400 + (k - 6) * 5} q 18 10 30 30" stroke="#bfe6f5" stroke-width="6" fill="none"/>` : ''}`;
-    frames.push(svg(damBackground(LV, 0, 0) + kaijuInWater(700, LV + 60, 0.55, 0, k > 4 ? 'surprised' : 'serious', LV) + cr +
-      (k > 4 ? sfx(560, 280, 'ピシッ…', 42, -4) : '') + tOK()));
+    const sw = swimmer(640, LV + 30, 0.5, 220 - k * 4, 330, { expr: k > 4 ? 'surprised' : 'serious' });
+    frames.push(svg(damBackground(LV, 0, 0) + waterClip(sw.far + sw.body + sw.near, LV) + cr +
+      (k > 4 ? sfx(520, 280, 'ピシッ…', 42, -4) : '') + tOK()));
   }
-  // burst: washed away
+  // burst: washed away (unchanged idea, tumbling)
   for (let k = 0; k < 40; k++) {
     const t = k / 39;
     const lv = LV + 150 * Math.min(1, t * 1.6);
     const flood = Math.min(1, t * 1.4);
     const kx = 760 + 330 * t, ky = 470 + 70 * t - 30 * Math.sin(t * 9);
-    const news = k < 10 ? tOK() : telop('live', 'ダム決壊　怪獣ごと下流へ　流域に避難指示', `被害額　¥${Math.round(873 * Math.min(1, t * 1.3)) * 100000000 === 0 ? 0 : (Math.round(873 * Math.min(1, t * 1.3)) * 100000000).toLocaleString()}`);
+    const dmg = Math.round(873 * Math.min(1, t * 1.3)) * 100000000;
+    const news = k < 10 ? tOK() : telop('live', 'ダム決壊　怪獣ごと下流へ　流域に避難指示', `被害額　¥${dmg.toLocaleString()}`);
     const debris = [0, 1, 2, 3].map(i => `<rect x="${860 + i * 30 + t * 300 * (1 + i * 0.3)}" y="${330 + i * 40 + t * 200}" width="26" height="18" fill="#c8c6bd" stroke="${INK}" stroke-width="3" transform="rotate(${k * 20 + i * 40} ${873 + i * 30 + t * 300} ${339 + i * 40 + t * 200})"/>`).join('');
     frames.push(svg(damBackground(lv, 1, flood) + debris + kaijuInWater(kx, ky, 0.5, k * 22, 'surprised', 0, false) +
       (k < 14 ? sfx(900, 260, 'ドドドド', 48, -8) : sfx(Math.min(kx - 80, 1050), ky - 120, 'あ〜', 50, 0)) + news));
