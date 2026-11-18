@@ -1515,6 +1515,7 @@ function newGame() {
     stock, flags: { blackout: false, cracks: false, damBroken: false }, city: makeCity(),
     ruin: Object.fromEntries(Object.keys(LOCS).map(k => [k, { at: null, count: 0 }])), repaired: [],
     allies: [], wins: 0, ending: null, boss: false, kaijuList: ['ズングラ'], ratings: [], counts: {},
+    record: [], epInfo: [{ kaiju: 'ズングラ', look: { ...BASE_LOOK }, parts: [] }], curAct: null,
     requests: { active: [], done: [], thank: [], used: [] },
     log: [], epLog: [], actCount: {}, ever: {}, epStartDmg: 0, titled: false, survived: 0,
   };
@@ -1681,9 +1682,10 @@ function sceneProposal() {
         <h1>怪獣育成（仮）</h1>
         <p class="lede">ずんぐりした怪獣が、街のインフラで大真面目に筋トレする。<br>強くなるほど、街の請求書がふくらむ。</p>
         <ul><li>朝・昼・晩に1つずつ、行動を選ぶ</li><li>ミニゲームで成功すると強くなる。失敗すると被害が広がる</li><li>何で何をしたかは、ニュースで知らされる</li></ul>
-        <div class="row"><span class="stamp">検討中</span><button class="btn" id="go">企画を通す</button></div>
+        <div class="row"><span class="stamp">検討中</span><span style="display:flex;gap:calc(var(--u)*12)"><button class="btn" id="human" style="background:#bfe6f5">人間側（試作）</button><button class="btn" id="go">企画を通す</button></span></div>
       </div>`);
       focusBtn('go').onclick = () => sceneEpisodeTitle();
+      document.getElementById('human').onclick = () => startHuman(LAST_RUN);
     },
   });
 }
@@ -1782,7 +1784,7 @@ function sceneMenu(view = 'main') {
     },
   });
 }
-function countAct(id) { G.actCount[id] = (G.actCount[id] || 0) + 1; G.ever = G.ever || {}; G.ever[id] = true; G.counts[id] = (G.counts[id] || 0) + 1; }
+function countAct(id) { G.curAct = id; G.actCount[id] = (G.actCount[id] || 0) + 1; G.ever = G.ever || {}; G.ever[id] = true; G.counts[id] = (G.counts[id] || 0) + 1; }
 function runCommand(id) {
   countAct(id);
   ({ whack: sceneWhack, shoot: sceneShoot, pullup: scenePullup, juggle: sceneJuggle, sandbag: sceneSandbag, nunchaku: sceneNunchaku, rope: sceneRope, swim: sceneSwim, run: sceneRun, skip: sceneSkip, eat: sceneEat, sleep: sceneSleep })[id]();
@@ -2982,6 +2984,8 @@ function sceneSleep() {
 function showNews(r, after = nextTurn) {
   const before = G.dmg;
   if (r.ok !== undefined && G.epLog.length) checkRequests({ tag: G.epLog[G.epLog.length - 1], loc: r.loc, tod: TOD, extra: r.extra }, r);
+  // the script for the human side: what the kaiju did, where, and what it cost
+  if (r.ok !== undefined && G.curAct) { G.record.push({ ep: G.ep, turn: G.turn, loc: G.loc, act: G.curAct, tag: G.epLog[G.epLog.length - 1] || G.curAct, dmg: r.dmg, head: r.head }); G.curAct = null; }
   const g = r.gains || {};
   for (const k of ['pow', 'sta', 'tec']) if (g[k]) G[k] = clamp(G[k] + g[k], 0, 100);
   if (g.hp) G.hp = clamp(G.hp + g.hp, 0, 100);
@@ -3205,6 +3209,7 @@ function setupKaiju(i) {
   }
   LOOK = G.look;
   G.kaijuList.push(G.kaiju);
+  G.epInfo[i] = { kaiju: G.kaiju, look: { ...G.look }, parts: G.parts.slice() };
   G.actCount = {};
   G.hp = 100; G.alert = Math.max(0, G.alert - 25);
 }
@@ -3312,6 +3317,7 @@ function battleMoves() {
 const STAT_NAME = { pow: '腕力', sta: '持久力', tec: '技術' };
 
 function sceneBattle() {
+  G.curAct = 'battle';
   const KX = 340, HX = 960, idx = G.ep;
   const kind = EP().foe;
   const keys = kind === 'tag' || kind === 'tagFinal' ? ['justia', 'blazer'] : [kind];
@@ -3614,6 +3620,7 @@ function scenePreview(prev) {
    ENDING: aftermath, the studio, credits, the real bill, after the credits
    ===================================================================== */
 function sceneEnding(kind) {
+  keepRun();
   // in the composite route the villain has stayed hidden: show him come down and fall first
   if (kind === 'good' && !G.boss && !G.bossFell) { G.bossFell = true; return sceneBossFall(() => sceneEnding(kind)); }
   const n = G.kaijuList.length;
@@ -3748,9 +3755,11 @@ function scenePostCredits(kind) {
   let stop = false, gl = null;
   const endUI = () => {
     h(`<div style="position:absolute;inset:0;display:grid;place-items:end center;padding-bottom:calc(var(--u)*40)"><div style="text-align:center"><div class="ep-title" style="font-size:calc(var(--u)*44)">おわり</div>
-      ${kind === 'bad' ? '<div style="color:var(--muted);font-size:calc(var(--u)*20);margin:calc(var(--u)*8) 0">（人間側で第1話からやり直すモードは、次の試作で）</div>' : ''}
-      <button class="btn" id="again">最初から</button></div></div>`);
-    focusBtn('again').onclick = () => { stop = true; if (gl) { gl.dispose(); gl.domElement.remove(); } G = newGame(); LOOK = G.look; sceneProposal(); };
+      ${kind === 'bad' ? '<div style="color:var(--muted);font-size:calc(var(--u)*20);margin:calc(var(--u)*8) 0">総帥がヒーローに勝ってしまった。人間側で、第1話からやり直せる</div>' : ''}
+      <button class="btn" id="again">最初から</button>${kind === 'bad' ? ' <button class="btn" id="human" style="background:#bfe6f5">人間側でやり直す</button>' : ''}</div></div>`);
+    const off = () => { stop = true; if (gl) { gl.dispose(); gl.domElement.remove(); gl = null; } };
+    focusBtn('again').onclick = () => { off(); G = newGame(); LOOK = G.look; sceneProposal(); };
+    const hb = document.getElementById('human'); if (hb) hb.onclick = () => { off(); startHuman(LAST_RUN); };
   };
   setScene({ bg: `<rect width="1200" height="750" fill="#000"/>`, draw: () => '', noTod: true });
   const timeout = new Promise(res => setTimeout(() => res(null), 8000));
@@ -3823,8 +3832,8 @@ function scenePostCredits2D(kind) {
   setScene({
     bg: `<rect width="1200" height="750" fill="#000"/>`, noTod: true,
     tick(f) { if (f === 110) { h(`<div style="position:absolute;inset:0;display:grid;place-items:end center;padding-bottom:calc(var(--u)*40)"><div style="text-align:center"><div class="ep-title" style="font-size:calc(var(--u)*44)">おわり</div>
-        ${kind === 'bad' ? '<div style="color:var(--muted);font-size:calc(var(--u)*20);margin:calc(var(--u)*8) 0">（人間側で第1話からやり直すモードは、次の試作で）</div>' : ''}
-        <button class="btn" id="again">最初から</button></div></div>`); focusBtn('again').onclick = () => { G = newGame(); LOOK = G.look; sceneProposal(); }; } },
+        ${kind === 'bad' ? '<div style="color:var(--muted);font-size:calc(var(--u)*20);margin:calc(var(--u)*8) 0">総帥がヒーローに勝ってしまった。人間側で、第1話からやり直せる</div>' : ''}
+        <button class="btn" id="again">最初から</button>${kind === 'bad' ? ' <button class="btn" id="human" style="background:#bfe6f5">人間側でやり直す</button>' : ''}</div></div>`); focusBtn('again').onclick = () => { G = newGame(); LOOK = G.look; sceneProposal(); }; const hb = document.getElementById('human'); if (hb) hb.onclick = () => startHuman(LAST_RUN); } },
     shake(f) { return f > 20 && f < 40 && f % 2 ? [Math.random() * 10 - 5, Math.random() * 10 - 5] : null; },
     draw(f) {
       let o = '';
@@ -3842,6 +3851,247 @@ function scenePostCredits2D(kind) {
       o += `<rect x="0" y="0" width="1200" height="750" fill="#000" opacity="${Math.max(0, 0.6 - a * 0.4)}"/>`;
       if (f > 60 && f < 90) o += `<circle cx="652" cy="${262 - 40 * a}" r="6" fill="#ffd34d"/><circle cx="695" cy="${256 - 40 * a}" r="6" fill="#ffd34d"/>`;
       return o;
+    },
+  });
+}
+
+
+/* =====================================================================
+   HUMAN SIDE: replay the same season from episode 1 as the humans.
+   The kaiju repeats exactly what the player did on the kaiju side (the "script");
+   the humans spend a small budget each episode to get ahead of it.
+   ===================================================================== */
+let LAST_RUN = null;   // { record, epInfo, ending } from the latest kaiju-side season
+function keepRun() { if (G.record && G.record.length) LAST_RUN = { record: G.record.slice(), epInfo: G.epInfo.slice(), ending: G.ending }; }
+
+// countermeasures that match what the kaiju is about to do
+const COUNTER = {
+  nunchaku: { name: '車両を車庫に隠す', kind: 'block', done: '使う車両がなかった' },
+  rope: { name: '送電を止めて電線を外しておく', kind: 'block', done: '跳ぶ電線がなかった' },
+  swim: { name: 'ダムの水位を下げておく', kind: 'cut', cut: 0.15, done: 'ダムの水位が低く、決壊しても被害は小さかった' },
+  run: { name: '道路を通行止めにし、料金所を撤去', kind: 'cut', cut: 0.3, done: '道路は空っぽで、壊れる物も少なかった' },
+  sandbag: { name: 'ビルの全員を先に避難させる', kind: 'cut', cut: 0.6, saved: 30000, done: 'ビルは壊れたが、中は空っぽだった' },
+  eat: { name: '石油タンクを空にしておく', kind: 'block', done: '飲む石油がなかった（お腹に石油がたまらない）' },
+  skip: { name: '船を沖へ避難させる', kind: 'block', done: '投げる船がなかった' },
+  juggle: { name: 'ボートを陸に引き上げておく', kind: 'block', done: 'ボートが見つからなかった' },
+  pullup: { name: '塔を鉄骨で補強しておく', kind: 'cut', cut: 0.4, done: '補強した塔は折れなかった' },
+  whack: { name: '戦車部隊を先に下げておく', kind: 'block', forces: 1, done: '踏みつぶす戦車がいなかった' },
+  shoot: { name: '航空部隊を基地で待機させる', kind: 'block', forces: 1, done: '撃ち落とす機体がいなかった' },
+  move: { name: '移動先の住民を先に避難させる', kind: 'cut', cut: 0.5, saved: 20000, done: '移動先はすでに無人だった' },
+  sleep: { name: '寝ているすきに包囲して観察する', kind: 'study', done: '寝顔を観察し、弱点の研究が進んだ' },
+};
+const HUMAN_ACTIONS = [
+  { id: 'counter', cost: 2 },
+  { id: 'evac', name: '避難誘導', what: '被害を2割減らし、人を救う', cost: 1 },
+  { id: 'cheer', name: 'ヒーローを応援', what: 'ヒーロー人気が上がる（最終回の奇跡に必要）', cost: 1 },
+  { id: 'study', name: '新兵器の研究', what: '研究が進む（最終回の奇跡に必要）', cost: 1 },
+  { id: 'wait', name: '様子を見る', what: '予算を次の時間帯に残す', cost: 0 },
+];
+function sampleRun() {
+  // a plausible kaiju-side season, used when the player hasn't played one yet
+  const plan = [['city', 'nunchaku'], ['city', 'sandbag'], ['city', 'rope'], ['port', 'eat'], ['port', 'skip'], ['port', 'eat'], ['dam', 'swim'], ['dam', 'juggle'], ['city', 'run']];
+  const record = [], epInfo = [];
+  const names = ['ズングラ', 'ツノグラ', 'モクモクグラ', 'バサラドン', 'ツノバサラ', 'ヒレバサラ', 'ザブーラ', 'ネムザブーラ', 'ヒレザブーラ', 'ゴロンガ', 'ツノゴロンガ', 'ゴッタマゼラ', '宇宙総帥ガルバドス'];
+  const bases = ['dino', 'dino', 'dino', 'bird', 'bird', 'bird', 'aqua', 'aqua', 'aqua', 'rock', 'rock', 'composite', 'space'];
+  for (let ep = 0; ep < 13; ep++) {
+    const b = bases[ep];
+    epInfo.push({ kaiju: names[ep], look: b === 'space' ? { ...SPACE_PAL, base: 'space', eyes: 'slant', spikes: 'crystal', pattern: 'none' } : b === 'composite' ? { ...palOf(COMP.head), base: 'composite', eyes: 'tri', spikes: 'round', pattern: 'none', armSkin: palOf(COMP.bird).skin, armDark: palOf(COMP.bird).dark } : { ...PALETTES[ep % PALETTES.length], base: b, eyes: Object.keys(EYES)[ep % 5], spikes: 'round', pattern: 'none' } });
+    for (let t = 0; t < 3; t++) {
+      const [loc, act] = plan[(ep * 3 + t) % plan.length];
+      const fail = (ep + t) % 4 === 0;
+      record.push({ ep, turn: t, loc, act, tag: fail ? act + 'Fail' : act, dmg: (fail ? 25 : 2.5) * 1e9 * (1 + ep * 0.15), head: `${names[ep]}、${LOCS[loc].name}で${(ACTIONS.find(a => a.id === act) || {}).name || act}` });
+    }
+    if (EPISODES[ep].foe) record.push({ ep, turn: 3, loc: 'city', act: 'battle', tag: ep >= 9 ? 'won' : 'defeated', dmg: 8e9 + ep * 1e9, head: `${names[ep]}と${EPISODES[ep].foe === 'robot' ? 'ガードロン' : 'ヒーロー'}の戦い` });
+  }
+  return { record, epInfo, ending: 'bad' };
+}
+const actName = a => a === 'battle' ? 'ヒーローとの戦い' : a === 'move' ? '移動' : (ACTIONS.find(x => x.id === a) || {}).name || a;
+
+function startHuman(run) {
+  run = run || LAST_RUN || sampleRun();
+  const H = { run, ep: 0, turn: 0, budget: 0, hpop: 10, research: 0, forces: 0, saved: 0, origDmg: 0, dmg: 0, blocked: 0, epFlip: [], log: [], oilLeft: 0 };
+  window.HM = H;
+  sceneHumanTitle();
+}
+const HM_ep = () => window.HM.run.record.filter(r => r.ep === window.HM.ep);
+function hmKaijuLook() { const info = window.HM.run.epInfo[window.HM.ep]; if (info) { LOOK = info.look; G.parts = info.parts || []; } return info ? info.kaiju : '怪獣'; }
+
+function sceneHumanTitle() {
+  const H = window.HM;
+  setScene({
+    bg: `<rect width="1200" height="750" fill="#0b1626"/>`, draw: () => '', noTod: true,
+    enter() {
+      h(`<div class="sheet" style="background-color:#e8eef3;color:#13263d">
+        <div class="meta"><span>防衛隊　作戦記録</span><span>人間側</span></div>
+        <h1 style="font-size:calc(var(--u)*64)">${SHOW}　人間側</h1>
+        <p class="lede">前回の放送で、怪獣の総帥はヒーローに勝ってしまった。<br>台本（前回の放送の記録）を手に、第1話からやり直す。</p>
+        <ul><li>怪獣は前回とまったく同じ行動をする。台本を見て先回りしよう</li><li>予算は1話につき4。対策は2、避難誘導・応援・研究は1</li><li>最終回、ヒーロー人気と研究が十分なら「奇跡」が起きる</li></ul>
+        <div class="row"><span class="stamp" style="color:#2f6fd0;border-color:#2f6fd0">作戦開始</span><button class="btn" id="go">第1話へ</button></div>
+      </div>`);
+      focusBtn('go').onclick = () => sceneHumanEpTitle();
+    },
+  });
+}
+function sceneHumanEpTitle() {
+  const H = window.HM;
+  H.turn = 0; H.budget += 4; H.epStartDmg = H.dmg; H.epStartOrig = H.origDmg;
+  const name = hmKaijuLook();
+  setScene({
+    bg: () => worldMap(0, 0, 1200, 750, { label: false }), draw: () => '', noTod: true,
+    enter() {
+      h(`<div class="titlecard"><div><div class="logo" style="font-size:calc(var(--u)*56)">${SHOW}　人間側</div>
+        <div class="ep-title"><span class="num">第${H.ep + 1}話</span>「${EPISODES[H.ep].t.replace(/\{k\}/g, name)}」</div></div><div class="skip">タップで進む</div></div>`);
+    },
+    tick(f) { if (f === 36) this.onTap(); },
+    onTap() { if (this.done) return; this.done = true; sceneHumanTurn(); },
+  });
+}
+function sceneHumanTurn() {
+  const H = window.HM;
+  const list = HM_ep().filter(r => r.act !== 'battle');
+  if (H.turn >= Math.max(3, list.length) || !list[H.turn]) return sceneHumanBattle();
+  const next = list[H.turn], c = COUNTER[next.act], name = hmKaijuLook();
+  G.turn = H.turn; G.loc = next.loc;
+  setScene({
+    bg: () => bgFor(next.loc),
+    draw(f) { return `<g transform="translate(-120 ${Math.sin(f * 0.2) * 3})" opacity="0.55">${kb()}${arm(735, 470)}${head('serious')}</g>`; },
+    tick() {},
+    enter() {
+      const opts = HUMAN_ACTIONS.map(a => {
+        const nm = a.id === 'counter' ? (c ? c.name : '（対策なし）') : a.name;
+        const what = a.id === 'counter' ? (c ? `「${actName(next.act)}」に合わせた対策` : '') : a.what;
+        const ok = (a.id !== 'counter' || c) && H.budget >= a.cost;
+        return `<button class="cmd" data-h="${a.id}" ${ok ? '' : 'disabled'}><strong>${nm}</strong><span class="risk">${a.cost}<small>予算</small></span><span class="what">${what}</span></button>`;
+      }).join('');
+      h(`<div class="topbar" style="background:linear-gradient(#13263dee,#13263d99)">
+          <span class="ep">人間側　第${H.ep + 1}話</span><span class="chip time">${TIMES[H.turn] || '晩'}</span>
+          <span class="chip alert lv2">予算 ${H.budget}</span><span class="money"><span>防いだ被害</span>${yen(Math.max(0, H.origDmg - H.dmg))}</span></div>
+        <div class="status" style="border-color:#2f6fd0">
+          <h2>台本（前回の放送）</h2>
+          <div class="belly" style="color:#fff">${TIMES[H.turn]}：${name}が<b style="color:var(--gold)">${LOCS[next.loc].name}</b>で<b style="color:var(--gold)">${actName(next.act)}</b></div>
+          <div class="belly">前回の見出し：${next.head}</div>
+          <div class="belly">前回の被害：${yen(next.dmg)}</div>
+          <div class="belly">ヒーロー人気 ${H.hpop}　研究 ${H.research}　救った人 ${H.saved.toLocaleString('ja-JP')}人</div>
+        </div>
+        <div class="cmds"><h2>先回りの手</h2>${opts}</div>`);
+      $ui.querySelectorAll('.cmd[data-h]').forEach(b => b.onclick = () => this.choose(b.dataset.h));
+      const fb = $ui.querySelector('.cmd:not(:disabled)'); if (fb) fb.focus();
+    },
+    choose(id) {
+      const a = HUMAN_ACTIONS.find(x => x.id === id); H.budget -= a.cost;
+      let dmg = next.dmg, lines = [], head, blocked = false, saved = 0, kind = 'relay';
+      if (id === 'counter' && c) {
+        if (c.kind === 'block') { blocked = true; dmg = next.dmg * 0.05; head = `人間たちの機転で、${name}の${actName(next.act)}を阻止`; lines.push(`${name}は${LOCS[next.loc].name}に現れたが、${c.done}`); H.blocked++; if (c.forces) H.forces += 1; }
+        else if (c.kind === 'cut') { dmg = next.dmg * c.cut; saved = c.saved || 8000; head = `${name}の${actName(next.act)}、被害は最小限に`; lines.push(c.done); }
+        else { dmg = next.dmg; H.research += 2; head = `${name}の昼寝を観察、研究が大きく前進`; lines.push(c.done); }
+      } else {
+        if (id === 'evac') { dmg = next.dmg * 0.8; saved = 12000; lines.push('早めの避難誘導で、逃げ遅れた人はいなかった'); }
+        if (id === 'cheer') { H.hpop += 4; lines.push('子どもたちがヒーローの絵を描いて送った（ヒーロー人気が上がった）'); }
+        if (id === 'study') { H.research += 1; lines.push('科学班が怪獣の足あとを分析した（研究が進んだ）'); }
+        if (id === 'wait') lines.push('予算を温存した');
+        head = `${name}、${LOCS[next.loc].name}で${actName(next.act)}　前回どおりの被害`;
+        kind = 'live';
+      }
+      H.origDmg += next.dmg; H.dmg += dmg; H.saved += saved;
+      lines.push(`被害額：前回 ${yen(next.dmg)} → 今回 ${yen(dmg)}`);
+      H.log.push({ ep: H.ep, act: next.act, id, orig: next.dmg, dmg });
+      H.turn++;
+      sceneHumanNews(head, lines, blocked);
+    },
+  });
+}
+function sceneHumanNews(head, lines, good) {
+  const keepFx = $fx.innerHTML;
+  setScene({
+    bg: undefined, draw: () => null,
+    enter() {
+      $fx.innerHTML = keepFx;
+      h(`<div class="news ${good ? 'lv2' : 'lv3'}">
+          <div class="label" style="background:${good ? '#2f6fd0' : ''}"><span>${good ? '朗報' : '速報'}<small>${good ? '防衛隊発表' : '中継'}</small></span></div>
+          <div class="body"><div class="head">${head}</div><ul>${lines.map((l, i) => `<li style="animation-delay:${0.2 + i * 0.3}s">${l}</li>`).join('')}</ul></div>
+        </div>
+        <div style="position:absolute;right:calc(var(--u)*40);top:calc(var(--u)*24)"><button class="btn" id="next">次へ</button></div>`);
+      focusBtn('next').onclick = () => sceneHumanTurn();
+    },
+  });
+}
+// the episode's fight: same as last time, unless the humans' support turns it around
+function sceneHumanBattle() {
+  const H = window.HM, b = HM_ep().find(r => r.act === 'battle'), foe = EPISODES[H.ep].foe;
+  if (!b && !foe) return sceneHumanEpEnd(null);
+  const power = H.hpop + H.research * 4 + H.forces * 3;
+  const need = 18 + H.ep * 6;
+  const origWon = b && b.tag === 'won';          // last time the kaiju won
+  const nowWon = origWon && power < need;
+  if (origWon && !nowWon) H.epFlip.push(H.ep);
+  const name = hmKaijuLook();
+  const foeName = foe === 'robot' ? 'ガードロン' : foe === 'blazer' ? 'ブレイザー' : foe && foe.startsWith('tag') ? 'ジャスティアとブレイザー' : HERO;
+  const head = nowWon ? `${foeName}、今回も${name}に敗れる` : origWon ? `人間たちの支えで、${foeName}が${name}に勝利！` : `${foeName}、${name}を撃破`;
+  const lines = [origWon ? `前回は怪獣が勝った戦い（応援と研究の力 ${power} ／ 必要 ${need}）` : '前回と同じく、ヒーローが勝った', H.forces ? `温存した防衛隊${H.forces}部隊が援護した` : '防衛隊の援護はなかった'];
+  const d = b ? b.dmg * (nowWon ? 1 : 0.6) : 0;
+  H.origDmg += b ? b.dmg : 0; H.dmg += d;
+  const keepFx = '';
+  setScene({
+    bg: () => bgFor('city'), draw: () => '',
+    enter() {
+      h(`<div class="news ${nowWon ? 'lv3' : 'lv2'}"><div class="label" style="background:${nowWon ? '' : '#2f6fd0'}"><span>${nowWon ? '速報' : '朗報'}<small>中継</small></span></div>
+        <div class="body"><div class="head">${head}</div><ul>${lines.map(l => `<li>${l}</li>`).join('')}</ul></div></div>
+        <div style="position:absolute;right:calc(var(--u)*40);top:calc(var(--u)*24)"><button class="btn" id="next">次へ</button></div>`);
+      focusBtn('next').onclick = () => sceneHumanEpEnd(nowWon);
+    },
+  });
+}
+function sceneHumanEpEnd() {
+  const H = window.HM, last = H.ep === EPISODES.length - 1;
+  if (last) return sceneHumanFinal();
+  const saved = H.origDmg - H.epStartOrig - (H.dmg - H.epStartDmg);
+  setScene({
+    bg: () => bgFor('city'), bgClass: 'dim', draw: () => '',
+    enter() {
+      h(`<div class="board">
+        <h2>人間側　第${H.ep + 1}話　終了</h2>
+        <div class="kpi"><div>今週防いだ被害<b>${yen(Math.max(0, saved))}</b></div><div>救った人<b>${H.saved.toLocaleString('ja-JP')}人</b></div><div>ヒーロー人気<b>${H.hpop}</b></div><div>研究<b>${H.research}</b></div><div>残り予算<b>${H.budget}</b></div></div>
+        <div style="color:var(--muted)">台本どおりに動く怪獣に、どこまで先回りできるか。予算は次の話に持ち越せる。</div>
+        <div class="foot"><button class="btn" id="next">次の話へ</button></div></div>`);
+      focusBtn('next').onclick = () => { H.ep++; sceneHumanEpTitle(); };
+    },
+  });
+}
+// the last episode: hold out until a miracle happens
+function sceneHumanFinal() {
+  const H = window.HM;
+  const miracle = H.hpop >= 40 && H.research >= 8 ? { t: '宇宙のかなたから、兄貴分の巨人が駆けつけた！', w: '兄貴分の巨人' }
+    : H.research >= 8 ? { t: '科学者たちが徹夜で作った新兵器が、ギリギリで間に合った！', w: '新兵器' }
+    : H.hpop >= 34 ? { t: '子どもたちの応援で、倒れたヒーローが立ち上がった！', w: '子どもたちの応援' }
+    : H.hpop + H.research * 3 >= 30 ? { t: '突然、不思議な事が起こった！', w: '不思議な事' } : null;
+  const lines = miracle
+    ? ['最終回。総帥がヒーローを打ち倒した、あの場面。', miracle.t, '総帥は宇宙のかなたへ消え、こんどこそ地球に平和が戻った。', `防いだ被害の合計：${yen(Math.max(0, H.origDmg - H.dmg))}`, `救った人：${H.saved.toLocaleString('ja-JP')}人`, '……という、もうひとつの最終回でした。']
+    : ['最終回。総帥がヒーローを打ち倒した、あの場面。', '奇跡は、起きなかった。', `ヒーロー人気 ${H.hpop}／研究 ${H.research}。あと少し、何かが足りなかった。`, '……本当のバッドエンド。'];
+  let i = 0;
+  setScene({
+    bg: `<rect width="1200" height="750" fill="#07090d"/>`, draw: () => '', noTod: true,
+    enter() { this.paint(); },
+    paint() { h(`<div class="titlecard" style="background:transparent"><div class="ep-title" style="font-size:calc(var(--u)*40);max-width:80%;line-height:1.6">${lines[i]}</div><div class="skip">タップで進む</div></div>`); },
+    onTap() {
+      i++;
+      if (i < lines.length) return this.paint();
+      if (miracle) return sceneBossFall(() => humanEndCard(miracle));
+      humanEndCard(null);
+    },
+  });
+}
+function humanEndCard(miracle) {
+  const H = window.HM;
+  setScene({
+    bg: `<rect width="1200" height="750" fill="#0b1626"/>`, draw: () => '', noTod: true,
+    enter() {
+      h(`<div class="board">
+        <h2>${miracle ? 'もうひとつの最終回' : '本当のバッドエンド'}</h2>
+        <div class="kpi"><div>防いだ被害<b>${yen(Math.max(0, H.origDmg - H.dmg))}</b></div><div>救った人<b>${H.saved.toLocaleString('ja-JP')}人</b></div><div>阻止した行動<b>${H.blocked}回</b></div><div>ひっくり返した戦い<b>${H.epFlip.length}回</b></div></div>
+        <div>${miracle ? `起きた奇跡：<b style="color:var(--gold)">${miracle.w}</b>` : '奇跡の条件：ヒーロー人気と研究をもっと積み上げる'}</div>
+        <div class="foot"><button class="btn" id="again">最初から</button>${miracle ? '' : '<button class="btn" id="retry">人間側をもう一度</button>'}</div></div>`);
+      focusBtn('again').onclick = () => { G = newGame(); LOOK = G.look; sceneProposal(); };
+      const r = document.getElementById('retry'); if (r) r.onclick = () => startHuman(H.run);
     },
   });
 }
