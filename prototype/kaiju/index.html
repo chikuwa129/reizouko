@@ -880,6 +880,7 @@ function newGame() {
     dmg: 0, alert: 0, kpop: 10, hpop: 10, oil: 0,
     stock, flags: { blackout: false, cracks: false, damBroken: false }, city: makeCity(),
     ruin: { city: { at: null, count: 0 }, dam: { at: null, count: 0 }, port: { at: null, count: 0 } }, repaired: [],
+    requests: { active: [], done: [], thank: [], used: [] },
     log: [], epLog: [], actCount: {}, ever: {}, epStartDmg: 0, titled: false, survived: 0,
   };
 }
@@ -939,6 +940,33 @@ function flattenRate() {
   const tot = G.city.length + Object.values(LOCS).reduce((a, l) => a + Object.values(l.acts).reduce((x, d) => x + d.n, 0), 0);
   const gone = G.city.filter(b => b.st >= 2).length + Object.entries(G.stock).reduce((a, [loc, st]) => a + Object.entries(st).reduce((x, [id, n]) => x + (LOCS[loc].acts[id].n - n), 0), 0);
   return Math.round(100 * gone / tot);
+}
+
+
+/* ---------- hidden requests: people asking (between the lines) for something to be wrecked ---------- */
+const REQUESTS = [
+  { id: 'blue', who: 'SNS・会社員', text: '駅前の青い看板のビル、うちの会社です。明日大事なプレゼンが……ビルごとなくなってくれないかな',
+    match: e => e.tag.startsWith('sandbag') && e.extra && e.extra.blueSign, thanks: '青い看板のビルの者です。プレゼン、中止になりました。本当にありがとう' },
+  { id: 'train', who: 'SNS・会社員', text: '朝の満員電車がつらすぎる。朝のうちに、電車をどうにかしてくれないかな',
+    match: e => e.tag.startsWith('kata') && e.loc === 'city' && e.tod === 'morning', thanks: '朝の電車が止まって、在宅勤務になりました。ありがとう' },
+  { id: 'tank', who: 'ハガキ・夜勤', text: '港のタンクの見張りで毎晩ひとりで残業。夜のうちに1つ飲み干してくれたら帰れるのに',
+    match: e => e.tag === 'eat' && e.tod === 'night', thanks: '見張るタンクがなくなって、定時で帰れました' },
+  { id: 'toll', who: 'ハガキ・料金所職員', text: '料金所勤務です。一日でいいから休みがほしい……',
+    match: e => e.tag === 'run' || e.tag === 'runFail', thanks: '料金所が臨時休業になりました。久しぶりに家族と出かけます' },
+  { id: 'dam', who: 'SNS・技術者', text: '来週のダム点検の当番が憂うつ。点検するものがなくなればいいのに',
+    match: e => e.tag === 'damFail', thanks: '点検するダムがなくなりました。……複雑な気持ちです' },
+  { id: 'line', who: 'SNS・電力会社', text: '今月の電線点検のノルマがきつい。電線ごとなくなれば、ノルマもゼロなのでは',
+    match: e => e.tag === 'ropeFail' || e.tag === 'rope', thanks: '点検する電線がなくなり、ノルマもなくなりました' },
+];
+function checkRequests(ev, r) {
+  const R = G.requests;
+  for (const q of R.active) {
+    if (R.done.includes(q) || !q.match(ev)) continue;
+    R.done.push(q); R.thank.push(q);
+    G.kpop += 6;
+    r.gains = { ...(r.gains || {}), pow: (r.gains?.pow || 0) + 2, sta: (r.gains?.sta || 0) + 2, tec: (r.gains?.tec || 0) + 2 };
+    r.lines = [...r.lines, 'SNSでは「本当にやってくれた」「ありがとう怪獣」と投稿が相次いでいる'];
+  }
 }
 
 /* =====================================================================
@@ -1594,7 +1622,7 @@ function sceneSandbag() {
   for (let i = 0; i < 14; i++) {
     const gas = i === 6;
     const w = gas ? 150 : 110 + (i * 37) % 70, h = gas ? 150 : 180 + (i * 53) % 170;
-    blds.push({ x, w, h, col: cols[i % cols.length], hp: gas ? 1 : Math.ceil(h / 110), max: gas ? 1 : Math.ceil(h / 110), gas, down: -1, val: gas ? 8e9 : (h * w) * 0.9e5 });
+    blds.push({ x, w, h, col: cols[i % cols.length], hp: gas ? 1 : Math.ceil(h / 110), max: gas ? 1 : Math.ceil(h / 110), gas, down: -1, val: gas ? 8e9 : (h * w) * 0.9e5, sign: i === 3 });
     x += w + 36;
   }
   const power = 1 + G.pow / 40;
@@ -1621,6 +1649,7 @@ function sceneSandbag() {
         const v = b.val * (1 + S.combo * 0.05);
         S.dmg += v; S.count++;
         if (b.gas) S.gas = true;
+        if (b.sign) S.blue = true;
         S.pops.push({ f: frame, x: b.x - S.d + b.w / 2, text: b.gas ? 'ガスタンク！' : '¥' + (v / 1e8).toFixed(1) + '億' });
         for (let i = 0; i < 8; i++) S.debris.push({ f: frame, x: b.x - S.d + b.w / 2, y: 600 - b.h / 2, vx: (Math.random() - 0.3) * 18, vy: -Math.random() * 18, s: 10 + Math.random() * 14 });
       }
@@ -1663,7 +1692,11 @@ function sceneSandbag() {
           out += `<g stroke="${INK}" stroke-width="4"><rect x="${sx + 20}" y="560" width="10" height="40" fill="#9aa3a0"/><rect x="${sx + b.w - 30}" y="560" width="10" height="40" fill="#9aa3a0"/>
             <circle cx="${sx + b.w / 2}" cy="${600 - b.h / 2 - 10}" r="${b.w / 2 - 6}" fill="#e9eef2"/></g>
             <text x="${sx + b.w / 2}" y="${600 - b.h / 2}" font-family="'M PLUS 1p',sans-serif" font-weight="800" font-size="20" fill="#d33a2c" text-anchor="middle">ガス</text>`;
-        } else out += bldArt(sx, 600, b.w, b.h, b.col, b.hp < b.max ? 1 : 0);
+        } else {
+          out += bldArt(sx, 600, b.w, b.h, b.col, b.hp < b.max ? 1 : 0);
+          if (b.sign) out += `<rect x="${sx + 8}" y="${600 - b.h - 36}" width="${b.w - 16}" height="32" rx="4" fill="#2f6fd0" stroke="${INK}" stroke-width="3"/>
+            <text x="${sx + b.w / 2}" y="${600 - b.h - 13}" font-family="'M PLUS 1p',sans-serif" font-weight="800" font-size="18" fill="#fff" text-anchor="middle">ブルー商事</text>`;
+        }
       }
       // kaiju (walks or punches)
       const t = f - S.punchAt, punching = t >= 0 && t < 5;
@@ -1700,7 +1733,7 @@ function sceneSandbag() {
           S.gas ? 'ガスタンクも殴られ、大爆発が起きた' : '避難はすでに完了しており、けが人はいなかった',
           `駅前のビル街：残り${G.stock.city.sandbag ? 'わずか' : 'ほぼ更地'}`,
         ],
-        gains: { pow: 5 + Math.min(4, Math.floor(S.count / 3)), tec: 2, hp: S.gas ? -30 : -20 }, dmg: S.dmg, alert: 14, kpop: 3 + S.count, cat: '建物',
+        gains: { pow: 5 + Math.min(4, Math.floor(S.count / 3)), tec: 2, hp: S.gas ? -30 : -20 }, dmg: S.dmg, alert: 14, kpop: 3 + S.count, cat: '建物', extra: { blueSign: !!S.blue },
       });
     },
   });
@@ -1986,6 +2019,7 @@ function sceneSleep() {
 // ---- news (result) ----
 function showNews(r, after = nextTurn) {
   const before = G.dmg;
+  if (r.ok !== undefined && G.epLog.length) checkRequests({ tag: G.epLog[G.epLog.length - 1], loc: r.loc, tod: TOD, extra: r.extra }, r);
   const g = r.gains || {};
   for (const k of ['pow', 'sta', 'tec']) if (g[k]) G[k] = clamp(G[k] + g[k], 0, 100);
   if (g.hp) G.hp = clamp(G.hp + g.hp, 0, 100);
@@ -2274,8 +2308,16 @@ function reactions() {
     ['SNS', `${HERO}、今週も登場が遅い`],
     ['ハガキ・会社員', '今日も通勤電車が運休でした'],
   ];
+  if (L.includes('sandbag') || L.includes('sandbagBig')) { add('SNS・会社員', 'オフィスがなくなって、今日は休みになりました。壊してくれてありがとう'); add('SNS', '次はうちの本社もお願いします（切実）'); }
   generic.sort(() => Math.random() - 0.5).forEach(([w, t]) => add(w, t));
-  return pool.slice(0, 4);
+  const R = G.requests;
+  const thanks = R.thank.splice(0).map(q => ({ who: q.who, text: q.thanks }));
+  const fresh = REQUESTS.filter(q => !R.used.includes(q.id) && !R.done.includes(q));
+  const picked = [];
+  if (fresh.length && G.ep < 2) { const q = fresh[Math.floor(Math.random() * fresh.length)]; R.used.push(q.id); R.active = [q]; picked.push({ who: q.who, text: q.text }); }
+  else R.active = [];
+  const out = [...thanks, ...picked, ...pool].slice(0, 4);
+  return out.sort(() => Math.random() - 0.5);
 }
 function bossWord() {
   const epDmg = G.dmg - G.epStartDmg;
@@ -2417,7 +2459,7 @@ function sceneBill() {
           ${rows.map(([c, v]) => `<div class="line"><span>${c}</span><span>${yen(v)}</span></div>`).join('')}
           <div class="line total"><span>合計</span><span>${yen(G.dmg)}</span></div>
         </div>
-        <div style="color:var(--muted);font-size:calc(var(--u)*20)">最後の怪獣：${G.kaiju}（改造：${G.parts.map(p => PART_NAME[p]).join('・') || 'なし'}）／ 腕力 ${G.pow}・持久力 ${G.sta}・技術 ${G.tec}</div>
+        <div style="color:var(--muted);font-size:calc(var(--u)*20)">こっそり叶えた依頼：${G.requests.done.length}件　／　最後の怪獣：${G.kaiju}（改造：${G.parts.map(p => PART_NAME[p]).join('・') || 'なし'}）／ 腕力 ${G.pow}・持久力 ${G.sta}・技術 ${G.tec}</div>
         <div class="foot"><span style="margin-right:auto;color:var(--muted)">試作版はここまで。</span><button class="btn" id="again">最初から</button></div>
       </div>`);
       focusBtn('again').onclick = () => { G = newGame(); LOOK = G.look; sceneProposal(); };
