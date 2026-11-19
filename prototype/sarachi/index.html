@@ -456,9 +456,9 @@ const COUNTER = {
 
 // ---------- facilities (earn → buy things that make the work easier) ----------
 const FAC = [
-  { id: 'lab', name: '研究所', base: { m: 20, r: 6 }, need: null, c: '#a495ff', desc: '毎月の研究が増える' },
-  { id: 'plant', name: '資材工場', base: { m: 24, r: 0 }, need: null, c: '#c98a4a', desc: '毎月の資材が増える' },
-  { id: 'front', name: 'ダミー会社', base: { m: 40, r: 10 }, need: 'shell', c: '#e8c770', desc: '毎月の資金が増える' },
+  { id: 'lab', name: '研究所', base: { m: 20, r: 6 }, need: null, c: '#a495ff', desc: '毎月の研究が増え、「研究に没頭」も強くなる', earn: '研究に没頭 +5' },
+  { id: 'plant', name: '資材工場', base: { m: 24, r: 0 }, need: null, c: '#c98a4a', desc: '毎月の資材が増え、「ガラクタ集め」「隕石採掘」も強くなる', earn: 'ガラクタ集め +5' },
+  { id: 'front', name: 'ダミー会社', base: { m: 30, r: 8 }, need: null, c: '#e8c770', desc: '毎月の資金が増え、「アルバイト」「会社経営」も強くなる', earn: 'アルバイト +8' },
 ];
 const labOut = () => 5 * (has('sci') ? 1.5 : 1);
 const frontOut = () => 16 * (has('corp') ? 2 : 1);
@@ -519,8 +519,13 @@ function effMul(a, r) {
   return Math.max(.15, 1 - res);
 }
 function gainOf(a) {
-  if (a.id === 'job') return { m: 12 };
-  if (a.id === 'study') return { rp: 6 + G.fac.lab * 2 };
+  // earn commands grow with the matching facility level
+  const F = G.fac;
+  if (a.id === 'job') return { m: 12 + F.front * 8 };
+  if (a.id === 'junk') return { r: 5 + F.plant * 5 };
+  if (a.id === 'study') return { rp: 6 + F.lab * 5 };
+  if (a.key === 'shell') return { m: 30 + F.front * 15 };
+  if (a.key === 's2_2') return { r: 25 + F.plant * 8 };
   return { m: a.gm || 0, r: a.gr || 0 };
 }
 function whyNot(a) {
@@ -889,7 +894,7 @@ function render() {
       const c = facCost(f), lock = f.need && !has(f.need), ok = !lock && c.m <= G.money && c.r <= G.mat && !G.over;
       h += `<button class="act" style="--c:${f.c}" data-f="${f.id}" ${ok ? '' : 'disabled'}>
         <span class="nm">${f.name}　Lv${G.fac[f.id]}</span><span class="ds">${f.desc}。行動を使わない</span>
-        <span class="chips"><span class="chip g">${facGain(f)}</span><span class="chip c">資金-${c.m}</span>${c.r ? `<span class="chip c">資材-${c.r}</span>` : ''}</span>
+        <span class="chips"><span class="chip g">${facGain(f)}</span><span class="chip g">${f.earn}</span><span class="chip c">資金-${c.m}</span>${c.r ? `<span class="chip c">資材-${c.r}</span>` : ''}</span>
         ${lock ? `<span class="why">研究「${NODE[f.need].name}」が必要</span>` : ''}</button>`;
     }
   } else {
