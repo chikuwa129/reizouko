@@ -53,6 +53,7 @@ export default function Nav() {
             <Link href="/receipts" className="more-sheet-item" onClick={() => setMoreOpen(false)}>履歴</Link>
             <Link href="/recipes" className="more-sheet-item" onClick={() => setMoreOpen(false)}>保存レシピ</Link>
             <Link href="/help" className="more-sheet-item" onClick={() => setMoreOpen(false)}>使い方</Link>
+            <Link href="/medal" className="more-sheet-item" onClick={() => setMoreOpen(false)}>メダル落とし</Link>
           </div>
         </div>
       )}
