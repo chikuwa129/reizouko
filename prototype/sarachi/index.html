@@ -4,8 +4,9 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=DotGothic16&family=M+PLUS+1p:wght@500;800&display=swap">
 <style>
-/* Layout: an alien invader's war table. Status strip on top, the world map on the left,
-   orders on the right; the research tree opens as a full overlay. Deliberately one dark look. */
+/* Layout: an alien invader's war table on one screen. Map with cut-in theatre on the left,
+   tabbed order cards on the right (switch by tab or swipe), research tree as an overlay.
+   Deliberately one dark look. */
 :root {
   --space: #120d1f;
   --panel: #1d1630;
@@ -18,7 +19,7 @@
   --human: #5fb8ff;
   --danger: #ff5a5a;
   --gold: #ffd34d;
-  --land: #4b8a5f;
+  --good: #9be39b;
   --sea: #10284a;
   --f-display: 'Dela Gothic One', 'Hiragino Sans', 'Noto Sans JP', sans-serif;
   --f-dot: 'DotGothic16', 'Osaka-Mono', 'MS Gothic', monospace;
@@ -39,91 +40,167 @@ body {
   box-sizing: border-box;
   padding-left: max(16px, env(safe-area-inset-left, 0px));
   padding-right: max(16px, env(safe-area-inset-right, 0px));
-  padding-block: 12px;
+  padding-block: 10px;
   overflow-x: hidden;
+  -webkit-tap-highlight-color: transparent;
 }
 * { box-sizing: border-box; }
 button { font: inherit; color: inherit; cursor: pointer; }
 button:focus-visible, [tabindex]:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
-.app { max-width: 1280px; margin: 0 auto; display: flex; flex-direction: column; gap: 10px; }
+.app { max-width: 1280px; height: 100%; margin: 0 auto; display: grid; grid-template-rows: auto minmax(0, 1fr); gap: 10px; }
 
 /* status strip */
-.top { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; }
-.logo { font-family: var(--f-display); font-size: 22px; letter-spacing: .04em; color: var(--scorch); margin-right: auto; text-wrap: balance; }
-.logo small { display: block; font-family: var(--f-dot); font-size: 12px; color: var(--muted); letter-spacing: .1em; }
-.stats { display: flex; flex-wrap: wrap; gap: 6px; }
-.stat { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 4px 9px; font-family: var(--f-dot); font-variant-numeric: tabular-nums; font-size: 15px; display: flex; gap: 6px; align-items: baseline; }
-.stat b { font-weight: normal; font-size: 11px; color: var(--muted); letter-spacing: .08em; }
-.stat.alert { min-width: 150px; }
-.bar { height: 6px; width: 70px; background: #0006; border-radius: 3px; overflow: hidden; align-self: center; }
+.top { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; }
+.logo { font-family: var(--f-display); font-size: 20px; letter-spacing: .04em; color: var(--scorch); margin-right: auto; line-height: 1.1; }
+.logo small { display: block; font-family: var(--f-dot); font-size: 11px; color: var(--muted); letter-spacing: .1em; }
+.stats { display: flex; flex-wrap: wrap; gap: 5px; }
+.stat { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 3px 8px; font-family: var(--f-dot); font-variant-numeric: tabular-nums; font-size: 15px; display: flex; gap: 5px; align-items: baseline; }
+.stat b { font-weight: normal; font-size: 11px; color: var(--muted); letter-spacing: .06em; }
+.stat i { font-style: normal; font-size: 11px; color: var(--good); }
+.bar { height: 6px; width: 60px; background: #0006; border-radius: 3px; overflow: hidden; align-self: center; }
 .bar i { display: block; height: 100%; background: var(--human); transition: width .4s; }
 .hp { color: var(--danger); letter-spacing: 2px; }
+.snd { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 3px 8px; font-size: 12px; }
 
-.main { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 12px; align-items: start; }
-@media (max-width: 880px) { .main { grid-template-columns: minmax(0, 1fr); } }
+.main { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 12px; min-height: 0; }
 
-/* map */
-.mapbox { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 10px; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
-.earth { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
-.earth .big { font-family: var(--f-display); font-size: 34px; color: var(--scorch); font-variant-numeric: tabular-nums; line-height: 1; }
-.earth .lbl { font-size: 12px; color: var(--muted); letter-spacing: .1em; }
-.earth .goal { margin-left: auto; font-family: var(--f-dot); font-size: 13px; color: var(--muted); }
-.gauge { height: 10px; background: #0007; border-radius: 5px; overflow: hidden; position: relative; }
+/* left: the world */
+.world { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 10px; display: flex; flex-direction: column; gap: 8px; min-width: 0; min-height: 0; }
+.earth { display: flex; align-items: flex-end; gap: 14px; flex-wrap: wrap; }
+.earth .big { font-family: var(--f-display); font-size: 30px; color: var(--scorch); font-variant-numeric: tabular-nums; line-height: 1; }
+.earth .lbl { font-size: 11px; color: var(--muted); letter-spacing: .1em; }
+.earth .goal { margin-left: auto; font-family: var(--f-dot); font-size: 13px; color: var(--muted); text-align: right; }
+.gauge { height: 8px; background: #0007; border-radius: 4px; overflow: hidden; position: relative; flex: none; }
 .gauge i { position: absolute; inset: 0 auto 0 0; background: linear-gradient(90deg, #a5602a, var(--scorch)); transition: width .5s; }
 .gauge::after { content: ""; position: absolute; left: 95%; top: 0; bottom: 0; width: 2px; background: var(--gold); }
-svg.map { width: 100%; height: auto; display: block; border-radius: 8px; background: var(--sea); max-width: 100%; }
-.reg { cursor: pointer; stroke: #0c1a30; stroke-width: 1; transition: fill .4s; }
+.stage { position: relative; border-radius: 8px; overflow: hidden; background: var(--sea); aspect-ratio: 720 / 330; max-width: 100%; flex: none; }
+.stage > svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.reg { cursor: pointer; stroke: #0c1a30; stroke-width: 1; transition: fill .5s; }
 .reg.sel { stroke: var(--gold); stroke-width: 2.4; }
-.rlabel { font-family: var(--f-dot); font-size: 11px; fill: #fff; paint-order: stroke; stroke: #000a; stroke-width: 3px; pointer-events: none; text-anchor: middle; }
-.boom { fill: none; stroke-width: 3; animation: boom .9s ease-out forwards; }
-@keyframes boom { from { r: 2; opacity: 1; } to { r: 46; opacity: 0; } }
-.pop { font-family: var(--f-display); font-size: 16px; text-anchor: middle; paint-order: stroke; stroke: #000; stroke-width: 3px; animation: pop 1.2s ease-out forwards; }
-@keyframes pop { from { transform: translateY(0); opacity: 1; } to { transform: translateY(-26px); opacity: 0; } }
-.streak { stroke-width: 3; stroke-linecap: round; animation: streak .5s ease-in forwards; }
-@keyframes streak { from { stroke-dashoffset: 120; } to { stroke-dashoffset: 0; } }
-.shake { animation: shake .35s; }
-@keyframes shake { 25% { transform: translate(3px, -2px); } 50% { transform: translate(-3px, 2px); } 75% { transform: translate(2px, 1px); } }
-@media (prefers-reduced-motion: reduce) { .boom, .pop, .streak, .shake { animation-duration: .01s; } }
+.reg.hit { animation: hit .6s; }
+@keyframes hit { 0%, 40% { fill: #fff; } }
+.rlabel { font-family: var(--f-dot); font-size: 12px; fill: #fff; paint-order: stroke; stroke: #000a; stroke-width: 3px; pointer-events: none; text-anchor: middle; }
 
-.regs { display: flex; flex-wrap: wrap; gap: 5px; }
-.regs button { border: 1px solid var(--line); background: var(--panel-2); border-radius: 5px; padding: 3px 8px; font-size: 12px; display: flex; gap: 5px; align-items: baseline; }
+.regs { display: flex; flex-wrap: wrap; gap: 4px; }
+.regs button { border: 1px solid var(--line); background: var(--panel-2); border-radius: 5px; padding: 4px 8px; font-size: 12px; display: flex; gap: 5px; align-items: baseline; }
 .regs button span { font-family: var(--f-dot); color: var(--scorch); font-variant-numeric: tabular-nums; }
+.regs button.done span { color: var(--gold); }
 .regs button[aria-pressed="true"] { border-color: var(--gold); background: #3a2f12; }
-.rinfo { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; font-size: 13px; align-items: center; }
-.rinfo h3 { grid-column: 1 / -1; margin: 0; font-family: var(--f-display); font-weight: normal; font-size: 18px; }
-.rinfo .k { color: var(--muted); font-size: 12px; }
-.rinfo .trait { grid-column: 1 / -1; color: var(--human); font-size: 12px; }
+.rinfo { display: grid; grid-template-columns: auto minmax(0, 1fr) auto minmax(0, 1fr); gap: 4px 8px; font-size: 12px; align-items: center; }
+.rinfo h3 { grid-column: 1 / -1; margin: 0; font-family: var(--f-display); font-weight: normal; font-size: 17px; display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+.rinfo h3 small { font-family: var(--f-body); font-size: 12px; color: var(--human); }
+.rinfo .k { color: var(--muted); }
+.rinfo .note { grid-column: 1 / -1; color: var(--muted); }
 .mini { height: 8px; background: #0007; border-radius: 4px; overflow: hidden; }
-.mini i { display: block; height: 100%; }
+.mini i { display: block; height: 100%; transition: width .5s; }
 
-.controls { display: flex; gap: 8px; flex-wrap: wrap; }
-.btn { border: 1px solid var(--line); background: var(--panel-2); border-radius: 8px; padding: 10px 14px; font-weight: 800; }
+/* cut-in theatre (over the map) */
+.cutin { position: absolute; inset: 0; z-index: 3; background: #000; cursor: pointer; }
+.cutin svg.scene { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.cap { position: absolute; left: 0; right: 0; bottom: 0; padding: 8px 14px 10px; background: linear-gradient(transparent, #000c 40%); display: flex; align-items: flex-end; gap: 12px; pointer-events: none; }
+.cap .nm { font-family: var(--f-display); font-size: clamp(18px, 3.2vw, 30px); line-height: 1.1; text-shadow: 0 2px 0 #000; animation: capin .25s cubic-bezier(.2,1.6,.4,1) both; }
+.cap .rg { font-size: 13px; color: var(--muted); }
+.cap .val { margin-left: auto; font-family: var(--f-display); font-size: clamp(20px, 3.6vw, 34px); color: var(--scorch); text-shadow: 0 2px 0 #000; animation: capin .3s .35s cubic-bezier(.2,1.6,.4,1) both; white-space: nowrap; }
+.cap .val.cool { color: var(--human); }
+@keyframes capin { from { transform: scale(1.8); opacity: 0; } }
+.stamp { position: absolute; left: 50%; top: 34%; transform: translate(-50%, -50%) rotate(-8deg); font-family: var(--f-display); font-size: clamp(26px, 6vw, 56px); color: var(--gold); border: 5px solid var(--gold); padding: 4px 18px; border-radius: 10px; background: #000a; white-space: nowrap; animation: stamp .35s 1.05s cubic-bezier(.3,1.8,.5,1) both; pointer-events: none; }
+@keyframes stamp { from { transform: translate(-50%, -50%) rotate(-8deg) scale(3); opacity: 0; } }
+.skip { position: absolute; right: 8px; top: 6px; font-size: 11px; color: #fff9; font-family: var(--f-dot); pointer-events: none; }
+
+/* scene pieces */
+.scene * { transform-box: fill-box; }
+.fall { transform-origin: 50% 100%; animation: fall .9s cubic-bezier(.55,0,.9,.6) both; }
+@keyframes fall { 0% { transform: none; } 12% { transform: translateX(-4px) rotate(-2deg); } 100% { transform: translateY(108%) rotate(10deg); } }
+.tilt { transform-origin: 50% 100%; animation: tilt .8s ease-out both; }
+@keyframes tilt { to { transform: rotate(-9deg) translateY(12px); } }
+.flash { animation: flash .45s both; }
+@keyframes flash { 0% { opacity: 0; } 8% { opacity: 1; } 22% { opacity: .1; } 34% { opacity: .85; } 100% { opacity: 0; } }
+.fire { transform-origin: center; animation: fire 1s ease-out both; }
+@keyframes fire { 0% { transform: scale(.05); opacity: 1; } 55% { opacity: 1; } 100% { transform: scale(1.35); opacity: 0; } }
+.smoke { transform-origin: center; animation: smoke 1.8s ease-out both; }
+@keyframes smoke { 0% { transform: scale(.2); opacity: 0; } 25% { opacity: .9; } 100% { transform: scale(1.7) translateY(-40%); opacity: 0; } }
+.streak { animation: streak .4s ease-in both; }
+@keyframes streak { from { stroke-dashoffset: var(--len); } to { stroke-dashoffset: 0; } }
+.gone { animation: gone .2s both; }
+@keyframes gone { to { opacity: 0; } }
+.appear { animation: appear .3s both; }
+@keyframes appear { from { opacity: 0; } }
+.grow { transform-origin: 50% 100%; animation: grow .7s cubic-bezier(.2,1.2,.4,1) both; }
+@keyframes grow { from { transform: scale(.05); opacity: 0; } }
+.rise { animation: rise .9s ease-out both; }
+@keyframes rise { from { transform: translateY(var(--fy, 120%)); } }
+.drop { animation: drop .8s cubic-bezier(.6,0,1,.8) both; }
+@keyframes drop { from { transform: translate(var(--fx, 0), var(--fy, -300px)); } }
+.walk { animation: walk 1.4s ease-out both; }
+@keyframes walk { from { transform: translateX(var(--fx, 300px)); } }
+.bob { animation: bob .5s ease-in-out infinite alternate; }
+@keyframes bob { to { transform: translateY(-6px); } }
+.float { animation: float 1.6s ease-out both; }
+@keyframes float { from { transform: translateY(0); opacity: 0; } 20% { opacity: 1; } to { transform: translateY(-90px); opacity: 0; } }
+.rain { animation: rain .35s linear infinite; }
+@keyframes rain { from { transform: translateY(-40px); } to { transform: translateY(40px); } }
+.snow { animation: snow 1.8s linear both; }
+@keyframes snow { from { transform: translate(0, -60px); } to { transform: translate(-30px, 300px); } }
+.spin { transform-origin: center; animation: spin 1.6s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.ring { transform-origin: center; animation: ring 1s ease-out both; }
+@keyframes ring { from { transform: scale(.1); opacity: 1; } to { transform: scale(1.6); opacity: 0; } }
+.draw { animation: draw .9s ease-out both; }
+@keyframes draw { from { stroke-dashoffset: var(--len); } to { stroke-dashoffset: 0; } }
+.scene.quake { animation: quake .5s both; }
+.scene.quake-big { animation: quakeBig .8s both; }
+@keyframes quake { 0%, 100% { transform: none; } 15% { transform: translate(0, 5px); } 35% { transform: translate(0, -4px); } 55% { transform: translate(0, 3px); } 75% { transform: translate(0, -1px); } }
+@keyframes quakeBig { 0%, 100% { transform: none; } 10% { transform: translate(-10px, 7px); } 25% { transform: translate(9px, -6px); } 40% { transform: translate(-7px, 4px); } 55% { transform: translate(5px, -3px); } 70% { transform: translate(-3px, 2px); } 85% { transform: translate(1px, -1px); } }
+
+/* news ticker (over the map, non-blocking) */
+.newsbar { position: absolute; left: 8px; right: 8px; top: 8px; z-index: 2; background: #0b0816ee; border: 1px solid var(--line); border-left: 4px solid var(--scorch); border-radius: 8px; padding: 8px 12px; display: flex; flex-direction: column; gap: 4px; font-size: 13px; line-height: 1.45; cursor: pointer; animation: slidein .25s ease-out both; }
+.newsbar .t { font-family: var(--f-dot); font-size: 11px; color: var(--muted); letter-spacing: .1em; display: flex; justify-content: space-between; }
+.newsbar .row { display: grid; grid-template-columns: 5.5em minmax(0, 1fr); gap: 8px; }
+.newsbar .row b { font-family: var(--f-dot); font-weight: normal; font-size: 11px; color: var(--muted); padding-top: 2px; }
+.newsbar .row.hot b { color: var(--danger); }
+.newsbar .row.good b { color: var(--gold); }
+@keyframes slidein { from { transform: translateY(-20px); opacity: 0; } }
+
+/* right: orders */
+.orders { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 10px; display: flex; flex-direction: column; gap: 8px; min-width: 0; min-height: 0; }
+.ohead { display: flex; align-items: baseline; gap: 8px; }
+.ohead h2 { margin: 0; font-family: var(--f-display); font-weight: normal; font-size: 17px; }
+.ap { margin-left: auto; display: flex; gap: 4px; align-items: center; font-size: 12px; color: var(--muted); }
+.ap i { width: 14px; height: 14px; border-radius: 50%; background: var(--scorch); box-shadow: 0 0 6px var(--scorch); }
+.ap i.used { background: #0006; box-shadow: none; border: 1px solid var(--line); }
+.tabs { display: flex; flex-wrap: wrap; gap: 4px; }
+.tab { border: 1px solid var(--line); background: var(--panel-2); border-radius: 999px; padding: 4px 10px; font-size: 13px; display: flex; gap: 6px; align-items: center; }
+.tab::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--c); }
+.tab[aria-selected="true"] { background: var(--c); color: #160f22; border-color: var(--c); font-weight: 800; }
+.tab[aria-selected="true"]::before { background: #160f22; }
+.tab .new { font-size: 10px; color: var(--gold); }
+.tab[aria-selected="true"] .new { color: #160f22; }
+.deck { flex: 1; min-height: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-auto-rows: min-content; gap: 6px; align-content: start; touch-action: pan-y; position: relative; }
+.deck.slide-l { animation: slideL .2s ease-out; } .deck.slide-r { animation: slideR .2s ease-out; }
+@keyframes slideL { from { transform: translateX(30px); opacity: 0; } } @keyframes slideR { from { transform: translateX(-30px); opacity: 0; } }
+.act { text-align: left; border: 1px solid var(--line); border-top: 4px solid var(--c, var(--line)); background: var(--panel-2); border-radius: 8px; padding: 8px 10px; display: flex; flex-direction: column; gap: 4px; min-width: 0; transition: transform .08s; }
+.act:hover:not([disabled]) { border-color: var(--c, var(--muted)); }
+.act:active:not([disabled]) { transform: scale(.96); }
+.act[disabled] { opacity: .4; cursor: default; }
+.act .nm { font-weight: 800; font-size: 15px; line-height: 1.25; }
+.act .ds { font-size: 11px; color: var(--muted); line-height: 1.35; }
+.act .why { font-size: 11px; color: var(--danger); }
+.chips { display: flex; flex-wrap: wrap; gap: 3px; font-family: var(--f-dot); font-size: 12px; }
+.chip { padding: 0 5px; border-radius: 4px; background: #0005; }
+.chip.s { color: var(--scorch); } .chip.p { color: var(--toxic); } .chip.a { color: var(--human); } .chip.g { color: var(--good); } .chip.c { color: var(--muted); } .chip.res { color: var(--danger); }
+.empty { grid-column: 1 / -1; color: var(--muted); font-size: 13px; line-height: 1.6; padding: 4px; }
+.swipehint { font-size: 11px; color: var(--muted); text-align: center; }
+.foot { display: flex; gap: 8px; }
+.btn { border: 1px solid var(--line); background: var(--panel-2); border-radius: 8px; padding: 10px 14px; font-weight: 800; position: relative; }
 .btn:hover { border-color: var(--muted); }
 .btn.primary { background: var(--scorch); color: #2a1606; border-color: var(--scorch); }
-.btn.primary:hover { filter: brightness(1.08); }
+.btn.primary.ready { animation: ready 1s ease-in-out infinite; }
+@keyframes ready { 50% { box-shadow: 0 0 0 4px #e3a25255; } }
 .btn[disabled] { opacity: .4; cursor: default; }
-.grow { flex: 1; }
-
-/* orders */
-.orders { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 10px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
-.orders h2 { margin: 0; font-family: var(--f-display); font-weight: normal; font-size: 17px; display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
-.orders h2 span { font-family: var(--f-dot); font-size: 13px; color: var(--muted); }
-.list { display: flex; flex-direction: column; gap: 6px; max-height: 640px; overflow-y: auto; padding-right: 2px; }
-.grp { font-size: 11px; letter-spacing: .14em; color: var(--muted); margin-top: 4px; }
-.act { text-align: left; border: 1px solid var(--line); border-left: 4px solid var(--c, var(--line)); background: var(--panel-2); border-radius: 6px; padding: 7px 10px; display: flex; flex-direction: column; gap: 3px; }
-.act:hover:not([disabled]) { border-color: var(--c, var(--muted)); }
-.act[disabled] { opacity: .42; cursor: default; }
-.act .nm { font-weight: 800; display: flex; justify-content: space-between; gap: 8px; }
-.act .nm small { font-weight: 500; color: var(--muted); font-size: 11px; white-space: nowrap; }
-.act .ds { font-size: 12px; color: var(--muted); }
-.chips { display: flex; flex-wrap: wrap; gap: 4px; font-family: var(--f-dot); font-size: 12px; }
-.chip { padding: 1px 6px; border-radius: 4px; background: #0005; }
-.chip.s { color: var(--scorch); } .chip.p { color: var(--toxic); } .chip.a { color: var(--human); } .chip.g { color: #9be39b; } .chip.c { color: var(--muted); }
-.chip.res { color: var(--danger); }
-
-.log { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px; font-size: 13px; color: var(--muted); max-height: 110px; overflow-y: auto; }
-.log p { margin: 2px 0; }
-.log p:first-child { color: var(--text); }
+.btn .badge { position: absolute; top: -7px; right: -7px; background: var(--gold); color: #2a1606; border-radius: 999px; font-size: 11px; padding: 1px 6px; font-family: var(--f-dot); }
+.grow1 { flex: 1; }
+.toast { position: fixed; left: 50%; bottom: calc(18px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: #0b0816f0; border: 1px solid var(--good); color: var(--good); padding: 8px 16px; border-radius: 999px; font-family: var(--f-dot); font-size: 15px; z-index: 30; animation: toast 1.3s ease-out both; pointer-events: none; white-space: nowrap; }
+@keyframes toast { 0% { transform: translate(-50%, 20px); opacity: 0; } 15% { transform: translate(-50%, 0); opacity: 1; } 80% { opacity: 1; } 100% { opacity: 0; } }
 
 /* overlays */
 .ov { position: fixed; inset: 0; background: #07040fe6; z-index: 20; display: flex; align-items: center; justify-content: center;
@@ -131,14 +208,13 @@ svg.map { width: 100%; height: auto; display: block; border-radius: 8px; backgro
 .card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 20px; width: min(620px, 100%); max-height: 100%; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
 .card h2 { margin: 0; font-family: var(--f-display); font-weight: normal; font-size: 24px; color: var(--scorch); text-wrap: balance; }
 .card p { margin: 0; line-height: 1.75; }
-.news { border-top: 2px solid var(--scorch); padding-top: 8px; display: flex; flex-direction: column; gap: 6px; }
-.news .row { display: grid; grid-template-columns: 5.5em 1fr; gap: 8px; font-size: 14px; line-height: 1.5; }
-.news .row b { font-family: var(--f-dot); font-weight: normal; font-size: 12px; color: var(--muted); padding-top: 2px; }
-.news .row.hot b { color: var(--danger); }
-.news .row.good b { color: var(--scorch); }
 .kicker { font-family: var(--f-dot); font-size: 13px; color: var(--muted); letter-spacing: .12em; }
+.news { border-top: 2px solid var(--scorch); padding-top: 8px; display: flex; flex-direction: column; gap: 6px; }
+.news .row { display: grid; grid-template-columns: 5.5em 1fr; gap: 8px; font-size: 14px; }
+.news .row b { font-family: var(--f-dot); font-weight: normal; font-size: 12px; color: var(--muted); }
+.controls { display: flex; gap: 8px; flex-wrap: wrap; }
 
-.tree { width: min(1180px, 100%); height: 100%; max-height: 100%; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; display: flex; flex-direction: column; overflow: hidden; }
+.tree { width: min(1180px, 100%); height: 100%; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; display: flex; flex-direction: column; overflow: hidden; }
 .tree header { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
 .tree header h2 { margin: 0; font-family: var(--f-display); font-weight: normal; font-size: 20px; margin-right: auto; }
 .tscroll { overflow: auto; flex: 1; min-height: 0; }
@@ -151,38 +227,57 @@ svg.map { width: 100%; height: auto; display: block; border-radius: 8px; backgro
 .node .cost { font-family: var(--f-dot); font-size: 11px; font-weight: normal; }
 .node.locked { opacity: .32; }
 .node.avail rect { animation: glow 1.6s ease-in-out infinite; }
+.node.afford rect { stroke-width: 3; }
 @keyframes glow { 50% { stroke-opacity: .35; } }
 .node.sel rect { stroke: var(--gold) !important; stroke-width: 3; }
-.rowlbl { font-family: var(--f-dot); font-size: 12px; fill: var(--muted); }
+.rowlbl { font-family: var(--f-dot); font-size: 12px; }
+
+@media (max-width: 860px) {
+  html, body { height: auto; }
+  .app { height: auto; }
+  .main { grid-template-columns: minmax(0, 1fr); }
+  .deck { min-height: 230px; }
+  .regs { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 2px; }
+  .regs button { flex: none; }
+  .cutin { position: fixed; left: 0; right: 0; top: 0; bottom: auto; aspect-ratio: 720 / 330; max-height: 60vh; z-index: 15; box-shadow: 0 10px 30px #000c; }
+  .logo small { display: none; }
+}
+@media (prefers-reduced-motion: reduce) { .scene *, .scene, .newsbar, .toast, .stamp, .cap * { animation-duration: .01s !important; animation-iteration-count: 1 !important; } }
 </style>
 
 <div class="app" id="app">
   <div class="top">
     <div class="logo">地球さら地化計画<small>サラチ星人 地球侵略作戦卓</small></div>
     <div class="stats" id="stats"></div>
+    <button class="snd" id="snd" aria-pressed="true">音 ON</button>
   </div>
   <div class="main">
-    <section class="mapbox" id="mapbox">
+    <section class="world">
       <div class="earth">
         <div><div class="lbl">地球さら地率</div><div class="big" id="gsar">0.0%</div></div>
-        <div><div class="lbl">平均汚染</div><div class="big" id="gpol" style="color:var(--toxic);font-size:22px">0</div></div>
+        <div><div class="lbl">平均汚染</div><div class="big" id="gpol" style="color:var(--toxic);font-size:20px">0</div></div>
         <div class="goal" id="goal"></div>
       </div>
       <div class="gauge"><i id="ggauge" style="width:0"></i></div>
-      <svg class="map" id="map" viewBox="0 0 720 330" role="img" aria-label="世界地図"></svg>
+      <div class="stage" id="stage">
+        <svg id="map" viewBox="0 0 720 330" role="img" aria-label="世界地図。地域をタップして選ぶ"></svg>
+        <div id="news"></div>
+        <div id="cut"></div>
+      </div>
       <div class="regs" id="regs" role="group" aria-label="地域を選ぶ"></div>
       <div class="rinfo" id="rinfo"></div>
-      <div class="controls">
-        <button class="btn" id="btnTree">研究ツリー</button>
-        <button class="btn primary grow" id="btnEnd">今月を終える</button>
-      </div>
     </section>
     <section class="orders">
-      <h2>作戦 <span id="apline"></span></h2>
-      <div class="list" id="acts"></div>
+      <div class="ohead"><h2>作戦</h2><div class="ap" id="ap"></div></div>
+      <div class="tabs" id="tabs" role="tablist"></div>
+      <div class="deck" id="deck" role="tabpanel"></div>
+      <div class="swipehint">左右にスワイプでも切り替え</div>
+      <div class="foot">
+        <button class="btn" id="btnTree">研究ツリー</button>
+        <button class="btn primary grow1" id="btnEnd">今月を終える</button>
+      </div>
     </section>
   </div>
-  <div class="log" id="log"></div>
 </div>
 <div id="ovl"></div>
 
@@ -228,86 +323,86 @@ const BR = {
 // act fields: t = target ('reg' | 'all' | 'none'), pw = さら地 power, dur = turns (power per turn), pol, al = alert,
 // m/r = money/materials cost, gm/gr/grp = gains, cd = cooldown turns
 const NODES = [
-  { id: 'lang', br: 'base', col: 0, row: 0, cost: 8, req: [], name: '地球語', desc: '現地の言葉を覚える。時給が上がり、ほかの研究の入口になる。' },
+  { id: 'lang', br: 'base', col: 0, row: 0, cost: 8, req: [], name: '地球語', desc: '不時着前に覚えておいた現地の言葉。すべての研究の入口。' },
   { id: 'shell', br: 'base', col: 1, cost: 30, req: ['lang'], name: 'ペーパーカンパニー', desc: '人間のふりをして会社を作る。',
     act: { name: '会社経営', t: 'none', gm: 30, desc: '怪しい健康食品を売る' } },
-  { id: 'sci', br: 'base', col: 2, cost: 50, req: ['shell'], name: '地球人科学者を雇う', desc: '毎月の研究が +8。「給料がいいので」と誰も疑わない。' },
-  { id: 'crew', br: 'base', col: 3, cost: 95, req: ['sci'], name: '戦闘員募集', desc: '毎月の行動回数 +1、研究 +3。求人誌に「アットホームな職場です」。' },
-  { id: 'corp', br: 'base', col: 4, cost: 180, req: ['crew'], name: '多国籍企業', desc: '毎月の資金 +60、研究 +6。人類の経済を内側から握る。' },
+  { id: 'sci', br: 'base', col: 2, cost: 40, req: ['shell'], name: '地球人科学者を雇う', desc: '研究所の効率が 1.5 倍。「給料がいいので」と誰も疑わない。' },
+  { id: 'crew', br: 'base', col: 3, cost: 75, req: ['sci'], name: '戦闘員募集', desc: '毎月の行動回数 +1、研究 +3。求人誌に「アットホームな職場です」。' },
+  { id: 'corp', br: 'base', col: 4, cost: 145, req: ['crew'], name: '多国籍企業', desc: 'ダミー会社の収入が 2 倍、研究 +6。人類の経済を内側から握る。' },
 
   { id: 'h1', br: 'stealth', col: 1, cost: 20, req: ['lang'], name: '変装', desc: '人類の警戒の上がり方が 20% 減る。メガネと付けひげ。' },
-  { id: 'h2', br: 'stealth', col: 2, cost: 40, req: ['h1'], name: '情報操作', desc: 'ニュースをごまかせるようになる。',
+  { id: 'h2', br: 'stealth', col: 2, cost: 30, req: ['h1'], name: '情報操作', desc: 'ニュースをごまかせるようになる。',
     act: { name: 'ごまかす', t: 'none', al: -18, m: 15, desc: '「ただの自然現象です」と専門家に言わせる' } },
-  { id: 'h3', br: 'stealth', col: 3, cost: 115, req: ['h2'], name: '光学迷彩基地', desc: '警戒の上がり方がさらに 20% 減り、基地の耐久と行動回数が +1。' },
-  { id: 'h4', br: 'stealth', col: 4, cost: 190, req: ['h3'], name: '人類にまぎれる', desc: '基地が見つかりにくくなり、警戒が毎月さらに 3 下がる。' },
+  { id: 'h3', br: 'stealth', col: 3, cost: 90, req: ['h2'], name: '光学迷彩基地', desc: '警戒の上がり方がさらに 20% 減り、基地の耐久と行動回数が +1。' },
+  { id: 'h4', br: 'stealth', col: 4, cost: 150, req: ['h3'], name: '人類にまぎれる', desc: '基地が見つかりにくくなり、警戒が毎月さらに 3 下がる。' },
 
   { id: 'k1', br: 'trick', col: 1, cost: 30, req: ['lang'], name: 'ネットを止める', desc: '地域の復興を 3 か月止める。人類は何もできなくなる。',
     act: { name: 'ネットを止める', t: 'reg', pw: 1, freeze: 3, al: 3, m: 5, desc: '3か月 復興が止まる' } },
-  { id: 'k2', br: 'trick', col: 2, cost: 55, req: ['k1'], name: 'だらけ電波', desc: '人類がやる気をなくして街を放っておく。建物は残る。',
+  { id: 'k2', br: 'trick', col: 2, cost: 45, req: ['k1'], name: 'だらけ電波', desc: '人類がやる気をなくして街を放っておく。建物は残る。',
     act: { name: 'だらけ電波', t: 'reg', pw: 2.5, dur: 5, freeze: 5, al: 3, m: 20, desc: '5か月かけてじわじわ無人に' } },
-  { id: 'k3', br: 'trick', col: 3, cost: 130, req: ['k2'], name: '全員を眠らせる', desc: '地域まるごと眠らせる。汚染ゼロ、建物はそのまま。',
+  { id: 'k3', br: 'trick', col: 3, cost: 105, req: ['k2'], name: '全員を眠らせる', desc: '地域まるごと眠らせる。汚染ゼロ、建物はそのまま。',
     act: { name: '全員を眠らせる', t: 'reg', pw: 20, al: 7, m: 60, r: 10, desc: '地域まるごと無人に' } },
-  { id: 'k4', br: 'trick', col: 4, cost: 275, req: ['k3'], name: 'よその星へ引っ越し', desc: '「もっといい星があります」と人類を送り出す。',
+  { id: 'k4', br: 'trick', col: 4, cost: 220, req: ['k3'], name: 'よその星へ引っ越し', desc: '「もっといい星があります」と人類を送り出す。',
     act: { name: '引っ越しツアー', t: 'reg', pw: 45, al: 14, m: 160, r: 30, cd: 3, desc: '地域の人類をまとめて送り出す' } },
 
   { id: 'w1', br: 'weapon', col: 1, cost: 20, req: ['lang'], name: '手製爆弾', desc: '現地のホームセンターで材料をそろえる。',
     act: { name: '爆破', t: 'reg', pw: 2.5, pol: 1, al: 4, r: 4, desc: 'ビルをひとつ吹き飛ばす' } },
-  { id: 'w2', br: 'weapon', col: 2, cost: 45, req: ['w1'], name: 'ミサイル', desc: '人類の兵器を見よう見まねで作る。',
+  { id: 'w2', br: 'weapon', col: 2, cost: 35, req: ['w1'], name: 'ミサイル', desc: '人類の兵器を見よう見まねで作る。',
     act: { name: 'ミサイル', t: 'reg', pw: 7, pol: 4, al: 9, m: 25, r: 10, desc: '都市を狙って撃ち込む' } },
-  { id: 'w3', br: 'weapon', col: 3, cost: 115, req: ['w2'], name: '核', desc: 'とにかく強い。そのかわり、その土地には当分住めない。',
+  { id: 'w3', br: 'weapon', col: 3, cost: 90, req: ['w2'], name: '核', desc: 'とにかく強い。そのかわり、その土地には当分住めない。',
     act: { name: '核ミサイル', t: 'reg', pw: 22, pol: 30, al: 22, m: 80, r: 30, desc: 'すべてを焼き払う' } },
-  { id: 'w4', br: 'weapon', col: 4, cost: 310, req: ['w3', 'x_sat'], name: '惑星破壊砲', desc: '地域を一撃で消し飛ばす。汚染も最大。',
+  { id: 'w4', br: 'weapon', col: 4, cost: 250, req: ['w3', 'x_sat'], name: '惑星破壊砲', desc: '地域を一撃で消し飛ばす。汚染も最大。',
     act: { name: '惑星破壊砲', t: 'reg', pw: 70, pol: 45, al: 30, m: 200, r: 80, cd: 4, desc: '一撃で地域を消し飛ばす' } },
 
-  { id: 's1', br: 'space', col: 1, cost: 25, req: ['lang'], name: '小石落とし', desc: '壊れた宇宙船の残りで、宇宙から小石を落とす。誰も気づかない。',
+  { id: 's1', br: 'space', col: 1, cost: 25, req: ['lang'], name: '小石落とし', desc: '壊れた宇宙船の残りで、宇宙から小石を落とす。最初から使える。',
     act: { name: '小石を落とす', t: 'reg', pw: 1.2, al: 1, r: 2, desc: '気づかれにくい' } },
-  { id: 's2', br: 'space', col: 2, cost: 50, req: ['s1'], name: '隕石誘導', desc: '隕石の軌道を少し曲げる。ついでに隕石から資材も取れる。',
+  { id: 's2', br: 'space', col: 2, cost: 40, req: ['s1'], name: '隕石誘導', desc: '隕石の軌道を少し曲げる。ついでに隕石から資材も取れる。',
     act: { name: '隕石を落とす', t: 'reg', pw: 9, pol: 2, al: 8, m: 20, r: 15, desc: 'クレーターができる' },
     act2: { name: '隕石採掘', t: 'none', gr: 25, al: 2, desc: '落ちた隕石から資材を回収する' } },
-  { id: 's3', br: 'space', col: 3, cost: 140, req: ['s2'], name: '小惑星牽引', desc: '小惑星をまるごと引っぱってくる。',
+  { id: 's3', br: 'space', col: 3, cost: 110, req: ['s2'], name: '小惑星牽引', desc: '小惑星をまるごと引っぱってくる。',
     act: { name: '小惑星を落とす', t: 'reg', pw: 26, pol: 4, al: 16, m: 70, r: 40, desc: '地域ごとえぐる' } },
-  { id: 's4', br: 'space', col: 4, cost: 360, req: ['s3'], name: '月を落とす', desc: '最終手段。全世界がまとめてさら地に近づく。',
+  { id: 's4', br: 'space', col: 4, cost: 290, req: ['s3'], name: '月を落とす', desc: '最終手段。全世界がまとめてさら地に近づく。',
     act: { name: '月を落とす', t: 'all', pw: 32, pol: 10, al: 40, m: 300, r: 120, cd: 6, desc: '全世界に大打撃' } },
 
   { id: 'c1', br: 'climate', col: 1, cost: 25, req: ['lang'], name: '雨乞い装置', desc: 'じわじわ効く大雨。',
     act: { name: '大雨を降らせる', t: 'reg', pw: 1, dur: 4, al: 1, m: 5, desc: '4か月 じわじわ' } },
-  { id: 'c2', br: 'climate', col: 2, cost: 50, req: ['c1'], name: '異常気象', desc: '台風と干ばつを交互に。',
+  { id: 'c2', br: 'climate', col: 2, cost: 40, req: ['c1'], name: '異常気象', desc: '台風と干ばつを交互に。',
     act: { name: '異常気象', t: 'reg', pw: 3, dur: 5, pol: 1, al: 4, m: 25, desc: '5か月 じわじわ' } },
-  { id: 'c3', br: 'climate', col: 3, cost: 145, req: ['c2'], name: '氷河期', desc: '全世界を凍らせる。解ければ土地はきれい。',
+  { id: 'c3', br: 'climate', col: 3, cost: 115, req: ['c2'], name: '氷河期', desc: '全世界を凍らせる。解ければ土地はきれい。',
     act: { name: '氷河期', t: 'all', pw: 2.5, dur: 8, al: 12, m: 90, r: 20, cd: 8, desc: '全世界 8か月 じわじわ' } },
-  { id: 'c4', br: 'climate', col: 4, cost: 325, req: ['c3'], name: '太陽をいじる', desc: '太陽を少しだけ近づける。',
+  { id: 'c4', br: 'climate', col: 4, cost: 260, req: ['c3'], name: '太陽をいじる', desc: '太陽を少しだけ近づける。',
     act: { name: '太陽を近づける', t: 'all', pw: 5, dur: 8, pol: 6, al: 25, m: 220, r: 60, cd: 10, desc: '全世界 8か月 灼熱' } },
 
   { id: 'b1', br: 'bio', col: 1, cost: 30, req: ['lang'], name: '巨大な虫', desc: '虫を大きくする。気持ち悪いので警戒されやすい。',
     act: { name: '巨大な虫', t: 'reg', pw: 2.5, al: 5, m: 5, r: 3, desc: '街が虫だらけに' } },
-  { id: 'b2', br: 'bio', col: 2, cost: 55, req: ['b1'], name: '怪獣', desc: '現地の生き物を巨大化させて暴れさせる。環境にはやさしい。',
+  { id: 'b2', br: 'bio', col: 2, cost: 45, req: ['b1'], name: '怪獣', desc: '現地の生き物を巨大化させて暴れさせる。環境にはやさしい。',
     act: { name: '怪獣を放つ', t: 'reg', pw: 10, pol: 1, al: 10, m: 30, r: 10, desc: '瓦礫は多いが汚染は少ない' } },
-  { id: 'b3', br: 'bio', col: 3, cost: 145, req: ['b2'], name: '怪獣軍団', desc: '怪獣をまとめて送り込む。',
+  { id: 'b3', br: 'bio', col: 3, cost: 115, req: ['b2'], name: '怪獣軍団', desc: '怪獣をまとめて送り込む。',
     act: { name: '怪獣軍団', t: 'reg', pw: 28, pol: 2, al: 18, m: 90, r: 30, desc: '地域を踏みつぶす' } },
-  { id: 'b4', br: 'bio', col: 4, cost: 290, req: ['b3'], name: '生態系書き換え', desc: '自然が街を飲み込みつづける。復興しても負ける。',
+  { id: 'b4', br: 'bio', col: 4, cost: 230, req: ['b3'], name: '生態系書き換え', desc: '自然が街を飲み込みつづける。復興しても負ける。',
     act: { name: '生態系を書き換える', t: 'reg', pw: 2.5, dur: 99, al: 15, m: 150, r: 40, desc: 'ずっと 毎月じわじわ' } },
 
   { id: 'g1', br: 'crust', col: 1, cost: 20, req: ['lang'], name: '穴掘り', desc: '地面を掘る。掘った分だけ資材も手に入る。',
     act: { name: '穴を掘る', t: 'reg', pw: 1.5, al: 2, gr: 3, desc: '地盤沈下＋資材+3' } },
-  { id: 'g2', br: 'crust', col: 2, cost: 45, req: ['g1'], name: '人工地震', desc: '地下で巨大なドリルを回す。',
+  { id: 'g2', br: 'crust', col: 2, cost: 35, req: ['g1'], name: '人工地震', desc: '地下で巨大なドリルを回す。',
     act: { name: '人工地震', t: 'reg', pw: 8, pol: 1, al: 8, m: 25, r: 10, desc: '街が崩れる' } },
-  { id: 'g3', br: 'crust', col: 3, cost: 125, req: ['g2'], name: '火山一斉噴火', desc: '荒れるが、火山灰で土地は肥えていく。',
+  { id: 'g3', br: 'crust', col: 3, cost: 100, req: ['g2'], name: '火山一斉噴火', desc: '荒れるが、火山灰で土地は肥えていく。',
     act: { name: '火山を噴火させる', t: 'reg', pw: 24, pol: 6, al: 16, m: 70, r: 35, desc: '溶岩と灰で埋める' } },
-  { id: 'g4', br: 'crust', col: 4, cost: 280, req: ['g3'], name: '大陸を割る', desc: '大陸に裂け目を入れる。',
+  { id: 'g4', br: 'crust', col: 4, cost: 225, req: ['g3'], name: '大陸を割る', desc: '大陸に裂け目を入れる。',
     act: { name: '大陸を割る', t: 'reg', pw: 50, pol: 5, al: 30, m: 180, r: 70, cd: 4, desc: '地域が海に沈む' } },
 
   // combos: two branches meet. Humanity has never seen these, so they start with no countermeasures.
-  { id: 'x_hyp', br: 'combo', col: 3, row: 2.5, cost: 90, req: ['k2', 'w2'], name: '自爆催眠', desc: 'からめ手＋兵器。人類に自分のミサイルを撃たせる。誰も宇宙人を疑わない。',
+  { id: 'x_hyp', br: 'combo', col: 3, row: 2.5, cost: 70, req: ['k2', 'w2'], name: '自爆催眠', desc: 'からめ手＋兵器。人類に自分のミサイルを撃たせる。誰も宇宙人を疑わない。',
     act: { name: '自爆催眠', t: 'reg', pw: 14, pol: 6, al: 0, m: 40, desc: '警戒が上がらない' } },
-  { id: 'x_sat', br: 'combo', col: 3, row: 3.5, cost: 95, req: ['w2', 's2'], name: '衛星レーザー', desc: '兵器＋宇宙。人類の衛星を乗っ取ってレーザーを撃つ。',
+  { id: 'x_sat', br: 'combo', col: 3, row: 3.5, cost: 75, req: ['w2', 's2'], name: '衛星レーザー', desc: '兵器＋宇宙。人類の衛星を乗っ取ってレーザーを撃つ。',
     act: { name: '衛星レーザー', t: 'reg', pw: 13, pol: 1, al: 6, m: 35, r: 5, desc: '汚染が少ない' } },
-  { id: 'x_dust', br: 'combo', col: 3, row: 4.5, cost: 100, req: ['s2', 'c2'], name: '粉じん氷河期', desc: '宇宙＋気候。隕石で粉じんを巻き上げ、全世界を冷やす。',
+  { id: 'x_dust', br: 'combo', col: 3, row: 4.5, cost: 80, req: ['s2', 'c2'], name: '粉じん氷河期', desc: '宇宙＋気候。隕石で粉じんを巻き上げ、全世界を冷やす。',
     act: { name: '粉じん氷河期', t: 'all', pw: 1.5, dur: 6, pol: 1, al: 7, m: 45, r: 20, cd: 6, desc: '全世界 6か月 じわじわ' } },
-  { id: 'x_bac', br: 'combo', col: 2, row: 5.5, cost: 55, req: ['c1', 'b1'], name: '浄化バクテリア', desc: '気候＋生物。汚れた土地をきれいにする。後で住むなら必須。',
+  { id: 'x_bac', br: 'combo', col: 2, row: 5.5, cost: 45, req: ['c1', 'b1'], name: '浄化バクテリア', desc: '気候＋生物。汚れた土地をきれいにする。後で住むなら必須。',
     act: { name: '除染する', t: 'reg', clean: 22, m: 20, desc: '汚染 -22' } },
-  { id: 'x_storm', br: 'combo', col: 4, row: 5.5, cost: 200, req: ['c3', 'b3'], name: '怪獣台風', desc: '気候＋生物。怪獣を台風に乗せて世界を一周させる。',
+  { id: 'x_storm', br: 'combo', col: 4, row: 5.5, cost: 160, req: ['c3', 'b3'], name: '怪獣台風', desc: '気候＋生物。怪獣を台風に乗せて世界を一周させる。',
     act: { name: '怪獣台風', t: 'all', pw: 9, pol: 2, al: 14, m: 120, r: 40, cd: 5, desc: '全世界を一周' } },
-  { id: 'x_mole', br: 'combo', col: 3, row: 6.5, cost: 110, req: ['b2', 'g2'], name: '地底怪獣', desc: '生物＋地殻。地下から街ごと崩す。掘った分の資材も手に入る。',
+  { id: 'x_mole', br: 'combo', col: 3, row: 6.5, cost: 90, req: ['b2', 'g2'], name: '地底怪獣', desc: '生物＋地殻。地下から街ごと崩す。掘った分の資材も手に入る。',
     act: { name: '地底怪獣', t: 'reg', pw: 18, pol: 1, al: 10, m: 40, gr: 15, desc: '資材+15' } },
 ];
 const NODE = Object.fromEntries(NODES.map(n => [n.id, n]));
@@ -315,7 +410,7 @@ NODES.forEach(n => { if (n.row === undefined) n.row = BR[n.br].row; });
 
 const BASE_ACTS = [
   { id: 'job', name: 'アルバイト', grp: 'earn', t: 'none', gm: 6, desc: 'コンビニの夜勤。正体はバレていない' },
-  { id: 'junk', name: 'ガラクタ集め', grp: 'earn', t: 'none', gr: 4, desc: '粗大ごみから部品を集める' },
+  { id: 'junk', name: 'ガラクタ集め', grp: 'earn', t: 'none', gr: 5, desc: '粗大ごみから部品を集める' },
   { id: 'study', name: '研究に没頭', grp: 'earn', t: 'none', grp_: 1, desc: '図書館に通いつめる' },
 ];
 
@@ -359,33 +454,64 @@ const COUNTER = {
   combo: '人類が新しい手口に気づきはじめた',
 };
 
+// ---------- facilities (earn → buy things that make the work easier) ----------
+const FAC = [
+  { id: 'lab', name: '研究所', base: { m: 20, r: 6 }, need: null, c: '#a495ff', desc: '毎月の研究が増える' },
+  { id: 'plant', name: '資材工場', base: { m: 24, r: 0 }, need: null, c: '#c98a4a', desc: '毎月の資材が増える' },
+  { id: 'front', name: 'ダミー会社', base: { m: 40, r: 10 }, need: 'shell', c: '#e8c770', desc: '毎月の資金が増える' },
+];
+const labOut = () => 5 * (has('sci') ? 1.5 : 1);
+const frontOut = () => 16 * (has('corp') ? 2 : 1);
+const facCost = f => { const n = G.fac[f.id]; return { m: Math.round(f.base.m * 1.4 ** n), r: Math.round(f.base.r * 1.4 ** n) }; };
+const facGain = f => f.id === 'lab' ? `研究+${labOut()}/月` : f.id === 'plant' ? '資材+6/月' : `資金+${frontOut()}/月`;
+
+// scene kind for each action
+const FXK = { w1: 'bomb', w2: 'missile', w3: 'nuke', w4: 'cannon', s1: 'pebble', s2: 'meteor', s3: 'asteroid', s4: 'moon',
+  c1: 'rain', c2: 'storm', c3: 'ice', c4: 'sun', b1: 'bug', b2: 'kaiju', b3: 'army', b4: 'vines', g1: 'hole', g2: 'quake',
+  g3: 'volcano', g4: 'split', k1: 'net', k2: 'lazy', k3: 'sleep', k4: 'ufo', x_hyp: 'hypno', x_sat: 'laser', x_dust: 'dust',
+  x_bac: 'clean', x_storm: 'typhoon', x_mole: 'mole', h2: 'tv', job: 'store', junk: 'junk', study: 'study', shell: 'company', s2_2: 'mine' };
+
 // ---------- state ----------
-const MAX_TURN = 120;
+const MAX_TURN = 60;
 let G;
 function newGame() {
-  return {
-    turn: 1, money: 0, mat: 0, rp: 0, ap: 2, alert: 0, hp: 3, maxhp: 3,
-    owned: {}, resist: {}, cd: {}, fx: [], contrib: {}, sel: 'jp', log: [], newsNow: [], over: false, seen: {},
+  const g = {
+    turn: 1, money: 10, mat: 5, rp: 0, ap: 3, alert: 0, hp: 3, maxhp: 3,
+    owned: { lang: 1, s1: 1 }, resist: {}, cd: {}, fx: [], contrib: {}, sel: 'jp', tab: 'space', seenTab: { earn: 1, build: 1, space: 1 },
+    fac: { lab: 0, plant: 0, front: 0 }, over: false, seen: {}, newsNow: [],
     reg: Object.fromEntries(REG.map(r => [r.id, { sar: 0, pol: 0, freeze: 0, ghost: 0 }])),
   };
+  g.reg.jp.sar = 4; g.contrib.space = 4;
+  return g;
 }
 const has = id => !!G.owned[id];
-const maxAP = () => 2 + (has('crew') ? 1 : 0) + (has('h3') ? 1 : 0);
+const maxAP = () => 3 + (has('crew') ? 1 : 0) + (has('h3') ? 1 : 0);
+const maxHP = () => G.maxhp + (has('h3') ? 1 : 0);
 const stealthMul = () => 1 - (has('h1') ? .2 : 0) - (has('h3') ? .2 : 0);
-const rpPerTurn = () => 2 + (has('sci') ? 8 : 0) + (has('crew') ? 3 : 0) + (has('corp') ? 6 : 0);
+const rpPerTurn = () => Math.round(3 + G.fac.lab * labOut() + (has('crew') ? 3 : 0) + (has('corp') ? 6 : 0));
+const matPerTurn = () => G.fac.plant * 6;
+const moneyPerTurn = () => G.fac.front * frontOut();
 const resKey = n => (n.br === 'combo' ? n.id : n.br);
 const globalSar = () => REG.reduce((s, r) => s + G.reg[r.id].sar * r.w, 0) / RW;
 const globalPol = () => REG.reduce((s, r) => s + G.reg[r.id].pol * r.w, 0) / RW;
-const dateStr = t => `侵略${Math.floor((t - 1) / 12) + 1}年目 ${((t - 1) % 12) + 1}月`;
+const dateStr = t => `${Math.floor((t - 1) / 12) + 1}年目 ${((t - 1) % 12) + 1}月`;
+const regOf = id => REG.find(r => r.id === id);
 
 function allActs() {
-  const out = BASE_ACTS.map(a => ({ ...a, key: a.id }));
+  const out = BASE_ACTS.map(a => ({ ...a, key: a.id, tab: 'earn' }));
   for (const n of NODES) {
     if (!has(n.id)) continue;
-    if (n.act) out.push({ ...n.act, key: n.id, node: n, grp: n.act.t === 'none' ? 'earn' : (n.act.clean ? 'support' : 'destroy') });
-    if (n.act2) out.push({ ...n.act2, key: n.id + '_2', node: n, grp: 'earn' });
+    if (n.act) out.push({ ...n.act, key: n.id, node: n, tab: n.act.t === 'none' && n.br !== 'stealth' ? 'earn' : n.br });
+    if (n.act2) out.push({ ...n.act2, key: n.id + '_2', node: n, tab: 'earn' });
   }
   return out;
+}
+function tabsList() {
+  const acts = allActs();
+  const t = [{ id: 'earn', name: '稼ぐ', c: '#9be39b' }, { id: 'build', name: '施設', c: '#e8c770' }];
+  for (const k of ['weapon', 'space', 'climate', 'bio', 'crust', 'trick', 'combo', 'stealth'])
+    if (acts.some(a => a.tab === k)) t.push({ id: k, name: BR[k].name, c: BR[k].c });
+  return t;
 }
 function effMul(a, r) {
   if (!a.node) return 1;
@@ -393,21 +519,24 @@ function effMul(a, r) {
   return Math.max(.15, 1 - res);
 }
 function gainOf(a) {
-  if (a.id === 'job') return { m: has('lang') ? 14 : 6 };
-  if (a.id === 'study') return { rp: 6 + (has('sci') ? 6 : 0) };
+  if (a.id === 'job') return { m: 12 };
+  if (a.id === 'study') return { rp: 6 + G.fac.lab * 2 };
   return { m: a.gm || 0, r: a.gr || 0 };
 }
-function canDo(a) {
-  if (G.over || G.ap <= 0) return false;
-  if ((a.m || 0) > G.money || (a.r || 0) > G.mat) return false;
-  if (G.cd[a.key] > 0) return false;
+function whyNot(a) {
+  if (G.over) return 'ゲーム終了';
+  if (G.ap <= 0) return '今月の行動は終わり';
+  if (G.cd[a.key] > 0) return `準備中（あと${G.cd[a.key]}か月）`;
+  if ((a.m || 0) > G.money) return '資金が足りない';
+  if ((a.r || 0) > G.mat) return '資材が足りない';
   if (a.t === 'reg') {
     const st = G.reg[G.sel];
-    if (a.clean) return st.pol > 0;
-    if (a.pw && st.sar >= 100) return false;
+    if (a.clean && st.pol <= 0) return 'ここは汚れていない';
+    if (a.pw && st.sar >= 100) return 'ここはもうさら地';
   }
-  return true;
+  return '';
 }
+const canDo = a => !whyNot(a);
 
 // ---------- actions ----------
 function doAct(a) {
@@ -417,28 +546,36 @@ function doAct(a) {
   const g = gainOf(a);
   G.money += g.m || 0; G.mat += g.r || 0; G.rp += g.rp || 0;
   const n = a.node;
-  const targets = a.t === 'all' ? REG : a.t === 'reg' ? [REG.find(r => r.id === G.sel)] : [];
-  let shown = 0;
+  const targets = a.t === 'all' ? REG : a.t === 'reg' ? [regOf(G.sel)] : [];
+  let total = 0, done = [];
   for (const r of targets) {
     const st = G.reg[r.id];
-    if (a.clean) { st.pol = Math.max(0, st.pol - a.clean); fxPop(r, `汚染-${a.clean}`, 'var(--human)'); continue; }
+    if (a.clean) { st.pol = Math.max(0, st.pol - a.clean); continue; }
     if (a.freeze) st.freeze = Math.max(st.freeze, a.freeze);
     if (a.dur) G.fx.push({ reg: r.id, pw: a.pw, turns: a.dur, key: n.id, pol: (a.pol || 0) / a.dur });
-    else if (a.pw) shown = applyDmg(r, a.pw * effMul(a, r), n);
+    else if (a.pw) { const was = st.sar; total += applyDmg(r, a.pw * effMul(a, r), n) * (a.t === 'all' ? r.w / RW : 1); if (was < 100 && st.sar >= 100) done.push(r); }
     if (a.pol && !a.dur) st.pol = Math.min(100, st.pol + a.pol);
-    if (a.pw) fxBoom(r, n);
-    if (a.pw && !a.dur) fxPop(r, `+${shown.toFixed(1)}%`, BR[n.br].c);
-    else if (a.dur) fxPop(r, `${a.dur > 50 ? '毎月' : a.dur + 'か月'}`, BR[n.br].c);
+    hitRegion(r.id);
   }
   if (a.al) G.alert = clamp(G.alert + (a.al > 0 ? a.al * stealthMul() : a.al), 0, 100);
+  let salvage = 0;
+  if (n && a.pw && !a.dur) { salvage = Math.ceil(total * (a.t === 'all' ? 2 : .8)); G.mat += salvage; }
   if (n && a.pw) { bumpResist(resKey(n)); G.rp += 2; }
-  if (n && n.br !== 'base' && n.br !== 'stealth') {
+  const where = targets.length === 1 ? targets[0].name : a.t === 'all' ? '全世界' : '';
+  if (n && NEWS[n.id]) {
     const r = targets[0];
-    const tpl = NEWS[n.id];
-    if (tpl) G.newsNow.push({ tag: '速報', text: pick(tpl).replace('{r}', r ? r.name : '世界') });
-  } else if (n && NEWS[n.id]) G.newsNow.push({ tag: '会見', text: pick(NEWS[n.id]) });
-  logLine(`${a.name}${targets.length === 1 ? '（' + targets[0].name + '）' : a.t === 'all' ? '（全世界）' : ''}`);
-  if (a.pw && !a.dur) { const mb = document.getElementById('mapbox'); mb.classList.remove('shake'); void mb.offsetWidth; mb.classList.add('shake'); }
+    G.newsNow.push({ tag: n.br === 'stealth' ? '会見' : '速報', text: pick(NEWS[n.id]).replace('{r}', r ? r.name : '世界') });
+  }
+  // what the cut-in says
+  let val = '', cool = false;
+  const sub = salvage ? `瓦礫から資材+${salvage}` : '';
+  if (a.pw && !a.dur) val = `+${total.toFixed(1)}%`;
+  else if (a.dur) { val = a.dur > 50 ? '毎月 じわじわ' : `${a.dur}か月 じわじわ`; }
+  else if (a.clean) { val = `汚染 -${a.clean}`; cool = true; }
+  else if (a.al < 0) { val = `警戒 ${a.al}`; cool = true; }
+  else { const p = []; if (g.m) p.push(`資金+${g.m}`); if (g.r) p.push(`資材+${g.r}`); if (g.rp) p.push(`研究+${g.rp}`); val = p.join(' '); cool = true; }
+  closeNews();
+  playCut(FXK[a.key] || 'bomb', { name: a.name, where, val, cool, pw: a.pw || 0, sub, stamp: done.length ? `${done.map(r => r.name).join('・')} 完全さら地！` : '' });
   save(); render();
   checkEnd();
 }
@@ -461,21 +598,27 @@ function bumpResist(k) {
     G.newsNow.push({ tag: '人類の対策', hot: true, text: `${COUNTER[brk]}（${NODE[k] ? NODE[k].name : BR[k].name}の効き目 -${Math.round(v * 100)}%）` });
   }
 }
+function build(f) {
+  const c = facCost(f);
+  if (G.over || c.m > G.money || c.r > G.mat || (f.need && !has(f.need))) return;
+  G.money -= c.m; G.mat -= c.r; G.fac[f.id]++;
+  closeNews();
+  playCut('build', { name: `${f.name} Lv${G.fac[f.id]}`, where: '基地', val: facGain(f), cool: true, color: f.c, label: f.name });
+  save(); render();
+}
 
 // ---------- turn ----------
 function endTurn() {
   if (G.over) return;
   const news = G.newsNow; G.newsNow = [];
   const sarBefore = globalSar(), alertBefore = G.alert;
-  // lasting effects
   for (const f of G.fx) {
-    const r = REG.find(x => x.id === f.reg), n = NODE[f.key];
+    const r = regOf(f.reg), n = NODE[f.key];
     applyDmg(r, f.pw * effMul({ node: n }, r), n);
     G.reg[r.id].pol = Math.min(100, G.reg[r.id].pol + (f.pol || 0));
     f.turns--;
   }
   G.fx = G.fx.filter(f => f.turns > 0);
-  // humanity rebuilds
   for (const r of REG) {
     const st = G.reg[r.id];
     if (st.freeze > 0) { st.freeze--; continue; }
@@ -483,27 +626,27 @@ function endTurn() {
     const rec = (0.2 + G.alert * 0.008) * (r.rec || 1) * (1 - st.pol / 140);
     st.sar = Math.max(0, st.sar - rec);
   }
-  // income, research, cooldowns, decay
-  G.rp += rpPerTurn();
-  if (has('corp')) G.money += 60;
+  const inc = { rp: rpPerTurn(), m: moneyPerTurn(), r: matPerTurn() };
+  G.rp += inc.rp; G.money += inc.m; G.mat += inc.r;
   for (const k in G.cd) if (G.cd[k] > 0) G.cd[k]--;
   for (const k in G.resist) G.resist[k] = Math.max(0, G.resist[k] - .01);
-  G.alert = clamp(G.alert - 3 - G.alert * .05 - (has('h4') ? 3 : 0), 0, 100);
-  // humanity milestones
+  G.alert = clamp(G.alert - 4 - G.alert * .06 - (has('h4') ? 3 : 0), 0, 100);
   const ms = [[25, '各国が「連続する謎の災害」について合同調査を始めた'], [50, '地球防衛軍が結成された。復興のスピードが上がる'], [80, '地球防衛軍が「黒幕」の基地を探しはじめた']];
   for (const [th, t] of ms) if (alertBefore < th && G.alert >= th && !G.seen['a' + th]) { G.seen['a' + th] = 1; news.push({ tag: '人類', hot: true, text: t }); }
   for (const [th, t] of [[10, '世界の 1 割が更地に'], [25, '世界の 4 分の 1 が更地に'], [50, '世界の半分が更地に。人類は地下へ'], [75, '人類の住める場所が残りわずか']]) {
     const g = globalSar(); if (sarBefore < th && g >= th && !G.seen['s' + th]) { G.seen['s' + th] = 1; news.push({ tag: '節目', good: true, text: t }); }
   }
-  // base raid
   if (G.alert >= 85 && Math.random() < (G.alert - 78) / 60 * (has('h4') ? .5 : 1)) {
     G.hp--; G.money = Math.floor(G.money * .7); G.mat = Math.floor(G.mat * .7); G.alert = clamp(G.alert - 25, 0, 100);
     news.push({ tag: '基地襲撃', hot: true, text: `地球防衛軍が基地に突入！ 資金と資材の3割を失った（基地の耐久 残り${G.hp}）` });
+    sfx('boom');
   }
   if (!news.length) news.push({ tag: '平和', text: pick(['今月は特に何も起きなかった。人類はのんきに暮らしている', '世界は今日も平和。侵略者はアルバイトに励んでいる']) });
+  const incTxt = [inc.rp && `研究+${inc.rp}`, inc.m && `資金+${inc.m}`, inc.r && `資材+${inc.r}`].filter(Boolean).join('　');
   G.turn++; G.ap = maxAP();
+  closeCut();
   save(); render();
-  if (!checkEnd()) showNews(news);
+  if (!checkEnd()) showNews(news, incTxt);
 }
 function checkEnd() {
   if (G.over) return true;
@@ -512,14 +655,161 @@ function checkEnd() {
   else if (G.hp <= 0) kind = 'caught';
   else if (G.turn > MAX_TURN) kind = 'time';
   if (!kind) return false;
-  G.over = true; save(); showEnding(kind); return true;
+  G.over = true; save();
+  setTimeout(() => showEnding(kind), window.FAST ? 0 : 1600);
+  return true;
 }
 
-// ---------- rendering ----------
+// ---------- helpers ----------
 const $ = id => document.getElementById(id);
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const pick = a => a[Math.floor(Math.random() * a.length)];
+const R = (a, b) => a + Math.random() * (b - a);
 const mix = (a, b, t) => { const p = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16)); const A = p(a), B = p(b); return '#' + A.map((x, i) => Math.round(x + (B[i] - x) * t).toString(16).padStart(2, '0')).join(''); };
+
+// ---------- sound (synthesized, starts after the first tap) ----------
+let AC = null, soundOn = true;
+try { soundOn = localStorage.getItem('sarachi-sound') !== 'off'; } catch (e) {}
+function ac() { if (!AC) { try { AC = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { AC = null; } } return AC; }
+function noise(dur, f0, f1, vol, t0 = 0, type = 'lowpass') {
+  const c = ac(); if (!c) return;
+  const t = c.currentTime + t0, len = Math.floor(c.sampleRate * dur), buf = c.createBuffer(1, len, c.sampleRate), d = buf.getChannelData(0);
+  for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+  const s = c.createBufferSource(); s.buffer = buf;
+  const f = c.createBiquadFilter(); f.type = type; f.frequency.setValueAtTime(f0, t); f.frequency.exponentialRampToValueAtTime(Math.max(30, f1), t + dur);
+  const g = c.createGain(); g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.001, t + dur);
+  s.connect(f); f.connect(g); g.connect(c.destination); s.start(t); s.stop(t + dur);
+}
+function tone(type, f0, f1, dur, vol, t0 = 0) {
+  const c = ac(); if (!c) return;
+  const t = c.currentTime + t0, o = c.createOscillator(), g = c.createGain();
+  o.type = type; o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(Math.max(20, f1), t + dur);
+  g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.001, t + dur);
+  o.connect(g); g.connect(c.destination); o.start(t); o.stop(t + dur);
+}
+const SFX = {
+  boom: t => { noise(.9, 1400, 60, .9, t); tone('sine', 120, 35, .5, .6, t); },
+  big: t => { noise(1.8, 2000, 40, 1, t); tone('sine', 90, 25, 1.2, .8, t); noise(.15, 6000, 3000, .5, t, 'highpass'); },
+  whoosh: t => { noise(.35, 600, 3000, .25, Math.max(0, t - .35), 'bandpass'); SFX.boom(t); },
+  laser: t => { tone('sawtooth', 1800, 180, .5, .18, Math.max(0, t - .3)); SFX.boom(t); },
+  tink: t => { tone('triangle', 2400, 1800, .12, .25, t); },
+  stomp: t => { tone('sine', 80, 30, .35, .9, t); noise(.3, 500, 80, .4, t); tone('sine', 80, 30, .35, .9, t + .45); noise(.3, 500, 80, .4, t + .45); },
+  rumble: t => { noise(1.4, 300, 60, .7, t); tone('sine', 50, 30, 1.2, .5, t); },
+  rain: t => { noise(1.4, 4000, 2500, .18, 0, 'highpass'); },
+  zap: t => { tone('square', 220, 110, .5, .12, t); tone('sine', 660, 330, .6, .15, t + .1); },
+  wave: t => { for (let i = 0; i < 3; i++) tone('sine', 440, 220, .35, .12, t + i * .25); },
+  sleep: t => { tone('sine', 523, 392, .6, .15, t); tone('sine', 392, 262, .8, .12, t + .45); },
+  coin: t => { tone('square', 988, 988, .08, .12, t); tone('square', 1319, 1319, .25, .12, t + .08); },
+  build: t => { tone('square', 523, 523, .1, .1, t); tone('square', 659, 659, .1, .1, t + .1); tone('square', 784, 784, .25, .12, t + .2); },
+  chime: t => { [784, 988, 1175, 1568].forEach((f, i) => tone('triangle', f, f, .35, .18, t + i * .09)); },
+};
+function sfx(name, t = 0) { if (!soundOn || window.FAST || !SFX[name]) return; const c = ac(); if (c && c.state === 'suspended') c.resume(); SFX[name](t); }
+
+// ---------- cut-in scenes ----------
+const GY = 262;
+const KAIJU = 'M0 0 L6 -48 C-12 -56 -22 -86 -12 -112 L-34 -118 L-36 -130 L-10 -140 C6 -156 34 -152 40 -128 C60 -116 72 -86 70 -54 L104 -22 L128 -6 L96 -12 L66 -34 L60 0 L44 0 L42 -30 L22 -30 L22 0 Z M30 -148 L38 -166 L45 -146 Z M48 -128 L62 -144 L63 -122 Z M62 -104 L78 -116 L75 -94 Z M66 -78 L84 -86 L78 -68 Z M-6 -96 L-28 -82 L-25 -76 L-4 -88 Z';
+const d = s => `animation-delay:${s.toFixed(2)}s`;
+function boom(x, y, s, t) {
+  let h = `<circle class="flash" cx="${x}" cy="${y}" r="${70 * s}" fill="#fff" style="${d(t)}"/>`;
+  h += `<circle class="fire" cx="${x}" cy="${y}" r="${46 * s}" fill="#e2401c" style="${d(t + .02)}"/>`;
+  h += `<circle class="fire" cx="${x}" cy="${y}" r="${34 * s}" fill="#ff8a1a" style="${d(t + .04)}"/>`;
+  h += `<circle class="fire" cx="${x}" cy="${y}" r="${20 * s}" fill="#ffe27a" style="${d(t + .05)}"/>`;
+  for (let i = 0; i < 4; i++) h += `<circle class="smoke" cx="${x + R(-30, 30) * s}" cy="${y + R(-20, 10) * s}" r="${R(22, 34) * s}" fill="${pick(['#2a2230', '#3b3340', '#1c1722'])}" style="${d(t + .25 + i * .08)}"/>`;
+  for (let i = 0; i < 6; i++) { const a = R(0, Math.PI * 2), L = R(40, 90) * s; h += `<line x1="${x}" y1="${y}" x2="${x + Math.cos(a) * L}" y2="${y + Math.sin(a) * L}" stroke="#ffd34d" stroke-width="${3 * s}" stroke-linecap="round" stroke-dasharray="${L}" class="streak" style="--len:${L};animation: streak .25s ${t.toFixed(2)}s ease-out both, gone .2s ${(t + .3).toFixed(2)}s both"/>`; }
+  return h;
+}
+function streak(x1, y1, x2, y2, c, w, t, dur = .4) {
+  const L = Math.hypot(x2 - x1, y2 - y1);
+  return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${c}" stroke-width="${w}" stroke-linecap="round" stroke-dasharray="${L}" style="--len:${L};animation: streak ${dur}s ${t}s ease-in both, gone .2s ${(t + dur + .05).toFixed(2)}s both"/>`;
+}
+const fullFlash = t => `<rect class="flash" width="720" height="330" fill="#fff" style="${d(t)}"/><rect class="flash" width="720" height="330" fill="#000" style="${d(t + .12)};opacity:0"/>`;
+const word = (txt, x, y, t, c = '#fff', size = 26) => `<text class="float" x="${x}" y="${y}" fill="${c}" style="${d(t)};font-family:var(--f-display);font-size:${size}px;paint-order:stroke;stroke:#000;stroke-width:4px">${txt}</text>`;
+const clouds = (c = '#3a3f55', t = 0) => [80, 230, 380, 530, 660].map(x => `<ellipse class="appear" cx="${x}" cy="${R(20, 50)}" rx="${R(90, 130)}" ry="${R(34, 48)}" fill="${c}" style="${d(t)}"/>`).join('');
+const rainLines = (t = 0, c = '#9cc4ff') => `<g class="appear" style="${d(t)}"><g class="rain">${Array.from({ length: 60 }, () => { const x = R(0, 720), y = R(40, 300); return `<line x1="${x}" y1="${y}" x2="${x - 6}" y2="${y + 22}" stroke="${c}" stroke-width="2" opacity=".7"/>`; }).join('')}</g></g>`;
+const lightsOff = t => `<rect class="appear" x="0" y="0" width="720" height="${GY}" fill="#05030c" opacity=".55" style="${d(t)}"/>`;
+const kaiju = (x, s, t, eye = '#ffd34d', fx = 260) => `<g transform="translate(${x},${GY}) scale(${s})"><g class="walk" style="--fx:${fx}px;${d(t)}"><path d="${KAIJU}" fill="#171220" stroke="#000" stroke-width="2"/><circle cx="-16" cy="-127" r="4" fill="${eye}"/></g></g>`;
+const alien = (x, y, s = 1) => `<g transform="translate(${x},${y}) scale(${s})"><line x1="-8" y1="-34" x2="-14" y2="-50" stroke="#7ccf6a" stroke-width="3"/><line x1="8" y1="-34" x2="14" y2="-50" stroke="#7ccf6a" stroke-width="3"/><circle cx="-14" cy="-50" r="4" fill="#ffd34d"/><circle cx="14" cy="-50" r="4" fill="#ffd34d"/><ellipse cx="0" cy="-16" rx="26" ry="24" fill="#7ccf6a"/><ellipse cx="-10" cy="-18" rx="7" ry="10" fill="#111"/><ellipse cx="10" cy="-18" rx="7" ry="10" fill="#111"/></g>`;
+
+function cityRow(ix, nFall, t, mode) {
+  const out = [], bl = [];
+  let x = 14;
+  while (x < 706) { const w = R(44, 76); bl.push({ x, w, h: R(70, 185) }); x += w + R(4, 10); }
+  const order = bl.map((b, i) => [Math.abs(b.x + b.w / 2 - ix), i]).sort((a, b) => a[0] - b[0]).slice(0, nFall).map(p => p[1]);
+  bl.forEach((b, i) => {
+    const k = order.indexOf(i), cls = k >= 0 ? mode : '';
+    const sh = pick(['#5b6578', '#4d566a', '#6a7286', '#575f72']);
+    out.push(`<g class="${cls}" style="${d(t + Math.max(0, k) * .06)}"><rect x="${b.x}" y="${GY - b.h}" width="${b.w}" height="${b.h}" fill="${sh}"/><rect x="${b.x}" y="${GY - b.h}" width="${b.w}" height="${b.h}" fill="url(#win)"/><rect x="${b.x}" y="${GY - b.h}" width="${b.w}" height="5" fill="#0003"/></g>`);
+  });
+  return `<g clip-path="url(#above)">${out.join('')}</g>`;
+}
+
+function makeScene(kind, o) {
+  const ix = Math.round(R(300, 420));
+  const sc = { sky: ['#5f9ad0', '#cfe2ee'], ground: '#2c2a27', back: '', front: '', fall: Math.max(1, Math.min(9, Math.round(o.pw / 3) + 1)), t: .42, mode: 'fall', shake: 'quake', at: .42, sound: 'boom', city: true, len: 1.9 };
+  switch (kind) {
+    case 'crash': sc.front = `<g style="animation: drop .7s cubic-bezier(.6,0,1,.8) both;--fx:-420px;--fy:-300px"><g transform="translate(${ix},${GY - 50}) rotate(18)"><ellipse rx="56" ry="14" fill="#b9b4d6"/><ellipse cy="-10" rx="24" ry="14" fill="#8fe0ff"/></g></g>` + boom(ix, GY - 40, 1.6, .7); sc.fall = 3; sc.t = sc.at = .72; sc.shake = 'quake-big'; sc.sound = 'big'; sc.len = 2.3; break;
+    case 'bomb': sc.front = boom(ix, GY - 70, .9, .3); sc.fall = Math.min(sc.fall, 2); sc.t = sc.at = .3; break;
+    case 'missile': sc.front = streak(-20, 30, ix, GY - 70, '#ffc070', 5, 0) + boom(ix, GY - 70, 1.2, .42); sc.sound = 'whoosh'; break;
+    case 'nuke': sc.front = streak(ix - 260, -10, ix, GY - 30, '#fff', 5, 0) + fullFlash(.42) + `<g class="grow" style="${d(.55)}"><rect x="${ix - 22}" y="${GY - 170}" width="44" height="170" fill="#b24a22"/><ellipse cx="${ix}" cy="${GY - 180}" rx="110" ry="58" fill="#d8642c"/><ellipse cx="${ix}" cy="${GY - 186}" rx="70" ry="34" fill="#ffb05a"/><ellipse cx="${ix}" cy="${GY - 110}" rx="70" ry="14" fill="#c4562a"/></g>` + boom(ix, GY - 40, 2.4, .44); sc.fall = 12; sc.shake = 'quake-big'; sc.sound = 'big'; sc.sky = ['#d25a2a', '#ffc27a']; sc.len = 2.3; break;
+    case 'cannon': sc.front = `<rect class="appear" x="${ix - 70}" y="0" width="140" height="${GY}" fill="#ff6a3d" style="${d(.15)};animation: appear .1s .15s both, gone .3s .9s both"/><rect x="${ix - 30}" y="0" width="60" height="${GY}" fill="#fff6d0" style="animation: appear .1s .2s both, gone .3s .9s both"/>` + fullFlash(.45) + boom(ix, GY - 60, 3.2, .5); sc.fall = 14; sc.shake = 'quake-big'; sc.sound = 'laser'; sc.t = sc.at = .5; sc.sky = ['#2a0f1a', '#c43a2a']; sc.len = 2.3; break;
+    case 'pebble': sc.front = streak(ix + 140, -10, ix, GY - 130, '#ddd', 2, 0, .3) + `<circle class="fire" cx="${ix}" cy="${GY - 130}" r="10" fill="#ccc" style="${d(.32)}"/>` + word('コツン', ix + 14, GY - 140, .32); sc.fall = 0; sc.shake = null; sc.sound = 'tink'; sc.at = .32; break;
+    case 'meteor': sc.front = streak(ix + 300, -40, ix, GY - 30, '#ffcf6a', 9, 0) + boom(ix, GY - 30, 1.6, .42) + `<ellipse class="appear" cx="${ix}" cy="${GY + 6}" rx="90" ry="12" fill="#14100c" style="${d(.5)}"/>`; sc.sound = 'whoosh'; break;
+    case 'asteroid': sc.front = `<g class="drop" style="--fx:340px;--fy:-360px"><circle cx="${ix}" cy="${GY - 40}" r="70" fill="#5b5048"/><circle cx="${ix - 20}" cy="${GY - 60}" r="14" fill="#463c35"/><circle cx="${ix + 26}" cy="${GY - 26}" r="10" fill="#463c35"/></g>` + fullFlash(.8) + boom(ix, GY - 30, 2.6, .8); sc.t = sc.at = .8; sc.fall = 12; sc.shake = 'quake-big'; sc.sound = 'big'; sc.len = 2.3; break;
+    case 'moon': sc.front = `<g style="animation: drop 1.1s cubic-bezier(.5,0,1,.7) both;--fy:-420px"><circle cx="360" cy="${GY - 40}" r="150" fill="#d8d3c8"/><circle cx="300" cy="${GY - 90}" r="30" fill="#b8b1a3"/><circle cx="420" cy="${GY - 10}" r="22" fill="#b8b1a3"/><circle cx="390" cy="${GY - 110}" r="14" fill="#b8b1a3"/></g>` + fullFlash(1.1) + boom(360, GY - 20, 4, 1.1); sc.t = sc.at = 1.1; sc.fall = 16; sc.shake = 'quake-big'; sc.sound = 'big'; sc.sky = ['#060414', '#2a2050']; sc.len = 2.8; break;
+    case 'rain': sc.sky = ['#3e4558', '#7b8597']; sc.back = clouds('#2c3142'); sc.front = rainLines(.1) + `<rect class="rise" x="0" y="${GY - 70}" width="720" height="140" fill="#3a6fb0" opacity=".75" style="--fy:140px;${d(.3)}"/>`; sc.fall = 0; sc.shake = null; sc.sound = 'rain'; break;
+    case 'storm': sc.sky = ['#252a3a', '#525b70']; sc.back = clouds('#1d2130'); sc.front = rainLines(0) + [0, 1].map(i => `<polyline class="flash" points="${ix + i * 160 - 80},40 ${ix + i * 160 - 100},110 ${ix + i * 160 - 70},110 ${ix + i * 160 - 96},200" fill="none" stroke="#fff6a0" stroke-width="5" style="${d(.35 + i * .3)}"/>`).join('') + fullFlash(.35); sc.mode = 'tilt'; sc.fall = 4; sc.sound = 'rumble'; break;
+    case 'ice': case 'dust': sc.sky = kind === 'dust' ? ['#4a4440', '#8a8078'] : ['#9fb6c8', '#e6f0f6']; sc.front = (kind === 'dust' ? streak(700, -20, 500, 60, '#ffcf6a', 7, 0) + `<rect class="appear" width="720" height="330" fill="#3a332e" opacity=".55" style="${d(.4)}"/>` : '') + Array.from({ length: 50 }, () => `<circle class="snow" cx="${R(0, 760)}" cy="${R(-40, 120)}" r="${R(2, 4)}" fill="#fff" style="${d(R(0, 1))}"/>`).join('') + `<rect class="rise" x="0" y="${GY - 120}" width="720" height="200" fill="#d6f1ff" opacity=".8" style="--fy:200px;${d(.4)}"/>`; sc.fall = 0; sc.shake = null; sc.sound = 'rain'; break;
+    case 'sun': sc.sky = ['#ff7a2a', '#ffd27a']; sc.back = `<circle class="grow" cx="360" cy="-20" r="190" fill="#fff0a0" style="transform-origin:center;${d(0)}"/><circle class="grow" cx="360" cy="-20" r="150" fill="#ffe25a" style="transform-origin:center;${d(.1)}"/>`; sc.front = `<rect class="appear" width="720" height="330" fill="#ff5a1a" opacity=".35" style="${d(.4)}"/>`; sc.mode = 'tilt'; sc.fall = 9; sc.shake = null; sc.sound = 'rumble'; break;
+    case 'bug': sc.front = `<g transform="translate(${ix + 30},${GY})"><g class="walk" style="--fx:300px"><g class="bob"><ellipse cx="0" cy="-60" rx="70" ry="38" fill="#2b1d12"/><circle cx="-74" cy="-66" r="24" fill="#1c130c"/><circle cx="-84" cy="-72" r="5" fill="#e33"/>${[-40, 0, 40].map(x => `<line x1="${x}" y1="-40" x2="${x - 20}" y2="0" stroke="#1c130c" stroke-width="7"/>`).join('')}<line x1="-90" y1="-86" x2="-120" y2="-130" stroke="#1c130c" stroke-width="4"/><line x1="-80" y1="-88" x2="-96" y2="-140" stroke="#1c130c" stroke-width="4"/></g></g></g>` + word('キャー', ix - 160, GY - 120, .9, '#fff', 22); sc.mode = 'tilt'; sc.fall = 2; sc.t = .9; sc.at = .9; sc.shake = 'quake'; sc.sound = 'stomp'; break;
+    case 'kaiju': sc.front = kaiju(ix + 40, 1.3, 0) + word('ズゥン', ix - 140, GY - 160, 1, '#ffd34d', 30); sc.t = sc.at = 1; sc.sound = 'stomp'; sc.len = 2.2; break;
+    case 'army': sc.front = kaiju(ix - 140, 1, 0, '#ff6a3d', 380) + kaiju(ix + 40, 1.4, .15) + kaiju(ix + 220, 1.1, .3, '#ff6a3d', 200) + word('ズズズゥン', ix - 120, GY - 190, 1.1, '#ffd34d', 32); sc.t = sc.at = 1; sc.fall = 12; sc.shake = 'quake-big'; sc.sound = 'stomp'; sc.len = 2.3; break;
+    case 'typhoon': sc.sky = ['#252a3a', '#525b70']; sc.back = `<g transform="translate(360,90)"><g class="spin">${[150, 110, 70].map((r, i) => `<circle r="${r}" fill="none" stroke="#8a93ab" stroke-width="${18 - i * 4}" stroke-dasharray="${r * 2} ${r}" opacity=".7"/>`).join('')}</g></g>`; sc.front = rainLines(0) + kaiju(ix, 1.2, .2); sc.t = sc.at = 1; sc.shake = 'quake-big'; sc.sound = 'stomp'; sc.len = 2.2; break;
+    case 'vines': sc.front = Array.from({ length: 9 }, (_, i) => { const x = 40 + i * 80 + R(-20, 20), L = 300; return `<path d="M${x} ${GY} C${x - 30} ${GY - 60} ${x + 30} ${GY - 120} ${x} ${GY - 200}" fill="none" stroke="#3f8f3a" stroke-width="${R(8, 14)}" stroke-dasharray="${L}" class="draw" style="--len:${L};${d(R(0, .5))}"/>`; }).join('') + `<rect class="appear" x="0" y="${GY - 200}" width="720" height="200" fill="#2f6a2c" opacity=".35" style="${d(.8)}"/>`; sc.fall = 0; sc.shake = null; sc.sound = 'rumble'; break;
+    case 'hole': sc.front = `<ellipse class="grow" cx="${ix}" cy="${GY + 4}" rx="80" ry="14" fill="#0d0a08" style="transform-origin:center;${d(.2)}"/>` + word('ズボッ', ix + 40, GY - 60, .4, '#fff', 24); sc.fall = 1; sc.t = .4; sc.shake = 'quake'; sc.sound = 'rumble'; break;
+    case 'quake': sc.front = `<polyline class="draw" points="${ix - 260},${GY + 4} ${ix - 120},${GY + 20} ${ix - 40},${GY + 6} ${ix + 60},${GY + 30} ${ix + 200},${GY + 10}" fill="none" stroke="#0d0a08" stroke-width="8" style="--len:600;stroke-dasharray:600;${d(.2)}"/>` + word('ゴゴゴゴ', 40, 80, .1, '#ffd34d', 30); sc.mode = 'tilt'; sc.fall = 7; sc.t = .3; sc.shake = 'quake-big'; sc.sound = 'rumble'; break;
+    case 'volcano': sc.sky = ['#3a1410', '#a8401c']; sc.back = `<polygon points="${ix - 240},${GY} ${ix - 50},90 ${ix + 50},90 ${ix + 240},${GY}" fill="#3a2420"/><ellipse class="appear" cx="${ix}" cy="92" rx="52" ry="10" fill="#ff7a1a" style="${d(.2)}"/>`; sc.front = Array.from({ length: 18 }, () => `<circle class="float" cx="${ix + R(-60, 60)}" cy="${R(60, 110)}" r="${R(6, 16)}" fill="${pick(['#ff7a1a', '#ffb000', '#e2401c'])}" style="${d(R(.2, .8))}"/>`).join('') + boom(ix, 80, 1.8, .3) + `<rect class="appear" x="0" y="0" width="720" height="${GY}" fill="#2a1a16" opacity=".45" style="${d(.9)}"/>`; sc.fall = 8; sc.t = .5; sc.shake = 'quake-big'; sc.sound = 'big'; sc.len = 2.2; break;
+    case 'split': sc.front = `<polygon class="grow" points="${ix - 60},${GY} ${ix + 60},${GY} ${ix + 10},330 ${ix - 10},330" fill="#06040a" style="transform-origin:50% 0;${d(.3)}"/>` + word('バキィッ', ix + 70, GY - 150, .3, '#ffd34d', 34); sc.fall = 14; sc.t = .35; sc.shake = 'quake-big'; sc.sound = 'big'; sc.len = 2.2; break;
+    case 'mole': sc.front = [-50, 0, 50].map((o, i) => `<polygon class="rise" points="${ix + o - 16},${GY + 10} ${ix + o},${GY - 120} ${ix + o + 16},${GY + 10}" fill="#d9d2c0" stroke="#000" stroke-width="2" style="--fy:150px;${d(.3 + i * .05)}"/>`).join('') + Array.from({ length: 12 }, () => `<circle class="float" cx="${ix + R(-90, 90)}" cy="${GY - R(0, 30)}" r="${R(5, 12)}" fill="#5a3e24" style="${d(R(.3, .6))}"/>`).join(''); sc.fall = 8; sc.t = .4; sc.shake = 'quake-big'; sc.sound = 'rumble'; break;
+    case 'net': sc.sky = ['#1b2236', '#3a4a6a']; sc.front = lightsOff(.3) + `<g transform="translate(360,110)" class="appear" style="${d(.1)}">${[60, 40, 20].map(r => `<path d="M${-r} ${-r * .2} A${r} ${r} 0 0 1 ${r} ${-r * .2}" fill="none" stroke="#9fd0ff" stroke-width="8" stroke-linecap="round"/>`).join('')}<circle cy="10" r="7" fill="#9fd0ff"/><line x1="-60" y1="-60" x2="60" y2="40" stroke="#ff5a5a" stroke-width="12" stroke-linecap="round" class="grow" style="${d(.4)}"/><line x1="60" y1="-60" x2="-60" y2="40" stroke="#ff5a5a" stroke-width="12" stroke-linecap="round" class="grow" style="${d(.5)}"/></g>`; sc.fall = 0; sc.shake = null; sc.sound = 'zap'; break;
+    case 'lazy': sc.back = `<line x1="80" y1="${GY}" x2="80" y2="60" stroke="#999" stroke-width="6"/><circle cx="80" cy="56" r="8" fill="#f07ad6"/>` + [0, 1, 2].map(i => `<circle class="ring" cx="80" cy="56" r="120" fill="none" stroke="#f07ad6" stroke-width="5" style="${d(i * .3)}"/>`).join(''); sc.front = word('めんどい…', 240, 150, .3, '#fff', 22) + word('あとでいいや', 420, 120, .55, '#fff', 22) + word('もう帰ろ', 560, 170, .8, '#fff', 22); sc.fall = 0; sc.shake = null; sc.sound = 'wave'; break;
+    case 'sleep': sc.sky = ['#0b0a24', '#2a2a5a']; sc.back = `<circle cx="600" cy="60" r="34" fill="#f3e9b0"/><circle cx="586" cy="50" r="30" fill="#0b0a24"/>`; sc.front = lightsOff(.2) + ['Z', 'z', 'Z', 'z', 'Z'].map((z, i) => word(z, 120 + i * 120, 200 - (i % 2) * 40, .2 + i * .15, '#c9c3ff', 30 + (i % 2) * 10)).join(''); sc.fall = 0; sc.shake = null; sc.sound = 'sleep'; break;
+    case 'ufo': sc.sky = ['#14102a', '#3a2f6a']; sc.back = `<g class="drop" style="--fy:-200px"><polygon points="${ix - 50},70 ${ix + 50},70 ${ix + 130},${GY} ${ix - 130},${GY}" fill="#b0ffb0" opacity=".3" class="appear" style="${d(.6)}"/><ellipse cx="${ix}" cy="64" rx="90" ry="20" fill="#b9b4d6"/><ellipse cx="${ix}" cy="50" rx="38" ry="22" fill="#8fe0ff"/></g>`; sc.front = Array.from({ length: 14 }, () => `<circle class="float" cx="${ix + R(-90, 90)}" cy="${GY - R(0, 20)}" r="4" fill="#fff" style="${d(R(.7, 1.2))}"/>`).join('') + word('いってきまーす', ix + 80, GY - 30, .9, '#fff', 20); sc.fall = 0; sc.shake = null; sc.sound = 'zap'; sc.len = 2.1; break;
+    case 'hypno': sc.back = `<g transform="translate(360,110)"><g class="spin">${[90, 65, 40, 18].map(r => `<circle r="${r}" fill="none" stroke="#f07ad6" stroke-width="8" stroke-dasharray="${r * 3} ${r}"/>`).join('')}</g></g>`; sc.front = streak(110, GY - 10, 260, 20, '#ffc070', 4, .1, .35) + streak(470, 20, ix + 160, GY - 60, '#ffc070', 4, .45, .35) + boom(ix + 160, GY - 60, 1.3, .8) + word('誤作動です', 60, 90, .9, '#fff', 22); sc.t = sc.at = .8; sc.sound = 'whoosh'; sc.len = 2.1; break;
+    case 'laser': sc.back = `<g transform="translate(${ix},26)"><rect x="-26" y="-10" width="52" height="20" fill="#cfd3e0"/><rect x="-80" y="-6" width="50" height="12" fill="#3a6fb0"/><rect x="30" y="-6" width="50" height="12" fill="#3a6fb0"/></g>`; sc.front = `<rect x="${ix - 10}" y="36" width="20" height="${GY - 36}" fill="#ff8a6a" style="animation: appear .08s .3s both, gone .3s .9s both"/><rect x="${ix - 4}" y="36" width="8" height="${GY - 36}" fill="#fff" style="animation: appear .08s .3s both, gone .3s .9s both"/>` + boom(ix, GY - 20, 1.4, .4); sc.sound = 'laser'; break;
+    case 'clean': sc.sky = ['#6aa6d8', '#dff2e0']; sc.back = `<rect width="720" height="330" fill="#b03aa8" opacity=".5" style="animation: gone 1s .3s both"/>`; sc.front = Array.from({ length: 22 }, () => `<circle class="float" cx="${R(20, 700)}" cy="${R(150, GY)}" r="${R(3, 6)}" fill="#9be39b" style="${d(R(0, .8))}"/>`).join('') + word('ピカピカ', 300, 120, .5, '#9be39b', 30); sc.fall = 0; sc.shake = null; sc.sound = 'chime'; break;
+    case 'tv': sc.city = false; sc.sky = ['#1b1530', '#2a2050']; sc.front = `<rect x="160" y="40" width="400" height="230" rx="14" fill="#111" stroke="#555" stroke-width="6"/><rect x="180" y="58" width="360" height="190" fill="#2a4a7a"/><rect x="200" y="200" width="320" height="34" fill="#c22"/><text x="360" y="224" fill="#fff" text-anchor="middle" style="font-family:var(--f-display);font-size:18px">ただの自然現象です</text><circle cx="360" cy="120" r="34" fill="#e8c9a0"/><rect x="316" y="152" width="88" height="48" fill="#334"/><rect x="340" y="104" width="40" height="10" fill="#111" rx="4"/>`; sc.fall = 0; sc.shake = null; sc.sound = 'zap'; sc.len = 1.4; break;
+    case 'store': sc.city = false; sc.sky = ['#0e0c1c', '#24203c']; sc.front = `<rect x="160" y="70" width="400" height="${GY - 70}" fill="#e9eef2"/><rect x="160" y="70" width="400" height="36" fill="#3a9a5a"/><rect x="160" y="106" width="400" height="10" fill="#e36a2a"/><text x="360" y="96" text-anchor="middle" fill="#fff" style="font-family:var(--f-display);font-size:20px">コンビニ</text><rect x="200" y="140" width="320" height="${GY - 140}" fill="#bfe0f0" opacity=".7"/><rect x="300" y="220" width="140" height="42" fill="#777"/>` + `<g class="bob">${alien(370, 222, 1.2)}</g>` + word('いらっしゃいませー', 380, 150, .2, '#2a1606', 20); sc.fall = 0; sc.shake = null; sc.sound = 'coin'; sc.len = 1.3; break;
+    case 'junk': sc.city = false; sc.sky = ['#5f9ad0', '#cfe2ee']; sc.front = `<polygon points="220,${GY} 300,150 360,190 420,130 520,${GY}" fill="#6b5d50"/><rect x="280" y="170" width="40" height="30" fill="#8a8a8a" transform="rotate(-20 300 185)"/><circle cx="420" cy="170" r="20" fill="#333"/><rect x="380" y="200" width="60" height="16" fill="#b55"/>` + `<g class="bob">${alien(540, GY, 1.1)}</g>` + word('お宝はっけん', 430, 120, .3, '#2a1606', 22); sc.fall = 0; sc.shake = null; sc.sound = 'coin'; sc.len = 1.3; break;
+    case 'study': sc.city = false; sc.sky = ['#2a2238', '#4a3a5a']; sc.front = `<rect x="140" y="80" width="440" height="${GY - 80}" fill="#5a3a26"/>` + [0, 1, 2, 3].map(i => `<rect x="${170 + i * 100}" y="100" width="80" height="140" fill="#3a2418"/>` + [0, 1, 2, 3, 4, 5].map(j => `<rect x="${174 + i * 100 + j * 13}" y="${110 + (j % 2) * 4}" width="10" height="56" fill="${pick(['#c44', '#4a7', '#46c', '#cc4', '#a6c'])}"/>`).join('')).join('') + `<g class="bob">${alien(360, GY, 1.2)}</g>` + word('なるほど！', 400, 150, .3, '#ffd34d', 26); sc.fall = 0; sc.shake = null; sc.sound = 'coin'; sc.len = 1.3; break;
+    case 'company': sc.city = false; sc.front = `<rect x="260" y="60" width="200" height="${GY - 60}" fill="#6a7286"/><rect x="260" y="60" width="200" height="${GY - 60}" fill="url(#win)"/><rect x="280" y="70" width="160" height="26" fill="#e8c770"/><text x="360" y="89" text-anchor="middle" fill="#2a1606" style="font-family:var(--f-display);font-size:15px">株式会社サラチ</text>` + Array.from({ length: 10 }, () => `<circle class="float" cx="${R(240, 480)}" cy="${R(180, 250)}" r="8" fill="#ffd34d" stroke="#a87a10" stroke-width="2" style="${d(R(0, .6))}"/>`).join(''); sc.fall = 0; sc.shake = null; sc.sound = 'coin'; sc.len = 1.3; break;
+    case 'mine': sc.city = false; sc.sky = ['#3a3040', '#7a6a70']; sc.front = `<ellipse cx="360" cy="${GY + 8}" rx="200" ry="26" fill="#14100c"/><circle cx="360" cy="${GY - 40}" r="60" fill="#5b5048"/><circle cx="340" cy="${GY - 60}" r="12" fill="#a495ff"/><circle cx="384" cy="${GY - 30}" r="9" fill="#a495ff"/>` + `<g class="bob">${alien(500, GY, 1)}</g>` + Array.from({ length: 8 }, () => `<circle class="float" cx="${R(320, 400)}" cy="${GY - R(40, 80)}" r="4" fill="#ffd34d" style="${d(R(0, .6))}"/>`).join(''); sc.fall = 0; sc.shake = null; sc.sound = 'coin'; sc.len = 1.3; break;
+    case 'build': sc.city = false; sc.sky = ['#0e0c1c', '#24203c']; sc.front = `<g class="rise" style="--fy:220px"><rect x="280" y="80" width="160" height="${GY - 80}" fill="${o.color}"/><rect x="280" y="80" width="160" height="${GY - 80}" fill="url(#win)"/><text x="360" y="110" text-anchor="middle" fill="#160f22" style="font-family:var(--f-display);font-size:18px">${o.label}</text></g>` + `<circle class="ring" cx="360" cy="150" r="120" fill="none" stroke="#ffd34d" stroke-width="5" style="${d(.8)}"/>` + word('完成！', 450, 120, .8, '#ffd34d', 30); sc.fall = 0; sc.shake = null; sc.sound = 'build'; sc.len = 1.5; break;
+  }
+  if (o.stamp) sc.len = Math.max(sc.len, 2.4);
+  const svg = `<svg class="scene ${sc.shake || ''}" viewBox="0 0 720 330" preserveAspectRatio="xMidYMid slice" style="${sc.shake ? d(sc.at) : ''}">
+    <defs><linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${sc.sky[0]}"/><stop offset="1" stop-color="${sc.sky[1]}"/></linearGradient>
+    <pattern id="win" width="13" height="17" patternUnits="userSpaceOnUse"><rect x="4" y="5" width="6" height="8" fill="#ffe2a0" opacity=".55"/></pattern>
+    <clipPath id="above"><rect width="720" height="${GY}"/></clipPath></defs>
+    <rect width="720" height="330" fill="url(#sky)"/>${sc.back}${sc.city ? cityRow(ix, sc.fall, sc.t, sc.mode) : ''}<rect y="${GY}" width="720" height="${330 - GY}" fill="${sc.ground}"/>${sc.front}</svg>`;
+  return { svg, len: sc.len, sound: sc.sound, at: sc.at };
+}
+let cutTimer = 0;
+function playCut(kind, o) {
+  if (window.FAST) return;
+  const s = makeScene(kind, o);
+  clearTimeout(cutTimer);
+  $('cut').innerHTML = `<div class="cutin" id="cutin" role="status" aria-live="polite">${s.svg}
+    <div class="cap"><div><div class="nm">${o.name}！</div><div class="rg">${o.where || ''}${o.sub ? '　' + o.sub : ''}</div></div>${o.val ? `<div class="val ${o.cool ? 'cool' : ''}">${o.val}</div>` : ''}</div>
+    ${o.stamp ? `<div class="stamp">${o.stamp}</div>` : ''}<div class="skip">タップで飛ばす</div></div>`;
+  $('cutin').onclick = closeCut;
+  sfx(s.sound, s.at);
+  if (o.stamp) sfx('chime', 1.1);
+  cutTimer = setTimeout(closeCut, s.len * 1000);
+}
+function closeCut() { clearTimeout(cutTimer); $('cut').innerHTML = ''; }
+function hitRegion(id) { if (window.FAST) return; setTimeout(() => document.querySelectorAll(`polygon[data-r="${id}"]`).forEach(p => { p.classList.remove('hit'); void p.getBBox(); p.classList.add('hit'); }), 50); }
+
+// ---------- map ----------
 function landColor(st) {
   const s = st.sar / 100;
   let c = s < .5 ? mix('#4b8a5f', '#8a7a3c', s * 2) : mix('#8a7a3c', '#e2c48a', (s - .5) * 2);
@@ -534,125 +824,127 @@ function buildMap() {
     const main = pts[0];
     r.cx = main.reduce((s, p) => s + p[0], 0) / main.length;
     r.cy = main.reduce((s, p) => s + p[1], 0) / main.length;
-    if (r.id === 'jp') { r.cx += 20; r.cy += 4; }
-    h += `<g data-r="${r.id}">` + pts.map(p => `<polygon class="reg" data-r="${r.id}" points="${p.map(q => q.join(',')).join(' ')}"/>`).join('') + '</g>';
+    if (r.id === 'jp') { r.cx += 22; r.cy += 4; }
+    h += pts.map(p => `<polygon class="reg" data-r="${r.id}" points="${p.map(q => q.join(',')).join(' ')}"/>`).join('');
   }
   for (const r of REG) h += `<text class="rlabel" id="lb_${r.id}" x="${r.cx.toFixed(0)}" y="${r.cy.toFixed(0)}"></text>`;
-  const jp = REG.find(r => r.id === 'jp');
-  h += `<g id="basemark" transform="translate(${(jp.cx - 26).toFixed(0)},${(jp.cy - 18).toFixed(0)})"><path d="M0 8 L8 0 L16 8 Z" fill="var(--gold)"/><text x="8" y="-3" class="rlabel" style="font-size:9px">基地</text></g>`;
-  h += '<g id="fxl"></g>';
+  const jp = regOf('jp');
+  h += `<g transform="translate(${(jp.cx - 30).toFixed(0)},${(jp.cy - 20).toFixed(0)})"><path d="M0 8 L8 0 L16 8 Z" fill="var(--gold)"/><text x="8" y="-3" class="rlabel" style="font-size:9px">基地</text></g>`;
   svg.innerHTML = h;
   svg.addEventListener('click', e => { const t = e.target.closest('[data-r]'); if (t) { G.sel = t.dataset.r; render(); } });
 }
-function fxBoom(r, n) {
-  const l = $('fxl'), c = BR[n.br].c, ns = 'http://www.w3.org/2000/svg';
-  if (n.br === 'space' || n.id === 'x_sat' || n.id === 'w4') {
-    const ln = document.createElementNS(ns, 'line');
-    ln.setAttribute('x1', r.cx - 60); ln.setAttribute('y1', r.cy - 90); ln.setAttribute('x2', r.cx); ln.setAttribute('y2', r.cy);
-    ln.setAttribute('stroke', c); ln.setAttribute('stroke-dasharray', '120'); ln.setAttribute('class', 'streak');
-    l.appendChild(ln); setTimeout(() => ln.remove(), 700);
-  }
-  for (let i = 0; i < 2; i++) {
-    const ci = document.createElementNS(ns, 'circle');
-    ci.setAttribute('cx', r.cx); ci.setAttribute('cy', r.cy); ci.setAttribute('r', 2); ci.setAttribute('stroke', c); ci.setAttribute('class', 'boom');
-    ci.style.animationDelay = (i * .18) + 's';
-    l.appendChild(ci); setTimeout(() => ci.remove(), 1300);
-  }
-}
-function fxPop(r, txt, color) {
-  const l = $('fxl'), t = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-  t.setAttribute('x', r.cx); t.setAttribute('y', r.cy - 14); t.setAttribute('class', 'pop'); t.setAttribute('fill', color); t.textContent = txt;
-  l.appendChild(t); setTimeout(() => t.remove(), 1300);
+
+// ---------- rendering ----------
+function chipsFor(a, r) {
+  const c = [], g = gainOf(a);
+  if (g.m) c.push(`<span class="chip g">資金+${g.m}</span>`);
+  if (g.r) c.push(`<span class="chip g">資材+${g.r}</span>`);
+  if (g.rp) c.push(`<span class="chip g">研究+${g.rp}</span>`);
+  if (a.pw) c.push(`<span class="chip s">さら地+${(a.pw * effMul(a, a.t === 'reg' ? r : null)).toFixed(1)}${a.dur ? (a.dur > 50 ? '/月' : '×' + a.dur) : ''}</span>`);
+  if (a.clean) c.push(`<span class="chip a">汚染-${a.clean}</span>`);
+  if (a.pol) c.push(`<span class="chip p">汚染+${a.pol}</span>`);
+  if (a.al) c.push(`<span class="chip a">警戒${a.al > 0 ? '+' + Math.round(a.al * stealthMul()) : a.al}</span>`);
+  if (a.m) c.push(`<span class="chip c">資金-${a.m}</span>`);
+  if (a.r) c.push(`<span class="chip c">資材-${a.r}</span>`);
+  const res = a.node && a.pw ? (G.resist[resKey(a.node)] || 0) : 0;
+  if (res >= .05) c.push(`<span class="chip res">対策-${Math.round(res * 100)}%</span>`);
+  return c.join('');
 }
 function render() {
   const gs = globalSar(), gp = globalPol();
   $('stats').innerHTML = `
     <div class="stat"><b>日付</b>${dateStr(G.turn)}</div>
-    <div class="stat"><b>資金</b>${G.money}</div>
-    <div class="stat"><b>資材</b>${G.mat}</div>
-    <div class="stat"><b>研究</b>${G.rp}<span style="color:var(--muted);font-size:11px">+${rpPerTurn()}/月</span></div>
-    <div class="stat alert"><b>人類の警戒</b>${Math.round(G.alert)}<span class="bar"><i style="width:${G.alert}%;background:${G.alert >= 80 ? 'var(--danger)' : 'var(--human)'}"></i></span></div>
-    <div class="stat"><b>基地</b><span class="hp">${'■'.repeat(G.hp)}${'□'.repeat(Math.max(0, G.maxhp + (has('h3') ? 1 : 0) - G.hp))}</span></div>`;
+    <div class="stat"><b>資金</b>${G.money}${moneyPerTurn() ? `<i>+${moneyPerTurn()}</i>` : ''}</div>
+    <div class="stat"><b>資材</b>${G.mat}${matPerTurn() ? `<i>+${matPerTurn()}</i>` : ''}</div>
+    <div class="stat"><b>研究</b>${G.rp}<i>+${rpPerTurn()}</i></div>
+    <div class="stat"><b>警戒</b>${Math.round(G.alert)}<span class="bar"><i style="width:${G.alert}%;background:${G.alert >= 80 ? 'var(--danger)' : 'var(--human)'}"></i></span></div>
+    <div class="stat"><b>基地</b><span class="hp">${'■'.repeat(Math.max(0, G.hp))}${'□'.repeat(Math.max(0, maxHP() - G.hp))}</span></div>`;
   $('gsar').textContent = gs.toFixed(1) + '%';
   $('gpol').textContent = gp.toFixed(0);
   $('ggauge').style.width = Math.min(100, gs) + '%';
-  $('goal').textContent = `目標 95%　残り${MAX_TURN - G.turn + 1}か月`;
+  $('goal').innerHTML = `目標 95%<br>残り ${Math.max(0, MAX_TURN - G.turn + 1)} か月`;
   for (const r of REG) {
     const st = G.reg[r.id];
     document.querySelectorAll(`polygon[data-r="${r.id}"]`).forEach(p => { p.style.fill = landColor(st); p.classList.toggle('sel', G.sel === r.id); });
-    $('lb_' + r.id).textContent = `${r.id === 'jp' ? '日本' : ''}${st.sar.toFixed(0)}%`;
+    $('lb_' + r.id).textContent = `${st.sar.toFixed(0)}%`;
   }
-  $('regs').innerHTML = REG.map(x => `<button data-r="${x.id}" aria-pressed="${G.sel === x.id}">${x.name}<span>${G.reg[x.id].sar.toFixed(0)}%</span></button>`).join('');
-  // region panel
-  const r = REG.find(x => x.id === G.sel), st = G.reg[r.id];
-  const fxs = G.fx.filter(f => f.reg === r.id).map(f => `${NODE[f.key].name}（残り${f.turns > 50 ? '∞' : f.turns}）`);
-  $('rinfo').innerHTML = `<h3>${r.name}${r.base ? '<span style="font-size:12px;color:var(--gold);margin-left:8px">基地あり</span>' : ''}</h3>
+  $('regs').innerHTML = REG.map(x => `<button data-r="${x.id}" class="${G.reg[x.id].sar >= 100 ? 'done' : ''}" aria-pressed="${G.sel === x.id}">${x.name}<span>${G.reg[x.id].sar >= 100 ? '完了' : G.reg[x.id].sar.toFixed(0) + '%'}</span></button>`).join('');
+  const r = regOf(G.sel), st = G.reg[r.id];
+  const fxs = G.fx.filter(f => f.reg === r.id).map(f => `${NODE[f.key].name}（${f.turns > 50 ? 'ずっと' : 'あと' + f.turns}）`);
+  $('rinfo').innerHTML = `<h3>${r.name}<small>${r.tt}</small></h3>
     <span class="k">さら地</span><div class="mini"><i style="width:${st.sar}%;background:var(--scorch)"></i></div>
     <span class="k">汚染</span><div class="mini"><i style="width:${st.pol}%;background:var(--toxic)"></i></div>
-    <div class="trait">特色：${r.tt}</div>
-    ${st.freeze ? `<div class="trait" style="color:var(--muted)">復興停止中（残り${st.freeze}か月）</div>` : ''}
-    ${fxs.length ? `<div class="trait" style="color:var(--muted)">進行中：${fxs.join('、')}</div>` : ''}`;
-  // orders
-  $('apline').textContent = `今月の行動 ${G.ap} / ${maxAP()}`;
-  const acts = allActs();
-  const groups = [['earn', '稼ぐ・調べる'], ['destroy', 'さら地にする'], ['support', '後始末']];
+    ${st.freeze || fxs.length ? `<div class="note">${st.freeze ? `復興停止中（あと${st.freeze}か月）　` : ''}${fxs.length ? '進行中：' + fxs.join('、') : ''}</div>` : ''}`;
+  // AP pips
+  $('ap').innerHTML = '行動 ' + Array.from({ length: maxAP() }, (_, i) => `<i class="${i < G.ap ? '' : 'used'}"></i>`).join('');
+  // tabs
+  const tabs = tabsList();
+  if (!tabs.some(t => t.id === G.tab)) G.tab = 'earn';
+  G.seenTab[G.tab] = 1;
+  $('tabs').innerHTML = tabs.map(t => `<button class="tab" role="tab" style="--c:${t.c}" data-t="${t.id}" aria-selected="${G.tab === t.id}">${t.name}${G.seenTab[t.id] ? '' : '<span class="new">NEW</span>'}</button>`).join('');
+  // deck
   let h = '';
-  for (const [g, label] of groups) {
-    const list = acts.filter(a => a.grp === g);
-    if (!list.length) continue;
-    h += `<div class="grp">${label}</div>`;
-    for (const a of list) {
-      const n = a.node, c = n ? BR[n.br].c : '#6c6288';
-      const chips = [];
-      const gain = gainOf(a);
-      if (gain.m) chips.push(`<span class="chip g">資金+${gain.m}</span>`);
-      if (gain.r) chips.push(`<span class="chip g">資材+${gain.r}</span>`);
-      if (gain.rp) chips.push(`<span class="chip g">研究+${gain.rp}</span>`);
-      if (a.pw) {
-        const reg = a.t === 'reg' ? r : null;
-        const v = a.pw * effMul(a, reg);
-        chips.push(`<span class="chip s">さら地+${v.toFixed(1)}${a.dur ? (a.dur > 50 ? '/月' : '×' + a.dur) : ''}${a.t === 'all' ? ' 全世界' : ''}</span>`);
-      }
-      if (a.clean) chips.push(`<span class="chip a">汚染-${a.clean}</span>`);
-      if (a.pol) chips.push(`<span class="chip p">汚染+${a.pol}</span>`);
-      if (a.al) chips.push(`<span class="chip a">警戒${a.al > 0 ? '+' + Math.round(a.al * stealthMul()) : a.al}</span>`);
-      if (a.m) chips.push(`<span class="chip c">資金-${a.m}</span>`);
-      if (a.r) chips.push(`<span class="chip c">資材-${a.r}</span>`);
-      const res = n && a.pw ? (G.resist[resKey(n)] || 0) : 0;
-      if (res >= .05) chips.push(`<span class="chip res">人類の対策 -${Math.round(res * 100)}%</span>`);
-      if (G.cd[a.key] > 0) chips.push(`<span class="chip c">準備中 ${G.cd[a.key]}か月</span>`);
-      const where = a.t === 'reg' ? r.name : a.t === 'all' ? '全世界' : '';
-      h += `<button class="act" style="--c:${c}" data-a="${a.key}" ${canDo(a) ? '' : 'disabled'}>
-        <span class="nm">${a.name}<small>${where}</small></span><span class="ds">${a.desc}</span><span class="chips">${chips.join('')}</span></button>`;
+  if (G.tab === 'build') {
+    for (const f of FAC) {
+      const c = facCost(f), lock = f.need && !has(f.need), ok = !lock && c.m <= G.money && c.r <= G.mat && !G.over;
+      h += `<button class="act" style="--c:${f.c}" data-f="${f.id}" ${ok ? '' : 'disabled'}>
+        <span class="nm">${f.name}　Lv${G.fac[f.id]}</span><span class="ds">${f.desc}。行動を使わない</span>
+        <span class="chips"><span class="chip g">${facGain(f)}</span><span class="chip c">資金-${c.m}</span>${c.r ? `<span class="chip c">資材-${c.r}</span>` : ''}</span>
+        ${lock ? `<span class="why">研究「${NODE[f.need].name}」が必要</span>` : ''}</button>`;
     }
+  } else {
+    const list = allActs().filter(a => a.tab === G.tab);
+    for (const a of list) {
+      const n = a.node, c = n ? BR[n.br].c : '#9be39b', why = whyNot(a);
+      const where = a.t === 'reg' ? r.name : a.t === 'all' ? '全世界' : '';
+      h += `<button class="act" style="--c:${c}" data-a="${a.key}" ${why ? 'disabled' : ''}>
+        <span class="nm">${a.name}</span><span class="ds">${where ? `<b style="color:var(--text)">${where}</b>　` : ''}${a.desc}</span>
+        <span class="chips">${chipsFor(a, r)}</span>${why && G.ap > 0 ? `<span class="why">${why}</span>` : ''}</button>`;
+    }
+    if (G.tab === 'earn' && !tabs.some(t => !['earn', 'build', 'space'].includes(t.id)))
+      h += `<div class="empty">研究ツリーを伸ばすと、壊し方のタブが増えていく。施設を建てると毎月の収入が増える。</div>`;
   }
-  if (!acts.some(a => a.grp === 'destroy')) h += `<p class="ds" style="color:var(--muted);font-size:13px;margin:6px 2px">まだ何も壊せない。研究ポイントを貯めて「研究ツリー」から研究すると、壊す手段が増えていく。最初は「地球語」から。</p>`;
-  $('acts').innerHTML = h;
+  $('deck').innerHTML = h;
   $('btnEnd').disabled = G.over;
-  $('log').hidden = !G.log.length;
-  $('log').innerHTML = G.log.slice(-30).reverse().map(t => `<p>${t}</p>`).join('');
+  $('btnEnd').classList.toggle('ready', G.ap === 0 && !G.over);
+  const can = NODES.filter(n => nodeState(n) === 'avail' && n.cost <= G.rp).length;
+  $('btnTree').innerHTML = `研究ツリー${can ? `<span class="badge">${can}</span>` : ''}`;
 }
-function logLine(t) { G.log.push(`${dateStr(G.turn)}　${t}`); }
+function setTab(id, dir) {
+  G.tab = id; render();
+  const dk = $('deck'); dk.classList.remove('slide-l', 'slide-r'); void dk.offsetWidth; if (dir) dk.classList.add(dir > 0 ? 'slide-l' : 'slide-r');
+}
+
+// ---------- news (non-blocking, over the map) ----------
+let newsTimer = 0;
+function showNews(items, incTxt) {
+  if (window.FAST) return;
+  const hot = items.some(n => n.hot);
+  $('news').innerHTML = `<div class="newsbar" id="nb" role="status"><div class="t"><span>${dateStr(G.turn - 1)} の地球ニュース</span><span>${incTxt ? '今月の収入 ' + incTxt : ''}</span></div>
+    ${items.slice(0, 4).map(n => `<div class="row ${n.hot ? 'hot' : n.good ? 'good' : ''}"><b>${n.tag}</b><span>${n.text}</span></div>`).join('')}</div>`;
+  $('nb').onclick = closeNews;
+  clearTimeout(newsTimer); newsTimer = setTimeout(closeNews, hot ? 9000 : 6000);
+  if (hot) { const s = $('stage'); s.classList.remove('shake'); void s.offsetWidth; }
+}
+function closeNews() { clearTimeout(newsTimer); $('news').innerHTML = ''; }
 
 // ---------- overlays ----------
 function overlay(html) { $('ovl').innerHTML = `<div class="ov" role="dialog" aria-modal="true">${html}</div>`; }
 function closeOv() { $('ovl').innerHTML = ''; }
-function showNews(items) {
-  overlay(`<div class="card"><div class="kicker">${dateStr(G.turn - 1)} の地球ニュース</div>
-    <div class="news">${items.map(n => `<div class="row ${n.hot ? 'hot' : n.good ? 'good' : ''}"><b>${n.tag}</b><span>${n.text}</span></div>`).join('')}</div>
-    <button class="btn primary" id="ok">${dateStr(G.turn)} へ</button></div>`);
-  $('ok').onclick = closeOv; $('ok').focus();
-}
 function showIntro() {
-  let saved = null; try { saved = JSON.parse(localStorage.getItem('sarachi-save') || 'null'); } catch (e) {}
+  let saved = null; try { saved = JSON.parse(localStorage.getItem('sarachi-save2') || 'null'); } catch (e) {}
   overlay(`<div class="card">
     <div class="kicker">サラチ星 侵略本部より</div>
     <h2>地球をさら地にせよ</h2>
-    <p>サラチ星の偵察員であるあなたは、地球に不時着した。宇宙船は大破、手持ちはゼロ。</p>
-    <p>本星からの指令はひとつ。<strong>10年以内に地球をさら地にすること。</strong>ただし、そのあと我々が住むので、汚しすぎないこと。</p>
-    <p>現地のものを使って、現地を征服しよう。まずはアルバイトと研究から。研究ツリーを伸ばすと、できることが増え、別の系統どうしが組み合わさって新しい手段になる。人類は同じ手を使うほど対策してくる。</p>
-    <div class="controls">${saved && !saved.over ? '<button class="btn" id="cont">続きから</button>' : ''}<button class="btn primary grow" id="start">侵略開始</button></div></div>`);
-  $('start').onclick = () => { G = newGame(); save(); closeOv(); render(); };
+    <p>偵察員のあなたは、地球に<strong>不時着</strong>した。宇宙船は大破、手持ちはほぼゼロ。</p>
+    <p>指令はひとつ。<strong>5年以内に地球をさら地にすること。</strong>ただし、そのあと我々が住むので汚しすぎないこと。</p>
+    <p>現地のもので現地を征服しよう。稼いで施設を建て、研究ツリーを伸ばすと壊し方が増える。別の系統どうしを組み合わせると新しい手口になる。人類は同じ手を使うほど対策してくる。</p>
+    <div class="controls">${saved && !saved.over ? '<button class="btn" id="cont">続きから</button>' : ''}<button class="btn primary grow1" id="start">侵略開始</button></div></div>`);
+  $('start').onclick = () => {
+    G = newGame(); save(); closeOv(); render();
+    playCut('crash', { name: '不時着', where: '日本', val: '+4.0%', pw: 4 });
+    hitRegion('jp');
+  };
   if ($('cont')) $('cont').onclick = () => { G = saved; closeOv(); render(); };
 }
 function showEnding(kind) {
@@ -661,7 +953,7 @@ function showEnding(kind) {
   const trickShare = (G.contrib.trick || 0) / tot;
   let title, body;
   if (kind === 'caught') { title = '正体がバレた'; body = '地球防衛軍に基地を押さえられた。サラチ星人はコンビニの夜勤に戻された。今もレジに立っている。'; }
-  else if (kind === 'time') { title = '期限切れ'; body = `10年たっても人類はしぶとく暮らしていた。本星の総帥が到着し、まだ人がいる地球を見て黙って帰っていった。（さら地率 ${globalSar().toFixed(1)}%）`; }
+  else if (kind === 'time') { title = '期限切れ'; body = `5年たっても人類はしぶとく暮らしていた。本星の総帥が到着し、まだ人がいる地球を見て黙って帰っていった。（さら地率 ${globalSar().toFixed(1)}%）`; }
   else if (gp >= 45) { title = 'さら地にはなった。でも住めない'; body = '地球は見事に更地になった。ただし汚染がひどすぎて、サラチ星人は防護服なしでは外に出られない。本星への報告書には「住めます（たぶん）」と書いた。'; }
   else if (trickShare >= .4) { title = '人類の家に住んでいるだけ'; body = '人類はいなくなったが、街はまるごと残った。サラチ星人は人類のマンションに住み、人類のコンビニの品出しをしている。これは侵略だったのだろうか。'; }
   else if (gp < 15) { title = 'サラチ星人の楽園'; body = '汚染の少ない、まっさらな地球ができあがった。本星から仲間が次々と移住してくる。さあ、ここから自分たちの街を作ろう。'; }
@@ -675,66 +967,71 @@ function showEnding(kind) {
     </div>
     ${kind === 'win' ? '<p style="color:var(--muted);font-size:13px">第2部「作り直し編」は構想中。</p>' : ''}
     <button class="btn primary" id="again">もう一度侵略する</button></div>`);
-  $('again').onclick = () => { G = newGame(); save(); closeOv(); render(); };
+  if (kind === 'win') sfx('chime');
+  $('again').onclick = () => { closeOv(); showIntro(); };
 }
 
 // ---------- research tree ----------
 let treeSel = null;
 const TX = c => 110 + c * 175, TY = r => 18 + r * 100, NW = 140, NH = 44;
-function nodeState(n) {
-  if (has(n.id)) return 'owned';
-  return n.req.every(has) ? 'avail' : 'locked';
-}
+function nodeState(n) { return has(n.id) ? 'owned' : n.req.every(has) ? 'avail' : 'locked'; }
 function treeSvg() {
   const W = TX(4) + NW + 20, H = TY(7) + NH + 20;
   let h = `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" style="display:block">`;
-  for (const k in BR) if (BR[k].row !== undefined) h += `<text class="rowlbl" x="10" y="${TY(BR[k].row) + 27}" fill="${BR[k].c}" style="fill:${BR[k].c}">${BR[k].name}</text>`;
+  for (const k in BR) if (BR[k].row !== undefined) h += `<text class="rowlbl" x="10" y="${TY(BR[k].row) + 27}" style="fill:${BR[k].c}">${BR[k].name}</text>`;
   for (const n of NODES) for (const q of n.req) {
     const p = NODE[q], x1 = TX(p.col) + NW, y1 = TY(p.row) + NH / 2, x2 = TX(n.col), y2 = TY(n.row) + NH / 2, mx = (x1 + x2) / 2;
-    const lit = has(q);
-    h += `<path d="M${x1} ${y1} C${mx} ${y1} ${mx} ${y2} ${x2} ${y2}" fill="none" stroke="${n.br === 'combo' ? '#ffd34d' : '#6c5f92'}" stroke-opacity="${lit ? .9 : .3}" stroke-width="${n.br === 'combo' ? 2 : 1.5}" ${n.br === 'combo' ? 'stroke-dasharray="5 4"' : ''}/>`;
+    h += `<path d="M${x1} ${y1} C${mx} ${y1} ${mx} ${y2} ${x2} ${y2}" fill="none" stroke="${n.br === 'combo' ? '#ffd34d' : '#6c5f92'}" stroke-opacity="${has(q) ? .9 : .3}" stroke-width="${n.br === 'combo' ? 2 : 1.5}" ${n.br === 'combo' ? 'stroke-dasharray="5 4"' : ''}/>`;
   }
   for (const n of NODES) {
     const s = nodeState(n), c = BR[n.br].c, x = TX(n.col), y = TY(n.row);
     const fill = s === 'owned' ? mix(c, '#1d1630', .55) : '#1d1630';
-    h += `<g class="node ${s === 'locked' ? 'locked' : s === 'avail' ? 'avail' : ''} ${treeSel === n.id ? 'sel' : ''}" data-n="${n.id}" tabindex="0" role="button" aria-label="${n.name}">
+    const afford = s === 'avail' && n.cost <= G.rp;
+    h += `<g class="node ${s === 'locked' ? 'locked' : s === 'avail' ? 'avail' : ''} ${afford ? 'afford' : ''} ${treeSel === n.id ? 'sel' : ''}" data-n="${n.id}" tabindex="0" role="button" aria-label="${n.name}">
       <rect x="${x}" y="${y}" width="${NW}" height="${NH}" rx="${n.br === 'combo' ? 14 : 6}" fill="${fill}" stroke="${c}"/>
       <text x="${x + 8}" y="${y + 18}" fill="#efe9f7" style="font-size:${n.name.length > 9 ? 11 : 13}px">${n.name}</text>
-      <text class="cost" x="${x + 8}" y="${y + 35}" fill="${s === 'owned' ? c : '#a99fc0'}">${s === 'owned' ? '研究済み' : '研究 ' + n.cost}</text></g>`;
+      <text class="cost" x="${x + 8}" y="${y + 35}" fill="${s === 'owned' ? c : afford ? '#ffd34d' : '#a99fc0'}">${s === 'owned' ? '研究済み' : '研究 ' + n.cost + (afford ? '　できる！' : '')}</text></g>`;
   }
   return h + '</svg>';
 }
 function showTree() {
-  overlay(`<div class="tree"><header><h2>研究ツリー</h2><span class="stat"><b>研究</b>${G.rp}</span><button class="btn" id="tclose">閉じる</button></header>
+  closeCut();
+  overlay(`<div class="tree"><header><h2>研究ツリー</h2><span class="stat" id="trp"></span><button class="btn" id="tclose">閉じる</button></header>
     <div class="tscroll" id="tscroll">${treeSvg()}</div><div class="tdetail" id="tdetail"></div></div>`);
   $('tclose').onclick = () => { closeOv(); render(); };
   const sc = $('tscroll');
   sc.addEventListener('click', e => { const g = e.target.closest('[data-n]'); if (g) { treeSel = g.dataset.n; refreshTree(); } });
   sc.addEventListener('keydown', e => { const g = e.target.closest('[data-n]'); if (g && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); treeSel = g.dataset.n; refreshTree(); } });
-  if (!treeSel) treeSel = (NODES.find(n => nodeState(n) === 'avail') || NODES[0]).id;
+  const av = NODES.filter(n => nodeState(n) === 'avail');
+  if (!treeSel || has(treeSel)) treeSel = (av.find(n => n.cost <= G.rp) || av[0] || NODES[0]).id;
   refreshTree(false);
 }
 function refreshTree(redraw = true) {
   if (redraw) { const sc = $('tscroll'), l = sc.scrollLeft, t = sc.scrollTop; sc.innerHTML = treeSvg(); sc.scrollLeft = l; sc.scrollTop = t; }
-  document.querySelector('.tree header .stat').innerHTML = `<b>研究</b>${G.rp}`;
+  $('trp').innerHTML = `<b>研究</b>${G.rp}`;
   const n = NODE[treeSel], s = nodeState(n);
   const reqTxt = n.req.length ? '必要：' + n.req.map(q => (has(q) ? '✓' : '') + NODE[q].name).join(' ＋ ') : '';
   let btn;
   if (s === 'owned') btn = '<button class="btn" disabled>研究済み</button>';
   else if (s === 'locked') btn = '<button class="btn" disabled>前の研究が必要</button>';
-  else btn = `<button class="btn primary" id="tbuy" ${G.rp < n.cost ? 'disabled' : ''}>研究する（${n.cost}）</button>`;
+  else if (G.rp < n.cost) btn = `<button class="btn" disabled>あと ${n.cost - G.rp}</button>`;
+  else btn = `<button class="btn primary" id="tbuy">研究する（${n.cost}）</button>`;
   $('tdetail').innerHTML = `<div class="tx"><strong style="color:${BR[n.br].c}">${n.name}</strong>　<span style="color:var(--muted)">${BR[n.br].name}　${reqTxt}</span><br>${n.desc}</div>${btn}`;
   if ($('tbuy')) $('tbuy').onclick = () => {
     if (G.rp < n.cost) return;
     G.rp -= n.cost; G.owned[n.id] = 1;
     if (n.id === 'crew' || n.id === 'h3') G.ap++;
     if (n.id === 'h3') G.hp++;
-    logLine(`研究完了：${n.name}`); save(); refreshTree();
+    sfx('build');
+    const t = n.act && n.act.t !== 'none' ? n.br : null;
+    toast(`研究完了：${n.name}${t && !G.seenTab[t] ? `　「${BR[t].name}」タブが増えた` : ''}`);
+    save(); refreshTree();
   };
 }
+function toast(t) { const el = document.createElement('div'); el.className = 'toast'; el.textContent = t; document.body.appendChild(el); setTimeout(() => el.remove(), 1400); }
 
 // ---------- save ----------
-function save() { try { localStorage.setItem('sarachi-save', JSON.stringify(G)); } catch (e) {} }
+function save() { if (window.FAST) return; try { localStorage.setItem('sarachi-save2', JSON.stringify(G)); } catch (e) {} }
 
 // ---------- boot ----------
 G = newGame();
@@ -743,10 +1040,26 @@ render();
 showIntro();
 $('btnEnd').onclick = endTurn;
 $('btnTree').onclick = showTree;
+$('snd').onclick = () => { soundOn = !soundOn; $('snd').textContent = soundOn ? '音 ON' : '音 OFF'; $('snd').setAttribute('aria-pressed', soundOn); try { localStorage.setItem('sarachi-sound', soundOn ? 'on' : 'off'); } catch (e) {} if (soundOn) sfx('coin'); };
+$('snd').textContent = soundOn ? '音 ON' : '音 OFF';
 $('regs').addEventListener('click', e => { const b = e.target.closest('[data-r]'); if (b) { G.sel = b.dataset.r; render(); } });
-$('acts').addEventListener('click', e => {
+$('tabs').addEventListener('click', e => { const b = e.target.closest('[data-t]'); if (!b) return; const ts = tabsList().map(t => t.id); setTab(b.dataset.t, Math.sign(ts.indexOf(b.dataset.t) - ts.indexOf(G.tab))); });
+$('deck').addEventListener('click', e => {
+  const f = e.target.closest('[data-f]'); if (f) { build(FAC.find(x => x.id === f.dataset.f)); return; }
   const b = e.target.closest('[data-a]'); if (!b) return;
   const a = allActs().find(x => x.key === b.dataset.a); if (a) doAct(a);
 });
-document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('ovl').innerHTML && !document.querySelector('#ok,#start,#again')) { closeOv(); render(); } });
+// swipe left / right on the cards to switch tabs
+let sw = null;
+$('deck').addEventListener('pointerdown', e => { sw = { x: e.clientX, y: e.clientY }; });
+$('deck').addEventListener('pointerup', e => {
+  if (!sw) return; const dx = e.clientX - sw.x, dy = e.clientY - sw.y; sw = null;
+  if (Math.abs(dx) < 50 || Math.abs(dy) > Math.abs(dx) * .7) return;
+  const ts = tabsList().map(t => t.id), i = ts.indexOf(G.tab), j = (i + (dx < 0 ? 1 : -1) + ts.length) % ts.length;
+  setTab(ts[j], dx < 0 ? 1 : -1);
+});
+document.addEventListener('keydown', e => {
+  if ($('ovl').innerHTML) { if (e.key === 'Escape' && $('tclose')) { closeOv(); render(); } return; }
+  if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') { const ts = tabsList().map(t => t.id), i = ts.indexOf(G.tab), dir = e.key === 'ArrowRight' ? 1 : -1; setTab(ts[(i + dir + ts.length) % ts.length], dir); }
+});
 </script>
