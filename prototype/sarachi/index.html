@@ -1,0 +1,752 @@
+<title>地球さら地化計画</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=DotGothic16&family=M+PLUS+1p:wght@500;800&display=swap">
+<style>
+/* Layout: an alien invader's war table. Status strip on top, the world map on the left,
+   orders on the right; the research tree opens as a full overlay. Deliberately one dark look. */
+:root {
+  --space: #120d1f;
+  --panel: #1d1630;
+  --panel-2: #261d3f;
+  --line: #3b2f5c;
+  --text: #efe9f7;
+  --muted: #a99fc0;
+  --scorch: #e3a252;
+  --toxic: #d94fd0;
+  --human: #5fb8ff;
+  --danger: #ff5a5a;
+  --gold: #ffd34d;
+  --land: #4b8a5f;
+  --sea: #10284a;
+  --f-display: 'Dela Gothic One', 'Hiragino Sans', 'Noto Sans JP', sans-serif;
+  --f-dot: 'DotGothic16', 'Osaka-Mono', 'MS Gothic', monospace;
+  --f-body: 'M PLUS 1p', 'Hiragino Sans', 'Noto Sans JP', 'Yu Gothic', system-ui, sans-serif;
+  color-scheme: dark;
+}
+html, body { height: 100%; }
+body {
+  margin: 0;
+  background: var(--space);
+  background-image: radial-gradient(1px 1px at 12% 20%, #fff8 50%, transparent 51%),
+    radial-gradient(1px 1px at 72% 12%, #fff6 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 40% 80%, #fff5 50%, transparent 51%),
+    radial-gradient(1px 1px at 88% 66%, #fff7 50%, transparent 51%);
+  color: var(--text);
+  font-family: var(--f-body);
+  font-size: 15px;
+  box-sizing: border-box;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 12px;
+  overflow-x: hidden;
+}
+* { box-sizing: border-box; }
+button { font: inherit; color: inherit; cursor: pointer; }
+button:focus-visible, [tabindex]:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+.app { max-width: 1280px; margin: 0 auto; display: flex; flex-direction: column; gap: 10px; }
+
+/* status strip */
+.top { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; }
+.logo { font-family: var(--f-display); font-size: 22px; letter-spacing: .04em; color: var(--scorch); margin-right: auto; text-wrap: balance; }
+.logo small { display: block; font-family: var(--f-dot); font-size: 12px; color: var(--muted); letter-spacing: .1em; }
+.stats { display: flex; flex-wrap: wrap; gap: 6px; }
+.stat { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 4px 9px; font-family: var(--f-dot); font-variant-numeric: tabular-nums; font-size: 15px; display: flex; gap: 6px; align-items: baseline; }
+.stat b { font-weight: normal; font-size: 11px; color: var(--muted); letter-spacing: .08em; }
+.stat.alert { min-width: 150px; }
+.bar { height: 6px; width: 70px; background: #0006; border-radius: 3px; overflow: hidden; align-self: center; }
+.bar i { display: block; height: 100%; background: var(--human); transition: width .4s; }
+.hp { color: var(--danger); letter-spacing: 2px; }
+
+.main { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 12px; align-items: start; }
+@media (max-width: 880px) { .main { grid-template-columns: minmax(0, 1fr); } }
+
+/* map */
+.mapbox { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 10px; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.earth { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.earth .big { font-family: var(--f-display); font-size: 34px; color: var(--scorch); font-variant-numeric: tabular-nums; line-height: 1; }
+.earth .lbl { font-size: 12px; color: var(--muted); letter-spacing: .1em; }
+.earth .goal { margin-left: auto; font-family: var(--f-dot); font-size: 13px; color: var(--muted); }
+.gauge { height: 10px; background: #0007; border-radius: 5px; overflow: hidden; position: relative; }
+.gauge i { position: absolute; inset: 0 auto 0 0; background: linear-gradient(90deg, #a5602a, var(--scorch)); transition: width .5s; }
+.gauge::after { content: ""; position: absolute; left: 95%; top: 0; bottom: 0; width: 2px; background: var(--gold); }
+svg.map { width: 100%; height: auto; display: block; border-radius: 8px; background: var(--sea); max-width: 100%; }
+.reg { cursor: pointer; stroke: #0c1a30; stroke-width: 1; transition: fill .4s; }
+.reg.sel { stroke: var(--gold); stroke-width: 2.4; }
+.rlabel { font-family: var(--f-dot); font-size: 11px; fill: #fff; paint-order: stroke; stroke: #000a; stroke-width: 3px; pointer-events: none; text-anchor: middle; }
+.boom { fill: none; stroke-width: 3; animation: boom .9s ease-out forwards; }
+@keyframes boom { from { r: 2; opacity: 1; } to { r: 46; opacity: 0; } }
+.pop { font-family: var(--f-display); font-size: 16px; text-anchor: middle; paint-order: stroke; stroke: #000; stroke-width: 3px; animation: pop 1.2s ease-out forwards; }
+@keyframes pop { from { transform: translateY(0); opacity: 1; } to { transform: translateY(-26px); opacity: 0; } }
+.streak { stroke-width: 3; stroke-linecap: round; animation: streak .5s ease-in forwards; }
+@keyframes streak { from { stroke-dashoffset: 120; } to { stroke-dashoffset: 0; } }
+.shake { animation: shake .35s; }
+@keyframes shake { 25% { transform: translate(3px, -2px); } 50% { transform: translate(-3px, 2px); } 75% { transform: translate(2px, 1px); } }
+@media (prefers-reduced-motion: reduce) { .boom, .pop, .streak, .shake { animation-duration: .01s; } }
+
+.regs { display: flex; flex-wrap: wrap; gap: 5px; }
+.regs button { border: 1px solid var(--line); background: var(--panel-2); border-radius: 5px; padding: 3px 8px; font-size: 12px; display: flex; gap: 5px; align-items: baseline; }
+.regs button span { font-family: var(--f-dot); color: var(--scorch); font-variant-numeric: tabular-nums; }
+.regs button[aria-pressed="true"] { border-color: var(--gold); background: #3a2f12; }
+.rinfo { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; font-size: 13px; align-items: center; }
+.rinfo h3 { grid-column: 1 / -1; margin: 0; font-family: var(--f-display); font-weight: normal; font-size: 18px; }
+.rinfo .k { color: var(--muted); font-size: 12px; }
+.rinfo .trait { grid-column: 1 / -1; color: var(--human); font-size: 12px; }
+.mini { height: 8px; background: #0007; border-radius: 4px; overflow: hidden; }
+.mini i { display: block; height: 100%; }
+
+.controls { display: flex; gap: 8px; flex-wrap: wrap; }
+.btn { border: 1px solid var(--line); background: var(--panel-2); border-radius: 8px; padding: 10px 14px; font-weight: 800; }
+.btn:hover { border-color: var(--muted); }
+.btn.primary { background: var(--scorch); color: #2a1606; border-color: var(--scorch); }
+.btn.primary:hover { filter: brightness(1.08); }
+.btn[disabled] { opacity: .4; cursor: default; }
+.grow { flex: 1; }
+
+/* orders */
+.orders { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 10px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.orders h2 { margin: 0; font-family: var(--f-display); font-weight: normal; font-size: 17px; display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.orders h2 span { font-family: var(--f-dot); font-size: 13px; color: var(--muted); }
+.list { display: flex; flex-direction: column; gap: 6px; max-height: 640px; overflow-y: auto; padding-right: 2px; }
+.grp { font-size: 11px; letter-spacing: .14em; color: var(--muted); margin-top: 4px; }
+.act { text-align: left; border: 1px solid var(--line); border-left: 4px solid var(--c, var(--line)); background: var(--panel-2); border-radius: 6px; padding: 7px 10px; display: flex; flex-direction: column; gap: 3px; }
+.act:hover:not([disabled]) { border-color: var(--c, var(--muted)); }
+.act[disabled] { opacity: .42; cursor: default; }
+.act .nm { font-weight: 800; display: flex; justify-content: space-between; gap: 8px; }
+.act .nm small { font-weight: 500; color: var(--muted); font-size: 11px; white-space: nowrap; }
+.act .ds { font-size: 12px; color: var(--muted); }
+.chips { display: flex; flex-wrap: wrap; gap: 4px; font-family: var(--f-dot); font-size: 12px; }
+.chip { padding: 1px 6px; border-radius: 4px; background: #0005; }
+.chip.s { color: var(--scorch); } .chip.p { color: var(--toxic); } .chip.a { color: var(--human); } .chip.g { color: #9be39b; } .chip.c { color: var(--muted); }
+.chip.res { color: var(--danger); }
+
+.log { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px; font-size: 13px; color: var(--muted); max-height: 110px; overflow-y: auto; }
+.log p { margin: 2px 0; }
+.log p:first-child { color: var(--text); }
+
+/* overlays */
+.ov { position: fixed; inset: 0; background: #07040fe6; z-index: 20; display: flex; align-items: center; justify-content: center;
+  padding: max(12px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) max(12px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 20px; width: min(620px, 100%); max-height: 100%; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
+.card h2 { margin: 0; font-family: var(--f-display); font-weight: normal; font-size: 24px; color: var(--scorch); text-wrap: balance; }
+.card p { margin: 0; line-height: 1.75; }
+.news { border-top: 2px solid var(--scorch); padding-top: 8px; display: flex; flex-direction: column; gap: 6px; }
+.news .row { display: grid; grid-template-columns: 5.5em 1fr; gap: 8px; font-size: 14px; line-height: 1.5; }
+.news .row b { font-family: var(--f-dot); font-weight: normal; font-size: 12px; color: var(--muted); padding-top: 2px; }
+.news .row.hot b { color: var(--danger); }
+.news .row.good b { color: var(--scorch); }
+.kicker { font-family: var(--f-dot); font-size: 13px; color: var(--muted); letter-spacing: .12em; }
+
+.tree { width: min(1180px, 100%); height: 100%; max-height: 100%; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; display: flex; flex-direction: column; overflow: hidden; }
+.tree header { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+.tree header h2 { margin: 0; font-family: var(--f-display); font-weight: normal; font-size: 20px; margin-right: auto; }
+.tscroll { overflow: auto; flex: 1; min-height: 0; }
+.tdetail { border-top: 1px solid var(--line); padding: 10px 14px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; min-height: 72px; }
+.tdetail .tx { flex: 1; min-width: 220px; font-size: 13px; line-height: 1.6; }
+.tdetail .tx strong { font-size: 16px; }
+.node { cursor: pointer; }
+.node rect { stroke-width: 1.5; }
+.node text { font-family: var(--f-body); font-size: 13px; font-weight: 800; pointer-events: none; }
+.node .cost { font-family: var(--f-dot); font-size: 11px; font-weight: normal; }
+.node.locked { opacity: .32; }
+.node.avail rect { animation: glow 1.6s ease-in-out infinite; }
+@keyframes glow { 50% { stroke-opacity: .35; } }
+.node.sel rect { stroke: var(--gold) !important; stroke-width: 3; }
+.rowlbl { font-family: var(--f-dot); font-size: 12px; fill: var(--muted); }
+</style>
+
+<div class="app" id="app">
+  <div class="top">
+    <div class="logo">地球さら地化計画<small>サラチ星人 地球侵略作戦卓</small></div>
+    <div class="stats" id="stats"></div>
+  </div>
+  <div class="main">
+    <section class="mapbox" id="mapbox">
+      <div class="earth">
+        <div><div class="lbl">地球さら地率</div><div class="big" id="gsar">0.0%</div></div>
+        <div><div class="lbl">平均汚染</div><div class="big" id="gpol" style="color:var(--toxic);font-size:22px">0</div></div>
+        <div class="goal" id="goal"></div>
+      </div>
+      <div class="gauge"><i id="ggauge" style="width:0"></i></div>
+      <svg class="map" id="map" viewBox="0 0 720 330" role="img" aria-label="世界地図"></svg>
+      <div class="regs" id="regs" role="group" aria-label="地域を選ぶ"></div>
+      <div class="rinfo" id="rinfo"></div>
+      <div class="controls">
+        <button class="btn" id="btnTree">研究ツリー</button>
+        <button class="btn primary grow" id="btnEnd">今月を終える</button>
+      </div>
+    </section>
+    <section class="orders">
+      <h2>作戦 <span id="apline"></span></h2>
+      <div class="list" id="acts"></div>
+    </section>
+  </div>
+  <div class="log" id="log"></div>
+</div>
+<div id="ovl"></div>
+
+<script>
+// ---------- world ----------
+const P = (lon, lat) => [(lon + 180) * 2, (90 - lat) * 2 - 20];
+const REG = [
+  { id: 'na', name: '北米', w: 5, trait: { space: .25, weapon: .2 }, tt: '隕石迎撃と防空網が強い（宇宙-25%・兵器-20%）',
+    polys: [[[-165,65],[-140,70],[-95,72],[-75,62],[-60,50],[-80,32],[-82,25],[-97,20],[-105,22],[-117,32],[-125,48],[-140,60]],
+            [[-55,60],[-45,60],[-20,70],[-25,82],[-60,80],[-70,76]]] },
+  { id: 'sa', name: '南米', w: 4, trait: { bio: .15 }, tt: 'ジャングルの生き物がたくましい（生物-15%）',
+    polys: [[[-97,20],[-80,10],[-60,8],[-50,0],[-35,-7],[-40,-22],[-58,-38],[-68,-55],[-75,-45],[-72,-20],[-81,-5],[-85,10]]] },
+  { id: 'eu', name: 'ヨーロッパ', w: 3, trait: { trick: .25 }, tt: '理屈っぽくて電波に流されにくい（からめ手-25%）',
+    polys: [[[-10,36],[-9,43],[-2,48],[-5,58],[5,62],[15,70],[30,70],[40,62],[40,46],[28,40],[20,38],[12,44],[3,42]]] },
+  { id: 'af', name: 'アフリカ', w: 5, trait: { climate: .2 }, tt: '暑さにも干ばつにも慣れている（気候-20%）',
+    polys: [[[-17,15],[-10,30],[0,36],[10,37],[32,31],[43,12],[51,11],[40,-5],[35,-25],[20,-35],[12,-18],[9,4],[-8,5]]] },
+  { id: 'ru', name: 'ロシア・北アジア', w: 5, trait: { climate: .35 }, tt: '寒さには絶対に負けない（気候-35%）',
+    polys: [[[40,46],[40,62],[30,70],[60,72],[100,78],[140,72],[180,68],[170,60],[140,55],[130,48],[90,50],[75,40],[60,50]]] },
+  { id: 'mi', name: '中東・インド', w: 4, trait: { crust: .1 }, tt: '人が多くて復興が速い（復興+30%）', rec: 1.3,
+    polys: [[[28,40],[40,46],[60,50],[75,40],[90,30],[92,22],[80,8],[72,20],[57,25],[52,13],[43,12],[35,30]]] },
+  { id: 'ea', name: '東アジア', w: 4, trait: { weapon: .1 }, tt: '工場が多く、何でもすぐ作り直す（復興+20%）', rec: 1.2,
+    polys: [[[75,40],[90,50],[130,48],[135,42],[122,30],[120,22],[108,18],[105,10],[100,14],[92,22],[90,30]]] },
+  { id: 'jp', name: '日本', w: 1, trait: { bio: .35, crust: .25 }, tt: '怪獣と地震に慣れすぎている（生物-35%・地殻-25%）', base: true,
+    polys: [[[130,31],[131,34],[136,35],[140,36],[142,40],[141,45],[145,44],[140,41],[140,35],[135,33]]] },
+  { id: 'oc', name: 'オセアニア', w: 3, trait: { bio: .25 }, tt: '元から生き物がヤバいので怪獣に驚かない（生物-25%）',
+    polys: [[[114,-22],[122,-18],[132,-12],[142,-11],[153,-25],[150,-37],[140,-38],[130,-32],[116,-34]],
+            [[95,5],[105,-6],[120,-9],[140,-5],[125,5],[110,2]]] },
+];
+const RW = REG.reduce((s, r) => s + r.w, 0);
+
+// ---------- research tree ----------
+const BR = {
+  base:    { name: '基盤',   row: 0, c: '#e8c770' },
+  stealth: { name: '隠密',   row: 1, c: '#8fa6c4' },
+  trick:   { name: 'からめ手', row: 2, c: '#f07ad6' },
+  weapon:  { name: '兵器',   row: 3, c: '#ff6a3d' },
+  space:   { name: '宇宙',   row: 4, c: '#a495ff' },
+  climate: { name: '気候',   row: 5, c: '#4fc3e8' },
+  bio:     { name: '生物',   row: 6, c: '#7ccf6a' },
+  crust:   { name: '地殻',   row: 7, c: '#c98a4a' },
+  combo:   { name: '合わせ技', c: '#ffd34d' },
+};
+// act fields: t = target ('reg' | 'all' | 'none'), pw = さら地 power, dur = turns (power per turn), pol, al = alert,
+// m/r = money/materials cost, gm/gr/grp = gains, cd = cooldown turns
+const NODES = [
+  { id: 'lang', br: 'base', col: 0, row: 0, cost: 8, req: [], name: '地球語', desc: '現地の言葉を覚える。時給が上がり、ほかの研究の入口になる。' },
+  { id: 'shell', br: 'base', col: 1, cost: 30, req: ['lang'], name: 'ペーパーカンパニー', desc: '人間のふりをして会社を作る。',
+    act: { name: '会社経営', t: 'none', gm: 30, desc: '怪しい健康食品を売る' } },
+  { id: 'sci', br: 'base', col: 2, cost: 50, req: ['shell'], name: '地球人科学者を雇う', desc: '毎月の研究が +8。「給料がいいので」と誰も疑わない。' },
+  { id: 'crew', br: 'base', col: 3, cost: 95, req: ['sci'], name: '戦闘員募集', desc: '毎月の行動回数 +1、研究 +3。求人誌に「アットホームな職場です」。' },
+  { id: 'corp', br: 'base', col: 4, cost: 180, req: ['crew'], name: '多国籍企業', desc: '毎月の資金 +60、研究 +6。人類の経済を内側から握る。' },
+
+  { id: 'h1', br: 'stealth', col: 1, cost: 20, req: ['lang'], name: '変装', desc: '人類の警戒の上がり方が 20% 減る。メガネと付けひげ。' },
+  { id: 'h2', br: 'stealth', col: 2, cost: 40, req: ['h1'], name: '情報操作', desc: 'ニュースをごまかせるようになる。',
+    act: { name: 'ごまかす', t: 'none', al: -18, m: 15, desc: '「ただの自然現象です」と専門家に言わせる' } },
+  { id: 'h3', br: 'stealth', col: 3, cost: 115, req: ['h2'], name: '光学迷彩基地', desc: '警戒の上がり方がさらに 20% 減り、基地の耐久と行動回数が +1。' },
+  { id: 'h4', br: 'stealth', col: 4, cost: 190, req: ['h3'], name: '人類にまぎれる', desc: '基地が見つかりにくくなり、警戒が毎月さらに 3 下がる。' },
+
+  { id: 'k1', br: 'trick', col: 1, cost: 30, req: ['lang'], name: 'ネットを止める', desc: '地域の復興を 3 か月止める。人類は何もできなくなる。',
+    act: { name: 'ネットを止める', t: 'reg', pw: 1, freeze: 3, al: 3, m: 5, desc: '3か月 復興が止まる' } },
+  { id: 'k2', br: 'trick', col: 2, cost: 55, req: ['k1'], name: 'だらけ電波', desc: '人類がやる気をなくして街を放っておく。建物は残る。',
+    act: { name: 'だらけ電波', t: 'reg', pw: 2.5, dur: 5, freeze: 5, al: 3, m: 20, desc: '5か月かけてじわじわ無人に' } },
+  { id: 'k3', br: 'trick', col: 3, cost: 130, req: ['k2'], name: '全員を眠らせる', desc: '地域まるごと眠らせる。汚染ゼロ、建物はそのまま。',
+    act: { name: '全員を眠らせる', t: 'reg', pw: 20, al: 7, m: 60, r: 10, desc: '地域まるごと無人に' } },
+  { id: 'k4', br: 'trick', col: 4, cost: 275, req: ['k3'], name: 'よその星へ引っ越し', desc: '「もっといい星があります」と人類を送り出す。',
+    act: { name: '引っ越しツアー', t: 'reg', pw: 45, al: 14, m: 160, r: 30, cd: 3, desc: '地域の人類をまとめて送り出す' } },
+
+  { id: 'w1', br: 'weapon', col: 1, cost: 20, req: ['lang'], name: '手製爆弾', desc: '現地のホームセンターで材料をそろえる。',
+    act: { name: '爆破', t: 'reg', pw: 2.5, pol: 1, al: 4, r: 4, desc: 'ビルをひとつ吹き飛ばす' } },
+  { id: 'w2', br: 'weapon', col: 2, cost: 45, req: ['w1'], name: 'ミサイル', desc: '人類の兵器を見よう見まねで作る。',
+    act: { name: 'ミサイル', t: 'reg', pw: 7, pol: 4, al: 9, m: 25, r: 10, desc: '都市を狙って撃ち込む' } },
+  { id: 'w3', br: 'weapon', col: 3, cost: 115, req: ['w2'], name: '核', desc: 'とにかく強い。そのかわり、その土地には当分住めない。',
+    act: { name: '核ミサイル', t: 'reg', pw: 22, pol: 30, al: 22, m: 80, r: 30, desc: 'すべてを焼き払う' } },
+  { id: 'w4', br: 'weapon', col: 4, cost: 310, req: ['w3', 'x_sat'], name: '惑星破壊砲', desc: '地域を一撃で消し飛ばす。汚染も最大。',
+    act: { name: '惑星破壊砲', t: 'reg', pw: 70, pol: 45, al: 30, m: 200, r: 80, cd: 4, desc: '一撃で地域を消し飛ばす' } },
+
+  { id: 's1', br: 'space', col: 1, cost: 25, req: ['lang'], name: '小石落とし', desc: '壊れた宇宙船の残りで、宇宙から小石を落とす。誰も気づかない。',
+    act: { name: '小石を落とす', t: 'reg', pw: 1.2, al: 1, r: 2, desc: '気づかれにくい' } },
+  { id: 's2', br: 'space', col: 2, cost: 50, req: ['s1'], name: '隕石誘導', desc: '隕石の軌道を少し曲げる。ついでに隕石から資材も取れる。',
+    act: { name: '隕石を落とす', t: 'reg', pw: 9, pol: 2, al: 8, m: 20, r: 15, desc: 'クレーターができる' },
+    act2: { name: '隕石採掘', t: 'none', gr: 25, al: 2, desc: '落ちた隕石から資材を回収する' } },
+  { id: 's3', br: 'space', col: 3, cost: 140, req: ['s2'], name: '小惑星牽引', desc: '小惑星をまるごと引っぱってくる。',
+    act: { name: '小惑星を落とす', t: 'reg', pw: 26, pol: 4, al: 16, m: 70, r: 40, desc: '地域ごとえぐる' } },
+  { id: 's4', br: 'space', col: 4, cost: 360, req: ['s3'], name: '月を落とす', desc: '最終手段。全世界がまとめてさら地に近づく。',
+    act: { name: '月を落とす', t: 'all', pw: 32, pol: 10, al: 40, m: 300, r: 120, cd: 6, desc: '全世界に大打撃' } },
+
+  { id: 'c1', br: 'climate', col: 1, cost: 25, req: ['lang'], name: '雨乞い装置', desc: 'じわじわ効く大雨。',
+    act: { name: '大雨を降らせる', t: 'reg', pw: 1, dur: 4, al: 1, m: 5, desc: '4か月 じわじわ' } },
+  { id: 'c2', br: 'climate', col: 2, cost: 50, req: ['c1'], name: '異常気象', desc: '台風と干ばつを交互に。',
+    act: { name: '異常気象', t: 'reg', pw: 3, dur: 5, pol: 1, al: 4, m: 25, desc: '5か月 じわじわ' } },
+  { id: 'c3', br: 'climate', col: 3, cost: 145, req: ['c2'], name: '氷河期', desc: '全世界を凍らせる。解ければ土地はきれい。',
+    act: { name: '氷河期', t: 'all', pw: 2.5, dur: 8, al: 12, m: 90, r: 20, cd: 8, desc: '全世界 8か月 じわじわ' } },
+  { id: 'c4', br: 'climate', col: 4, cost: 325, req: ['c3'], name: '太陽をいじる', desc: '太陽を少しだけ近づける。',
+    act: { name: '太陽を近づける', t: 'all', pw: 5, dur: 8, pol: 6, al: 25, m: 220, r: 60, cd: 10, desc: '全世界 8か月 灼熱' } },
+
+  { id: 'b1', br: 'bio', col: 1, cost: 30, req: ['lang'], name: '巨大な虫', desc: '虫を大きくする。気持ち悪いので警戒されやすい。',
+    act: { name: '巨大な虫', t: 'reg', pw: 2.5, al: 5, m: 5, r: 3, desc: '街が虫だらけに' } },
+  { id: 'b2', br: 'bio', col: 2, cost: 55, req: ['b1'], name: '怪獣', desc: '現地の生き物を巨大化させて暴れさせる。環境にはやさしい。',
+    act: { name: '怪獣を放つ', t: 'reg', pw: 10, pol: 1, al: 10, m: 30, r: 10, desc: '瓦礫は多いが汚染は少ない' } },
+  { id: 'b3', br: 'bio', col: 3, cost: 145, req: ['b2'], name: '怪獣軍団', desc: '怪獣をまとめて送り込む。',
+    act: { name: '怪獣軍団', t: 'reg', pw: 28, pol: 2, al: 18, m: 90, r: 30, desc: '地域を踏みつぶす' } },
+  { id: 'b4', br: 'bio', col: 4, cost: 290, req: ['b3'], name: '生態系書き換え', desc: '自然が街を飲み込みつづける。復興しても負ける。',
+    act: { name: '生態系を書き換える', t: 'reg', pw: 2.5, dur: 99, al: 15, m: 150, r: 40, desc: 'ずっと 毎月じわじわ' } },
+
+  { id: 'g1', br: 'crust', col: 1, cost: 20, req: ['lang'], name: '穴掘り', desc: '地面を掘る。掘った分だけ資材も手に入る。',
+    act: { name: '穴を掘る', t: 'reg', pw: 1.5, al: 2, gr: 3, desc: '地盤沈下＋資材+3' } },
+  { id: 'g2', br: 'crust', col: 2, cost: 45, req: ['g1'], name: '人工地震', desc: '地下で巨大なドリルを回す。',
+    act: { name: '人工地震', t: 'reg', pw: 8, pol: 1, al: 8, m: 25, r: 10, desc: '街が崩れる' } },
+  { id: 'g3', br: 'crust', col: 3, cost: 125, req: ['g2'], name: '火山一斉噴火', desc: '荒れるが、火山灰で土地は肥えていく。',
+    act: { name: '火山を噴火させる', t: 'reg', pw: 24, pol: 6, al: 16, m: 70, r: 35, desc: '溶岩と灰で埋める' } },
+  { id: 'g4', br: 'crust', col: 4, cost: 280, req: ['g3'], name: '大陸を割る', desc: '大陸に裂け目を入れる。',
+    act: { name: '大陸を割る', t: 'reg', pw: 50, pol: 5, al: 30, m: 180, r: 70, cd: 4, desc: '地域が海に沈む' } },
+
+  // combos: two branches meet. Humanity has never seen these, so they start with no countermeasures.
+  { id: 'x_hyp', br: 'combo', col: 3, row: 2.5, cost: 90, req: ['k2', 'w2'], name: '自爆催眠', desc: 'からめ手＋兵器。人類に自分のミサイルを撃たせる。誰も宇宙人を疑わない。',
+    act: { name: '自爆催眠', t: 'reg', pw: 14, pol: 6, al: 0, m: 40, desc: '警戒が上がらない' } },
+  { id: 'x_sat', br: 'combo', col: 3, row: 3.5, cost: 95, req: ['w2', 's2'], name: '衛星レーザー', desc: '兵器＋宇宙。人類の衛星を乗っ取ってレーザーを撃つ。',
+    act: { name: '衛星レーザー', t: 'reg', pw: 13, pol: 1, al: 6, m: 35, r: 5, desc: '汚染が少ない' } },
+  { id: 'x_dust', br: 'combo', col: 3, row: 4.5, cost: 100, req: ['s2', 'c2'], name: '粉じん氷河期', desc: '宇宙＋気候。隕石で粉じんを巻き上げ、全世界を冷やす。',
+    act: { name: '粉じん氷河期', t: 'all', pw: 1.5, dur: 6, pol: 1, al: 7, m: 45, r: 20, cd: 6, desc: '全世界 6か月 じわじわ' } },
+  { id: 'x_bac', br: 'combo', col: 2, row: 5.5, cost: 55, req: ['c1', 'b1'], name: '浄化バクテリア', desc: '気候＋生物。汚れた土地をきれいにする。後で住むなら必須。',
+    act: { name: '除染する', t: 'reg', clean: 22, m: 20, desc: '汚染 -22' } },
+  { id: 'x_storm', br: 'combo', col: 4, row: 5.5, cost: 200, req: ['c3', 'b3'], name: '怪獣台風', desc: '気候＋生物。怪獣を台風に乗せて世界を一周させる。',
+    act: { name: '怪獣台風', t: 'all', pw: 9, pol: 2, al: 14, m: 120, r: 40, cd: 5, desc: '全世界を一周' } },
+  { id: 'x_mole', br: 'combo', col: 3, row: 6.5, cost: 110, req: ['b2', 'g2'], name: '地底怪獣', desc: '生物＋地殻。地下から街ごと崩す。掘った分の資材も手に入る。',
+    act: { name: '地底怪獣', t: 'reg', pw: 18, pol: 1, al: 10, m: 40, gr: 15, desc: '資材+15' } },
+];
+const NODE = Object.fromEntries(NODES.map(n => [n.id, n]));
+NODES.forEach(n => { if (n.row === undefined) n.row = BR[n.br].row; });
+
+const BASE_ACTS = [
+  { id: 'job', name: 'アルバイト', grp: 'earn', t: 'none', gm: 6, desc: 'コンビニの夜勤。正体はバレていない' },
+  { id: 'junk', name: 'ガラクタ集め', grp: 'earn', t: 'none', gr: 4, desc: '粗大ごみから部品を集める' },
+  { id: 'study', name: '研究に没頭', grp: 'earn', t: 'none', grp_: 1, desc: '図書館に通いつめる' },
+];
+
+// ---------- news templates ----------
+const NEWS = {
+  w1: ['{r}でビルが突然爆発。ガス漏れとみられる', '{r}で謎の爆発。犯行声明はなし'],
+  w2: ['{r}に正体不明のミサイルが着弾', '{r}にミサイル。「どこの国のものでもない」と各国'],
+  w3: ['{r}にきのこ雲。世界が凍りつく', '{r}が焼け野原に。立ち入り禁止区域が広がる'],
+  w4: ['{r}が地図から消えた', '宇宙から光の柱。{r}が一瞬で消える'],
+  s1: ['{r}で小石が降ったとの通報。気のせいと判断', '{r}の屋根に穴。「カラスのしわざ」と住民'],
+  s2: ['{r}に隕石が落下。巨大クレーターが出現', '{r}に隕石。「今年は多いですね」と天文台'],
+  s3: ['小惑星が{r}を直撃', '{r}に小惑星。地形が変わった'],
+  s4: ['月が落ちてきた。世界中で潮が逆巻く', '夜空から月が消えた。どこへ行ったのかは考えたくない'],
+  c1: ['{r}で長雨が続く', '{r}で大雨。洗濯物が乾かない'],
+  c2: ['{r}で異常気象。台風と干ばつが交互に', '{r}で季節がめちゃくちゃに'],
+  c3: ['世界の平均気温が急降下。氷河期の始まりか', '赤道で雪。専門家「ありえない」'],
+  c4: ['太陽が近い。世界中で気温が上がり続ける', '日傘が世界中で売り切れ'],
+  b1: ['{r}に人ほどの大きさのカブトムシ', '{r}で巨大なゴキブリが目撃され、街から人が消えた'],
+  b2: ['{r}に怪獣が上陸', '{r}で怪獣が暴れる。「なぜか強そうに見えない」と目撃者'],
+  b3: ['{r}に怪獣の群れ', '{r}が怪獣の通り道に'],
+  b4: ['{r}でビルが森に飲み込まれていく', '{r}の道路をツタが覆う。もう誰も通れない'],
+  g1: ['{r}で地盤沈下', '{r}で道路に大きな穴'],
+  g2: ['{r}で大地震', '{r}で直下型地震。震源は「真下すぎる」'],
+  g3: ['{r}の火山が一斉に噴火', '{r}が火山灰に埋まる'],
+  g4: ['{r}が真っ二つに割れた', '{r}が海に沈んでいく'],
+  k1: ['{r}でネットが止まる。人々は呆然', '{r}でネットが不通に。誰も何をすればいいかわからない'],
+  k2: ['{r}で「もうどうでもいい」と言う人が急増', '{r}で出勤率が急低下'],
+  k3: ['{r}の全員が眠ったまま起きない', '{r}が静まり返る。建物はそのまま'],
+  k4: ['{r}の人々が宇宙船に乗って旅立った', '「もっといい星があるらしい」{r}が空っぽに'],
+  x_hyp: ['{r}で軍が自国にミサイルを発射。「誤作動」と発表', '{r}で人類どうしの撃ち合い。宇宙人は疑われていない'],
+  x_sat: ['{r}に衛星からレーザー。持ち主は「知らない」', '{r}が空からの光線で焼かれる'],
+  x_dust: ['空が粉じんで暗くなる。世界中で寒さが続く', '太陽が見えない日が続く'],
+  x_bac: ['{r}の汚染が急に消えた。「奇跡」と科学者', '{r}の土がふかふかに'],
+  x_storm: ['怪獣を乗せた台風が世界を一周', '台風の目に怪獣。天気予報士が絶句'],
+  x_mole: ['{r}で街が地下へ沈む', '{r}の地下から巨大な爪'],
+  h2: ['「最近の災害は自然現象」と専門家が会見', '「宇宙人なんているわけがない」と政府'],
+};
+const COUNTER = {
+  weapon: '各国が防空網を強化', space: '隕石迎撃ミサイルが配備された', climate: '異常気象への備えが進む',
+  bio: '各国に怪獣対策課ができた', crust: '耐震工事が急ピッチで進む', trick: '人類が電波よけの帽子をかぶりはじめた',
+  combo: '人類が新しい手口に気づきはじめた',
+};
+
+// ---------- state ----------
+const MAX_TURN = 120;
+let G;
+function newGame() {
+  return {
+    turn: 1, money: 0, mat: 0, rp: 0, ap: 2, alert: 0, hp: 3, maxhp: 3,
+    owned: {}, resist: {}, cd: {}, fx: [], contrib: {}, sel: 'jp', log: [], newsNow: [], over: false, seen: {},
+    reg: Object.fromEntries(REG.map(r => [r.id, { sar: 0, pol: 0, freeze: 0, ghost: 0 }])),
+  };
+}
+const has = id => !!G.owned[id];
+const maxAP = () => 2 + (has('crew') ? 1 : 0) + (has('h3') ? 1 : 0);
+const stealthMul = () => 1 - (has('h1') ? .2 : 0) - (has('h3') ? .2 : 0);
+const rpPerTurn = () => 2 + (has('sci') ? 8 : 0) + (has('crew') ? 3 : 0) + (has('corp') ? 6 : 0);
+const resKey = n => (n.br === 'combo' ? n.id : n.br);
+const globalSar = () => REG.reduce((s, r) => s + G.reg[r.id].sar * r.w, 0) / RW;
+const globalPol = () => REG.reduce((s, r) => s + G.reg[r.id].pol * r.w, 0) / RW;
+const dateStr = t => `侵略${Math.floor((t - 1) / 12) + 1}年目 ${((t - 1) % 12) + 1}月`;
+
+function allActs() {
+  const out = BASE_ACTS.map(a => ({ ...a, key: a.id }));
+  for (const n of NODES) {
+    if (!has(n.id)) continue;
+    if (n.act) out.push({ ...n.act, key: n.id, node: n, grp: n.act.t === 'none' ? 'earn' : (n.act.clean ? 'support' : 'destroy') });
+    if (n.act2) out.push({ ...n.act2, key: n.id + '_2', node: n, grp: 'earn' });
+  }
+  return out;
+}
+function effMul(a, r) {
+  if (!a.node) return 1;
+  const res = (G.resist[resKey(a.node)] || 0) + ((r && r.trait[a.node.br]) || 0);
+  return Math.max(.15, 1 - res);
+}
+function gainOf(a) {
+  if (a.id === 'job') return { m: has('lang') ? 14 : 6 };
+  if (a.id === 'study') return { rp: 6 + (has('sci') ? 6 : 0) };
+  return { m: a.gm || 0, r: a.gr || 0 };
+}
+function canDo(a) {
+  if (G.over || G.ap <= 0) return false;
+  if ((a.m || 0) > G.money || (a.r || 0) > G.mat) return false;
+  if (G.cd[a.key] > 0) return false;
+  if (a.t === 'reg') {
+    const st = G.reg[G.sel];
+    if (a.clean) return st.pol > 0;
+    if (a.pw && st.sar >= 100) return false;
+  }
+  return true;
+}
+
+// ---------- actions ----------
+function doAct(a) {
+  if (!canDo(a)) return;
+  G.ap--; G.money -= a.m || 0; G.mat -= a.r || 0;
+  if (a.cd) G.cd[a.key] = a.cd;
+  const g = gainOf(a);
+  G.money += g.m || 0; G.mat += g.r || 0; G.rp += g.rp || 0;
+  const n = a.node;
+  const targets = a.t === 'all' ? REG : a.t === 'reg' ? [REG.find(r => r.id === G.sel)] : [];
+  let shown = 0;
+  for (const r of targets) {
+    const st = G.reg[r.id];
+    if (a.clean) { st.pol = Math.max(0, st.pol - a.clean); fxPop(r, `汚染-${a.clean}`, 'var(--human)'); continue; }
+    if (a.freeze) st.freeze = Math.max(st.freeze, a.freeze);
+    if (a.dur) G.fx.push({ reg: r.id, pw: a.pw, turns: a.dur, key: n.id, pol: (a.pol || 0) / a.dur });
+    else if (a.pw) shown = applyDmg(r, a.pw * effMul(a, r), n);
+    if (a.pol && !a.dur) st.pol = Math.min(100, st.pol + a.pol);
+    if (a.pw) fxBoom(r, n);
+    if (a.pw && !a.dur) fxPop(r, `+${shown.toFixed(1)}%`, BR[n.br].c);
+    else if (a.dur) fxPop(r, `${a.dur > 50 ? '毎月' : a.dur + 'か月'}`, BR[n.br].c);
+  }
+  if (a.al) G.alert = clamp(G.alert + (a.al > 0 ? a.al * stealthMul() : a.al), 0, 100);
+  if (n && a.pw) { bumpResist(resKey(n)); G.rp += 2; }
+  if (n && n.br !== 'base' && n.br !== 'stealth') {
+    const r = targets[0];
+    const tpl = NEWS[n.id];
+    if (tpl) G.newsNow.push({ tag: '速報', text: pick(tpl).replace('{r}', r ? r.name : '世界') });
+  } else if (n && NEWS[n.id]) G.newsNow.push({ tag: '会見', text: pick(NEWS[n.id]) });
+  logLine(`${a.name}${targets.length === 1 ? '（' + targets[0].name + '）' : a.t === 'all' ? '（全世界）' : ''}`);
+  if (a.pw && !a.dur) { const mb = document.getElementById('mapbox'); mb.classList.remove('shake'); void mb.offsetWidth; mb.classList.add('shake'); }
+  save(); render();
+  checkEnd();
+}
+function applyDmg(r, d, n) {
+  const st = G.reg[r.id];
+  const before = st.sar;
+  st.sar = Math.min(100, st.sar + d);
+  const real = st.sar - before;
+  const k = n ? n.br : 'other';
+  G.contrib[k] = (G.contrib[k] || 0) + real * r.w;
+  if (n && n.br === 'trick') st.ghost += real;
+  return real;
+}
+function bumpResist(k) {
+  const old = G.resist[k] || 0;
+  const v = Math.min(.6, old + .05);
+  G.resist[k] = v;
+  for (const th of [.2, .4, .6]) if (old < th - 1e-9 && v >= th - 1e-9) {
+    const brk = NODE[k] ? 'combo' : k;
+    G.newsNow.push({ tag: '人類の対策', hot: true, text: `${COUNTER[brk]}（${NODE[k] ? NODE[k].name : BR[k].name}の効き目 -${Math.round(v * 100)}%）` });
+  }
+}
+
+// ---------- turn ----------
+function endTurn() {
+  if (G.over) return;
+  const news = G.newsNow; G.newsNow = [];
+  const sarBefore = globalSar(), alertBefore = G.alert;
+  // lasting effects
+  for (const f of G.fx) {
+    const r = REG.find(x => x.id === f.reg), n = NODE[f.key];
+    applyDmg(r, f.pw * effMul({ node: n }, r), n);
+    G.reg[r.id].pol = Math.min(100, G.reg[r.id].pol + (f.pol || 0));
+    f.turns--;
+  }
+  G.fx = G.fx.filter(f => f.turns > 0);
+  // humanity rebuilds
+  for (const r of REG) {
+    const st = G.reg[r.id];
+    if (st.freeze > 0) { st.freeze--; continue; }
+    if (st.sar <= 0 || st.sar >= 100) continue;
+    const rec = (0.2 + G.alert * 0.008) * (r.rec || 1) * (1 - st.pol / 140);
+    st.sar = Math.max(0, st.sar - rec);
+  }
+  // income, research, cooldowns, decay
+  G.rp += rpPerTurn();
+  if (has('corp')) G.money += 60;
+  for (const k in G.cd) if (G.cd[k] > 0) G.cd[k]--;
+  for (const k in G.resist) G.resist[k] = Math.max(0, G.resist[k] - .01);
+  G.alert = clamp(G.alert - 3 - G.alert * .05 - (has('h4') ? 3 : 0), 0, 100);
+  // humanity milestones
+  const ms = [[25, '各国が「連続する謎の災害」について合同調査を始めた'], [50, '地球防衛軍が結成された。復興のスピードが上がる'], [80, '地球防衛軍が「黒幕」の基地を探しはじめた']];
+  for (const [th, t] of ms) if (alertBefore < th && G.alert >= th && !G.seen['a' + th]) { G.seen['a' + th] = 1; news.push({ tag: '人類', hot: true, text: t }); }
+  for (const [th, t] of [[10, '世界の 1 割が更地に'], [25, '世界の 4 分の 1 が更地に'], [50, '世界の半分が更地に。人類は地下へ'], [75, '人類の住める場所が残りわずか']]) {
+    const g = globalSar(); if (sarBefore < th && g >= th && !G.seen['s' + th]) { G.seen['s' + th] = 1; news.push({ tag: '節目', good: true, text: t }); }
+  }
+  // base raid
+  if (G.alert >= 85 && Math.random() < (G.alert - 78) / 60 * (has('h4') ? .5 : 1)) {
+    G.hp--; G.money = Math.floor(G.money * .7); G.mat = Math.floor(G.mat * .7); G.alert = clamp(G.alert - 25, 0, 100);
+    news.push({ tag: '基地襲撃', hot: true, text: `地球防衛軍が基地に突入！ 資金と資材の3割を失った（基地の耐久 残り${G.hp}）` });
+  }
+  if (!news.length) news.push({ tag: '平和', text: pick(['今月は特に何も起きなかった。人類はのんきに暮らしている', '世界は今日も平和。侵略者はアルバイトに励んでいる']) });
+  G.turn++; G.ap = maxAP();
+  save(); render();
+  if (!checkEnd()) showNews(news);
+}
+function checkEnd() {
+  if (G.over) return true;
+  let kind = null;
+  if (globalSar() >= 95) kind = 'win';
+  else if (G.hp <= 0) kind = 'caught';
+  else if (G.turn > MAX_TURN) kind = 'time';
+  if (!kind) return false;
+  G.over = true; save(); showEnding(kind); return true;
+}
+
+// ---------- rendering ----------
+const $ = id => document.getElementById(id);
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const pick = a => a[Math.floor(Math.random() * a.length)];
+const mix = (a, b, t) => { const p = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16)); const A = p(a), B = p(b); return '#' + A.map((x, i) => Math.round(x + (B[i] - x) * t).toString(16).padStart(2, '0')).join(''); };
+function landColor(st) {
+  const s = st.sar / 100;
+  let c = s < .5 ? mix('#4b8a5f', '#8a7a3c', s * 2) : mix('#8a7a3c', '#e2c48a', (s - .5) * 2);
+  if (st.pol > 0) c = mix(c, '#b03aa8', Math.min(.7, st.pol / 110));
+  return c;
+}
+function buildMap() {
+  const svg = $('map');
+  let h = '<defs><pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M40 0H0V40" fill="none" stroke="#ffffff10"/></pattern></defs><rect width="720" height="330" fill="url(#grid)"/>';
+  for (const r of REG) {
+    const pts = r.polys.map(poly => poly.map(([lo, la]) => P(lo, la)));
+    const main = pts[0];
+    r.cx = main.reduce((s, p) => s + p[0], 0) / main.length;
+    r.cy = main.reduce((s, p) => s + p[1], 0) / main.length;
+    if (r.id === 'jp') { r.cx += 20; r.cy += 4; }
+    h += `<g data-r="${r.id}">` + pts.map(p => `<polygon class="reg" data-r="${r.id}" points="${p.map(q => q.join(',')).join(' ')}"/>`).join('') + '</g>';
+  }
+  for (const r of REG) h += `<text class="rlabel" id="lb_${r.id}" x="${r.cx.toFixed(0)}" y="${r.cy.toFixed(0)}"></text>`;
+  const jp = REG.find(r => r.id === 'jp');
+  h += `<g id="basemark" transform="translate(${(jp.cx - 26).toFixed(0)},${(jp.cy - 18).toFixed(0)})"><path d="M0 8 L8 0 L16 8 Z" fill="var(--gold)"/><text x="8" y="-3" class="rlabel" style="font-size:9px">基地</text></g>`;
+  h += '<g id="fxl"></g>';
+  svg.innerHTML = h;
+  svg.addEventListener('click', e => { const t = e.target.closest('[data-r]'); if (t) { G.sel = t.dataset.r; render(); } });
+}
+function fxBoom(r, n) {
+  const l = $('fxl'), c = BR[n.br].c, ns = 'http://www.w3.org/2000/svg';
+  if (n.br === 'space' || n.id === 'x_sat' || n.id === 'w4') {
+    const ln = document.createElementNS(ns, 'line');
+    ln.setAttribute('x1', r.cx - 60); ln.setAttribute('y1', r.cy - 90); ln.setAttribute('x2', r.cx); ln.setAttribute('y2', r.cy);
+    ln.setAttribute('stroke', c); ln.setAttribute('stroke-dasharray', '120'); ln.setAttribute('class', 'streak');
+    l.appendChild(ln); setTimeout(() => ln.remove(), 700);
+  }
+  for (let i = 0; i < 2; i++) {
+    const ci = document.createElementNS(ns, 'circle');
+    ci.setAttribute('cx', r.cx); ci.setAttribute('cy', r.cy); ci.setAttribute('r', 2); ci.setAttribute('stroke', c); ci.setAttribute('class', 'boom');
+    ci.style.animationDelay = (i * .18) + 's';
+    l.appendChild(ci); setTimeout(() => ci.remove(), 1300);
+  }
+}
+function fxPop(r, txt, color) {
+  const l = $('fxl'), t = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+  t.setAttribute('x', r.cx); t.setAttribute('y', r.cy - 14); t.setAttribute('class', 'pop'); t.setAttribute('fill', color); t.textContent = txt;
+  l.appendChild(t); setTimeout(() => t.remove(), 1300);
+}
+function render() {
+  const gs = globalSar(), gp = globalPol();
+  $('stats').innerHTML = `
+    <div class="stat"><b>日付</b>${dateStr(G.turn)}</div>
+    <div class="stat"><b>資金</b>${G.money}</div>
+    <div class="stat"><b>資材</b>${G.mat}</div>
+    <div class="stat"><b>研究</b>${G.rp}<span style="color:var(--muted);font-size:11px">+${rpPerTurn()}/月</span></div>
+    <div class="stat alert"><b>人類の警戒</b>${Math.round(G.alert)}<span class="bar"><i style="width:${G.alert}%;background:${G.alert >= 80 ? 'var(--danger)' : 'var(--human)'}"></i></span></div>
+    <div class="stat"><b>基地</b><span class="hp">${'■'.repeat(G.hp)}${'□'.repeat(Math.max(0, G.maxhp + (has('h3') ? 1 : 0) - G.hp))}</span></div>`;
+  $('gsar').textContent = gs.toFixed(1) + '%';
+  $('gpol').textContent = gp.toFixed(0);
+  $('ggauge').style.width = Math.min(100, gs) + '%';
+  $('goal').textContent = `目標 95%　残り${MAX_TURN - G.turn + 1}か月`;
+  for (const r of REG) {
+    const st = G.reg[r.id];
+    document.querySelectorAll(`polygon[data-r="${r.id}"]`).forEach(p => { p.style.fill = landColor(st); p.classList.toggle('sel', G.sel === r.id); });
+    $('lb_' + r.id).textContent = `${r.id === 'jp' ? '日本' : ''}${st.sar.toFixed(0)}%`;
+  }
+  $('regs').innerHTML = REG.map(x => `<button data-r="${x.id}" aria-pressed="${G.sel === x.id}">${x.name}<span>${G.reg[x.id].sar.toFixed(0)}%</span></button>`).join('');
+  // region panel
+  const r = REG.find(x => x.id === G.sel), st = G.reg[r.id];
+  const fxs = G.fx.filter(f => f.reg === r.id).map(f => `${NODE[f.key].name}（残り${f.turns > 50 ? '∞' : f.turns}）`);
+  $('rinfo').innerHTML = `<h3>${r.name}${r.base ? '<span style="font-size:12px;color:var(--gold);margin-left:8px">基地あり</span>' : ''}</h3>
+    <span class="k">さら地</span><div class="mini"><i style="width:${st.sar}%;background:var(--scorch)"></i></div>
+    <span class="k">汚染</span><div class="mini"><i style="width:${st.pol}%;background:var(--toxic)"></i></div>
+    <div class="trait">特色：${r.tt}</div>
+    ${st.freeze ? `<div class="trait" style="color:var(--muted)">復興停止中（残り${st.freeze}か月）</div>` : ''}
+    ${fxs.length ? `<div class="trait" style="color:var(--muted)">進行中：${fxs.join('、')}</div>` : ''}`;
+  // orders
+  $('apline').textContent = `今月の行動 ${G.ap} / ${maxAP()}`;
+  const acts = allActs();
+  const groups = [['earn', '稼ぐ・調べる'], ['destroy', 'さら地にする'], ['support', '後始末']];
+  let h = '';
+  for (const [g, label] of groups) {
+    const list = acts.filter(a => a.grp === g);
+    if (!list.length) continue;
+    h += `<div class="grp">${label}</div>`;
+    for (const a of list) {
+      const n = a.node, c = n ? BR[n.br].c : '#6c6288';
+      const chips = [];
+      const gain = gainOf(a);
+      if (gain.m) chips.push(`<span class="chip g">資金+${gain.m}</span>`);
+      if (gain.r) chips.push(`<span class="chip g">資材+${gain.r}</span>`);
+      if (gain.rp) chips.push(`<span class="chip g">研究+${gain.rp}</span>`);
+      if (a.pw) {
+        const reg = a.t === 'reg' ? r : null;
+        const v = a.pw * effMul(a, reg);
+        chips.push(`<span class="chip s">さら地+${v.toFixed(1)}${a.dur ? (a.dur > 50 ? '/月' : '×' + a.dur) : ''}${a.t === 'all' ? ' 全世界' : ''}</span>`);
+      }
+      if (a.clean) chips.push(`<span class="chip a">汚染-${a.clean}</span>`);
+      if (a.pol) chips.push(`<span class="chip p">汚染+${a.pol}</span>`);
+      if (a.al) chips.push(`<span class="chip a">警戒${a.al > 0 ? '+' + Math.round(a.al * stealthMul()) : a.al}</span>`);
+      if (a.m) chips.push(`<span class="chip c">資金-${a.m}</span>`);
+      if (a.r) chips.push(`<span class="chip c">資材-${a.r}</span>`);
+      const res = n && a.pw ? (G.resist[resKey(n)] || 0) : 0;
+      if (res >= .05) chips.push(`<span class="chip res">人類の対策 -${Math.round(res * 100)}%</span>`);
+      if (G.cd[a.key] > 0) chips.push(`<span class="chip c">準備中 ${G.cd[a.key]}か月</span>`);
+      const where = a.t === 'reg' ? r.name : a.t === 'all' ? '全世界' : '';
+      h += `<button class="act" style="--c:${c}" data-a="${a.key}" ${canDo(a) ? '' : 'disabled'}>
+        <span class="nm">${a.name}<small>${where}</small></span><span class="ds">${a.desc}</span><span class="chips">${chips.join('')}</span></button>`;
+    }
+  }
+  if (!acts.some(a => a.grp === 'destroy')) h += `<p class="ds" style="color:var(--muted);font-size:13px;margin:6px 2px">まだ何も壊せない。研究ポイントを貯めて「研究ツリー」から研究すると、壊す手段が増えていく。最初は「地球語」から。</p>`;
+  $('acts').innerHTML = h;
+  $('btnEnd').disabled = G.over;
+  $('log').hidden = !G.log.length;
+  $('log').innerHTML = G.log.slice(-30).reverse().map(t => `<p>${t}</p>`).join('');
+}
+function logLine(t) { G.log.push(`${dateStr(G.turn)}　${t}`); }
+
+// ---------- overlays ----------
+function overlay(html) { $('ovl').innerHTML = `<div class="ov" role="dialog" aria-modal="true">${html}</div>`; }
+function closeOv() { $('ovl').innerHTML = ''; }
+function showNews(items) {
+  overlay(`<div class="card"><div class="kicker">${dateStr(G.turn - 1)} の地球ニュース</div>
+    <div class="news">${items.map(n => `<div class="row ${n.hot ? 'hot' : n.good ? 'good' : ''}"><b>${n.tag}</b><span>${n.text}</span></div>`).join('')}</div>
+    <button class="btn primary" id="ok">${dateStr(G.turn)} へ</button></div>`);
+  $('ok').onclick = closeOv; $('ok').focus();
+}
+function showIntro() {
+  let saved = null; try { saved = JSON.parse(localStorage.getItem('sarachi-save') || 'null'); } catch (e) {}
+  overlay(`<div class="card">
+    <div class="kicker">サラチ星 侵略本部より</div>
+    <h2>地球をさら地にせよ</h2>
+    <p>サラチ星の偵察員であるあなたは、地球に不時着した。宇宙船は大破、手持ちはゼロ。</p>
+    <p>本星からの指令はひとつ。<strong>10年以内に地球をさら地にすること。</strong>ただし、そのあと我々が住むので、汚しすぎないこと。</p>
+    <p>現地のものを使って、現地を征服しよう。まずはアルバイトと研究から。研究ツリーを伸ばすと、できることが増え、別の系統どうしが組み合わさって新しい手段になる。人類は同じ手を使うほど対策してくる。</p>
+    <div class="controls">${saved && !saved.over ? '<button class="btn" id="cont">続きから</button>' : ''}<button class="btn primary grow" id="start">侵略開始</button></div></div>`);
+  $('start').onclick = () => { G = newGame(); save(); closeOv(); render(); };
+  if ($('cont')) $('cont').onclick = () => { G = saved; closeOv(); render(); };
+}
+function showEnding(kind) {
+  const gp = globalPol();
+  const tot = Object.values(G.contrib).reduce((s, v) => s + v, 0) || 1;
+  const trickShare = (G.contrib.trick || 0) / tot;
+  let title, body;
+  if (kind === 'caught') { title = '正体がバレた'; body = '地球防衛軍に基地を押さえられた。サラチ星人はコンビニの夜勤に戻された。今もレジに立っている。'; }
+  else if (kind === 'time') { title = '期限切れ'; body = `10年たっても人類はしぶとく暮らしていた。本星の総帥が到着し、まだ人がいる地球を見て黙って帰っていった。（さら地率 ${globalSar().toFixed(1)}%）`; }
+  else if (gp >= 45) { title = 'さら地にはなった。でも住めない'; body = '地球は見事に更地になった。ただし汚染がひどすぎて、サラチ星人は防護服なしでは外に出られない。本星への報告書には「住めます（たぶん）」と書いた。'; }
+  else if (trickShare >= .4) { title = '人類の家に住んでいるだけ'; body = '人類はいなくなったが、街はまるごと残った。サラチ星人は人類のマンションに住み、人類のコンビニの品出しをしている。これは侵略だったのだろうか。'; }
+  else if (gp < 15) { title = 'サラチ星人の楽園'; body = '汚染の少ない、まっさらな地球ができあがった。本星から仲間が次々と移住してくる。さあ、ここから自分たちの街を作ろう。'; }
+  else { title = '荒れ地だけど住める'; body = 'あちこち焦げているが、なんとか住めそうだ。サラチ星人はまず、瓦礫の片付けから始めることにした。'; }
+  const top = Object.entries(G.contrib).sort((a, b) => b[1] - a[1]).slice(0, 3).map(([k, v]) => `${(BR[k] || { name: k }).name} ${Math.round(v / tot * 100)}%`).join('　');
+  overlay(`<div class="card"><div class="kicker">${dateStr(Math.min(G.turn, MAX_TURN))}　計画終了</div><h2>${title}</h2><p>${body}</p>
+    <div class="news">
+      <div class="row"><b>さら地率</b><span>${globalSar().toFixed(1)}%</span></div>
+      <div class="row"><b>平均汚染</b><span>${gp.toFixed(0)}</span></div>
+      <div class="row"><b>主な手段</b><span>${top || 'なし'}</span></div>
+    </div>
+    ${kind === 'win' ? '<p style="color:var(--muted);font-size:13px">第2部「作り直し編」は構想中。</p>' : ''}
+    <button class="btn primary" id="again">もう一度侵略する</button></div>`);
+  $('again').onclick = () => { G = newGame(); save(); closeOv(); render(); };
+}
+
+// ---------- research tree ----------
+let treeSel = null;
+const TX = c => 110 + c * 175, TY = r => 18 + r * 100, NW = 140, NH = 44;
+function nodeState(n) {
+  if (has(n.id)) return 'owned';
+  return n.req.every(has) ? 'avail' : 'locked';
+}
+function treeSvg() {
+  const W = TX(4) + NW + 20, H = TY(7) + NH + 20;
+  let h = `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" style="display:block">`;
+  for (const k in BR) if (BR[k].row !== undefined) h += `<text class="rowlbl" x="10" y="${TY(BR[k].row) + 27}" fill="${BR[k].c}" style="fill:${BR[k].c}">${BR[k].name}</text>`;
+  for (const n of NODES) for (const q of n.req) {
+    const p = NODE[q], x1 = TX(p.col) + NW, y1 = TY(p.row) + NH / 2, x2 = TX(n.col), y2 = TY(n.row) + NH / 2, mx = (x1 + x2) / 2;
+    const lit = has(q);
+    h += `<path d="M${x1} ${y1} C${mx} ${y1} ${mx} ${y2} ${x2} ${y2}" fill="none" stroke="${n.br === 'combo' ? '#ffd34d' : '#6c5f92'}" stroke-opacity="${lit ? .9 : .3}" stroke-width="${n.br === 'combo' ? 2 : 1.5}" ${n.br === 'combo' ? 'stroke-dasharray="5 4"' : ''}/>`;
+  }
+  for (const n of NODES) {
+    const s = nodeState(n), c = BR[n.br].c, x = TX(n.col), y = TY(n.row);
+    const fill = s === 'owned' ? mix(c, '#1d1630', .55) : '#1d1630';
+    h += `<g class="node ${s === 'locked' ? 'locked' : s === 'avail' ? 'avail' : ''} ${treeSel === n.id ? 'sel' : ''}" data-n="${n.id}" tabindex="0" role="button" aria-label="${n.name}">
+      <rect x="${x}" y="${y}" width="${NW}" height="${NH}" rx="${n.br === 'combo' ? 14 : 6}" fill="${fill}" stroke="${c}"/>
+      <text x="${x + 8}" y="${y + 18}" fill="#efe9f7" style="font-size:${n.name.length > 9 ? 11 : 13}px">${n.name}</text>
+      <text class="cost" x="${x + 8}" y="${y + 35}" fill="${s === 'owned' ? c : '#a99fc0'}">${s === 'owned' ? '研究済み' : '研究 ' + n.cost}</text></g>`;
+  }
+  return h + '</svg>';
+}
+function showTree() {
+  overlay(`<div class="tree"><header><h2>研究ツリー</h2><span class="stat"><b>研究</b>${G.rp}</span><button class="btn" id="tclose">閉じる</button></header>
+    <div class="tscroll" id="tscroll">${treeSvg()}</div><div class="tdetail" id="tdetail"></div></div>`);
+  $('tclose').onclick = () => { closeOv(); render(); };
+  const sc = $('tscroll');
+  sc.addEventListener('click', e => { const g = e.target.closest('[data-n]'); if (g) { treeSel = g.dataset.n; refreshTree(); } });
+  sc.addEventListener('keydown', e => { const g = e.target.closest('[data-n]'); if (g && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); treeSel = g.dataset.n; refreshTree(); } });
+  if (!treeSel) treeSel = (NODES.find(n => nodeState(n) === 'avail') || NODES[0]).id;
+  refreshTree(false);
+}
+function refreshTree(redraw = true) {
+  if (redraw) { const sc = $('tscroll'), l = sc.scrollLeft, t = sc.scrollTop; sc.innerHTML = treeSvg(); sc.scrollLeft = l; sc.scrollTop = t; }
+  document.querySelector('.tree header .stat').innerHTML = `<b>研究</b>${G.rp}`;
+  const n = NODE[treeSel], s = nodeState(n);
+  const reqTxt = n.req.length ? '必要：' + n.req.map(q => (has(q) ? '✓' : '') + NODE[q].name).join(' ＋ ') : '';
+  let btn;
+  if (s === 'owned') btn = '<button class="btn" disabled>研究済み</button>';
+  else if (s === 'locked') btn = '<button class="btn" disabled>前の研究が必要</button>';
+  else btn = `<button class="btn primary" id="tbuy" ${G.rp < n.cost ? 'disabled' : ''}>研究する（${n.cost}）</button>`;
+  $('tdetail').innerHTML = `<div class="tx"><strong style="color:${BR[n.br].c}">${n.name}</strong>　<span style="color:var(--muted)">${BR[n.br].name}　${reqTxt}</span><br>${n.desc}</div>${btn}`;
+  if ($('tbuy')) $('tbuy').onclick = () => {
+    if (G.rp < n.cost) return;
+    G.rp -= n.cost; G.owned[n.id] = 1;
+    if (n.id === 'crew' || n.id === 'h3') G.ap++;
+    if (n.id === 'h3') G.hp++;
+    logLine(`研究完了：${n.name}`); save(); refreshTree();
+  };
+}
+
+// ---------- save ----------
+function save() { try { localStorage.setItem('sarachi-save', JSON.stringify(G)); } catch (e) {} }
+
+// ---------- boot ----------
+G = newGame();
+buildMap();
+render();
+showIntro();
+$('btnEnd').onclick = endTurn;
+$('btnTree').onclick = showTree;
+$('regs').addEventListener('click', e => { const b = e.target.closest('[data-r]'); if (b) { G.sel = b.dataset.r; render(); } });
+$('acts').addEventListener('click', e => {
+  const b = e.target.closest('[data-a]'); if (!b) return;
+  const a = allActs().find(x => x.key === b.dataset.a); if (a) doAct(a);
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('ovl').innerHTML && !document.querySelector('#ok,#start,#again')) { closeOv(); render(); } });
+</script>
