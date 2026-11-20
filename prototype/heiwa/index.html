@@ -158,6 +158,7 @@ button.item[disabled] { opacity: .4; cursor: default; }
 .cap .rg { font-size: 12px; opacity: .85; }
 .cap .val { margin-left: auto; font-family: var(--f-display); font-size: clamp(15px, 4cqw, 30px); color: #9ff0b8; white-space: nowrap; animation: capin .3s .4s cubic-bezier(.2,1.6,.4,1) both; }
 .cap .val.bad { color: #ff9a86; }
+.cap .val.ticking { transform: scale(1.12); }
 @keyframes capin { from { transform: scale(1.8); opacity: 0; } }
 .say { position: absolute; right: 3%; top: 6%; max-width: 46%; background: #fff; color: var(--ink); border: 3px solid var(--ink); border-radius: 14px; padding: 5px 12px; font-weight: 800; font-size: clamp(11px, 2.4cqw, 18px); line-height: 1.35; animation: capin .3s 1s both; pointer-events: none; }
 .stamp { position: absolute; left: 44%; top: 40%; transform: translate(-50%, -50%) rotate(-8deg); font-family: var(--f-display); font-size: var(--fs, 7cqw); color: #fff; border: 5px solid #fff; padding: 2px 16px; border-radius: 10px; background: #ff3d8bdd; white-space: nowrap; animation: stamp .35s 1.3s cubic-bezier(.3,1.8,.5,1) both; pointer-events: none; }
@@ -179,6 +180,10 @@ button.item[disabled] { opacity: .4; cursor: default; }
 .confetti { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
 .confetti i { position: absolute; top: -10px; width: 8px; height: 12px; animation: conf linear both; }
 @keyframes conf { from { transform: translateY(0) rotate(0); opacity: 1; } to { transform: translateY(60cqw) rotate(540deg); opacity: .9; } }
+.bwarn { position: absolute; left: 50%; top: 40%; transform: translate(-50%, -50%); font-family: var(--f-display); font-size: clamp(16px, 4.5cqw, 34px); color: #fff; text-shadow: 0 3px 0 #000, 0 0 6px #000; opacity: 0; pointer-events: none; white-space: nowrap; }
+.bwarn.on { opacity: 1; }
+.bwarn.hot { color: #ffd34d; animation: angry .08s linear infinite alternate; }
+.bwarn.hot.fire { color: #ff7a3a; }
 .hypebtn { position: absolute; left: 14px; bottom: 12px; border: 3px solid #fff; background: var(--neon); color: #fff; font-family: var(--f-display); font-size: clamp(16px, 4cqw, 26px); padding: 8px 18px; border-radius: 999px; box-shadow: 0 4px 0 #8a1a4a; }
 .hypebtn[disabled] { opacity: .5; }
 .hypebtn:active:not([disabled]) { transform: translateY(3px); box-shadow: 0 1px 0 #8a1a4a; }
@@ -482,7 +487,18 @@ function concert() {
 }
 
 // ===== boss battle: the gang storms the stage, your fan security holds them back until the song ends =====
-let BT = null;
+var BT = null;
+// boss quirks: each fight asks for a different answer
+const GIM = {
+  junk: { name: '鉄くずバリケード', desc: '途中で鉄くずを投げ込んで、一気に押し込んでくる', ev: [{ t: .5, dur: .03, kind: 'push', amt: .16, warn: '鉄くずの山を持ち上げた…！', text: 'ガシャーン！' }] },
+  buggy: { name: 'バギー突撃', desc: 'エンジン音のあとに突っ込んでくる。その瞬間にあおれ', ev: [{ t: .35, dur: .07, kind: 'charge', warn: 'ブロロロ…エンジン音！', text: '突撃！ あおれ！' }, { t: .72, dur: .07, kind: 'charge', warn: 'ブロロロ…', text: '突撃！ あおれ！' }] },
+  water: { name: '女戦士の盾', desc: '統率がとれていて、あおりが効きにくい。曲の力で押し返せ', hypeMul: .55 },
+  fire: { name: '火炎放射', desc: '炎で警備スタッフがひるむ', ev: [{ t: .3, dur: .08, kind: 'fire', warn: '火炎放射器を構えた！', text: 'ボォォッ！' }, { t: .65, dur: .08, kind: 'fire', warn: 'また構えた！', text: 'ボォォッ！' }] },
+  swamp: { name: '呪い', desc: '警備スタッフが惑わされて、あおりの間隔が長くなる', cdMul: 1.7 },
+  hosp: { name: '麻酔', desc: '曲をゆっくりにされる。最後まで長い', slow: .72 },
+  arena: { name: '王者の手下', desc: '押す力は強いが、あおりに弱い', bossMul: 1.25, hypeMul: 1.7 },
+  castle: { name: '王の親衛隊', desc: '突撃も炎も使ってくる', ev: [{ t: .3, dur: .07, kind: 'charge', warn: '親衛隊が隊列を組んだ…', text: '突撃！ あおれ！' }, { t: .55, dur: .08, kind: 'fire', warn: '火炎放射器だ！', text: 'ボォォッ！' }, { t: .82, dur: .07, kind: 'charge', warn: 'また来る…！', text: '突撃！ あおれ！' }] },
+};
 let SONG_MS = 9000;
 function guardPush(opt) {
   const op = openerPower();
@@ -515,9 +531,9 @@ function openBattle(b) {
     <g id="bnotes"></g></svg>
     <div class="hud"><div class="hrow"><b>${b.encore ? 'アンコール ' : ''}♪「${b.song.title}」</b><span id="bpct">0%</span></div><div class="hbar"><i id="bprog"></i></div>
       <div class="hrow"><span>ステージまで</span><span id="bdist"></span></div><div class="hbar danger"><i id="bpress"></i></div>
-      <div class="hsub">警備スタッフ ${G.guards}人${b.opt.fes && op.length ? '・荒野のバンドたちも加勢' : ''}</div></div>
+      <div class="hsub">${GIM[b.r.id] ? `クセ：${GIM[b.r.id].name}　` : ''}警備スタッフ ${G.guards}人${b.opt.fes && op.length ? '・荒野のバンドたちも加勢' : ''}</div></div>
     <div class="say" style="animation-delay:.2s">${b.r.boss.name}「ステージをぶっ潰せ！」</div>
-    <button class="hypebtn" id="bhype">あおる！</button></div>`;
+    <div class="bwarn" id="bwarn"></div><button class="hypebtn" id="bhype">あおる！</button></div>`;
   $('bhype').onclick = e => { e.stopPropagation(); hype(b); };
   sfx('live', b.song && GEN[b.song.g].hot);
   b.last = performance.now(); b.noteT = 0;
@@ -531,16 +547,23 @@ function guardFig() {
 }
 function hype(b) {
   if (b.cd > 0 || b.done) return;
-  b.hype = .1; b.cd = .22; b.stop = 90;
+  b.hype = .1; b.cd = .22 * ((GIM[b.r.id] || {}).cdMul || 1); b.stop = 90;
   sfx('pop');
   if (!window.FAST && $('bthugs')) { ['bthugs', 'bguards'].forEach((id, i) => { const el = $(id); el.classList.remove('hitA', 'hitB'); void el.getBBox(); el.classList.add(i ? 'hitB' : 'hitA'); }); const f = $('bflash'); f.classList.remove('flash1'); void f.getBBox(); f.classList.add('flash1'); }
   if (!window.FAST && $('bnotes')) { const fx = 560 - b.x * 300; $('bnotes').insertAdjacentHTML('beforeend', `<text class="fly" x="${fx - 40}" y="200" fill="#ffd34d" style="font-family:var(--f-display);font-size:24px;--dx:0px">ウォオオ！</text>`); }
 }
+function curEvent(b) { const q = GIM[b.r.id]; return q && q.ev ? q.ev.find(e => b.t >= e.t - .08 && b.t <= e.t + e.dur) : null; }
 function stepBattle(b, dt, auto) {
-  b.t += dt; b.cd = Math.max(0, b.cd - dt); b.hype = Math.max(0, b.hype - dt);
-  if (auto && b.cd <= 0 && b.x > .12) hype(b);
-  const boss = b.boss * (b.calm ? 1 - .5 * b.t : 1 + .35 * b.t);
-  const ours = b.guard + b.base + b.growth * b.t + (b.hype > 0 ? .9 : 0);
+  const q = GIM[b.r.id] || {};
+  b.t += dt * (q.slow || 1); b.cd = Math.max(0, b.cd - dt); b.hype = Math.max(0, b.hype - dt);
+  const ev = curEvent(b), live = ev && b.t >= ev.t;
+  if (auto && b.cd <= 0 && (b.x > .12 || (ev && ev.kind === 'charge'))) hype(b);
+  let bossMul = q.bossMul || 1, guardMul = 1;
+  if (live && ev.kind === 'charge') bossMul *= b.hype > 0 ? 1 : 2.6;
+  if (live && ev.kind === 'fire') guardMul = .4;
+  if (live && ev.kind === 'push' && !(b.used || {})[ev.t]) { b.used = { ...(b.used || {}), [ev.t]: 1 }; b.x = Math.min(1, b.x + ev.amt); }
+  const boss = b.boss * bossMul * (b.calm ? 1 - .5 * b.t : 1 + .35 * b.t);
+  const ours = b.guard * guardMul + b.base + b.growth * b.t + (b.hype > 0 ? .9 * (q.hypeMul || 1) : 0);
   b.x = Math.max(0, b.x + (boss - ours) * 3.2 * dt);
   if (b.x >= 1) { b.x = 1; endBattle(b, false); return true; }
   if (b.t >= 1) { endBattle(b, true); return true; }
@@ -557,6 +580,9 @@ function battleFrame(now) {
   $('bprog').style.width = (b.t * 100) + '%'; $('bpct').textContent = Math.round(b.t * 100) + '%';
   $('bpress').style.width = (b.x * 100) + '%'; $('bdist').textContent = b.x > .75 ? 'やばい！' : b.x > .4 ? '押されてる' : '持ちこたえてる';
   $('bhype').disabled = b.cd > 0;
+  const ev = curEvent(b), w = $('bwarn');
+  if (ev) { const now = b.t >= ev.t; w.textContent = now ? ev.text : ev.warn; w.className = 'bwarn on ' + (now ? 'hot ' + ev.kind : ''); }
+  else w.className = 'bwarn';
   b.noteT += dt; if (b.noteT > .06) { b.noteT = 0; $('bnotes').insertAdjacentHTML('beforeend', `<text class="fly" x="${R(40, 240).toFixed(0)}" y="190" fill="${pick(['#ffe27a', '#9ff0b8', '#ff9ad0'])}" style="font-size:22px;--dx:${R(20, 120).toFixed(0)}px">♪</text>`); const ns = $('bnotes'); while (ns.childNodes.length > 14) ns.firstChild.remove(); }
   requestAnimationFrame(battleFrame);
 }
@@ -600,7 +626,7 @@ function askEncore(b, d) {
   $('encNo').onclick = () => { $('cut').innerHTML = ''; pausedByCut = false; const r = b.r, st = G.t[r.id], g = GEN[b.song.g]; finishLive(r, st, b.song, d, b.opt.title, `「${b.song.title}」${g.name}を最後まで`, b.opt.fes ? 3 : G.venue, !!b.opt.fes); save(); };
 }
 function encore(b, d) {
-  const nb = { ...b, t: 0, done: false, encore: true, prevD: d, boss: b.boss * 1.2, cd: 0, hype: 0, stop: 0 };
+  const nb = { ...b, used: {}, t: 0, done: false, encore: true, prevD: d, boss: b.boss * 1.2, cd: 0, hype: 0, stop: 0 };
   if (window.FAST) { while (!stepBattle(nb, .01, true)); return; }
   openBattle(nb);
 }
@@ -632,7 +658,7 @@ function finishLive(r, st, song, d, name, where, venue, fes, already) {
   const kind = fes && !already ? 'fes2' : g.hot < 0 ? 'sleep' : g.hot >= 3 ? 'metal' : 'dance';
   const goods = Math.round(10 + song.q * .25);
   G.goods += goods;
-  playCut('live', { kind: already ? 'fes1' : kind, boss: r.boss, win, acts: fes ? [] : openerPower().acts, name, where, val: `殺気 -${d.toFixed(1)}`, hot: g.hot, venue,
+  playCut('live', { kind: already ? 'fes1' : kind, boss: r.boss, win, acts: fes ? [] : openerPower().acts, name, where, val: `殺気 ${Math.round(Math.min(100, st.ten + d))}`, countFrom: Math.min(100, st.ten + d), countTo: st.ten, hot: g.hot, venue,
     say: win ? r.boss.line : st.ten < 30 ? 'ぐ…ぐぬぬ…悪くねえ…' : 'なんだこの音は…！', stamp: win ? `${r.name} 解放！` : '', gold: win });
   news(`${r.name}でライブ。殺気 -${d.toFixed(1)}、物資 +${goods}`);
   if (win) liberate(r);
@@ -918,6 +944,14 @@ function playCut(kind, o) {
     ${o.say ? `<div class="say">${o.boss ? o.boss.name : ''}「${o.say}」</div>` : ''}
     ${o.stamp ? `<div class="stamp ${o.gold ? 'gold' : ''}" style="--fs:${Math.min(8, 66 / o.stamp.length).toFixed(1)}cqw">${o.stamp}</div>` : ''}<div class="skip">タップで閉じる</div></div>`;
   $('cutin').onclick = closeCut;
+  if (o.countFrom != null) {
+    const v = $('cutin').querySelector('.val'), a = o.countFrom, z = o.countTo, t0 = performance.now() + 450;
+    const run = now => { if (!v.isConnected) return; const k = clamp((now - t0) / 1000, 0, 1), e = 1 - (1 - k) ** 3, cur = a + (z - a) * e;
+      v.textContent = `殺気 ${Math.max(0, Math.round(cur))}${k >= 1 ? `（-${(a - z).toFixed(1)}）` : ''}`; v.classList.toggle('ticking', k > 0 && k < 1);
+      if (k > 0 && k < 1 && soundOn && Math.random() < .35) note(400 + (1 - k) * 600, 0, .04, 'square', .03);
+      if (k < 1) requestAnimationFrame(run); };
+    requestAnimationFrame(run);
+  }
   if (kind === 'live') sfx(o.bad ? 'boo' : 'live', o.hot); else if (o.gold || kind === 'award') sfx('win'); else sfx('done');
   if (o.win) setTimeout(() => sfx('win'), 1300);
   if (o.win && $('cutin')) $('cutin').insertAdjacentHTML('beforeend', `<div class="confetti">${Array.from({ length: 40 }, (_, i) => `<i style="left:${R(0, 100).toFixed(0)}%;background:${pick(['#ff3d8b', '#ffd34d', '#9ff0b8', '#7ac8ff', '#fff'])};animation-delay:${(1.2 + R(0, .8)).toFixed(2)}s;animation-duration:${R(1.4, 2.4).toFixed(2)}s"></i>`).join('')}</div>`);
@@ -967,9 +1001,9 @@ function renderLive() {
   const gname = id => GEN[id].name + (G.genres[id] ? '' : '<span style="font-weight:500;color:var(--muted)">（未）</span>');
   if (r.home) $('rinfo').innerHTML = `<h3>${r.name}<small style="color:var(--muted)">あなたたちのねぐら</small></h3>`;
   else if (!st.free && !reach(r.id)) $('rinfo').innerHTML = `<h3>${r.name}<small style="color:var(--muted)">まだ道がない</small></h3>`;
-  else $('rinfo').innerHTML = `<h3>${r.name}<small>${st.free ? '解放済み' : r.final ? '荒野フェスでしか戦えない' : r.war}</small></h3>
+  else $('rinfo').innerHTML = `<h3>${r.name}<small>${st.free ? '解放済み' : r.final ? '荒野フェスでしか戦えない。クセ：' + GIM.castle.desc : r.war}</small></h3>
     ${st.free ? '' : `<div class="tbar"><i style="width:${st.ten}%;background:${tenColor(st.ten)}"></i></div>`}
-    ${st.free || r.final ? '' : `<div class="row"><span>ボス <b>${r.boss.name}</b></span><span>好き <b>${r.likes.map(gname).join('・')}</b></span><span>苦手 <b>${r.hates.map(gname).join('・')}</b></span></div>`}`;
+    ${st.free || r.final ? '' : `<div class="row"><span>ボス <b>${r.boss.name}</b></span>${GIM[r.id] ? `<span>クセ <b>${GIM[r.id].name}</b>（${GIM[r.id].desc}）</span>` : ''}<span>好き <b>${r.likes.map(gname).join('・')}</b></span><span>苦手 <b>${r.hates.map(gname).join('・')}</b></span></div>`}`;
   renderRoom();
 }
 function renderTicker() { $('ticker').innerHTML = G.news.slice(0, 2).map(n => `<div><b>${dateStr(n.w).replace(/ \d週$/, '')}</b>　${n.text}</div>`).join(''); }
