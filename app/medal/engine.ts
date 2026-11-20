@@ -13,8 +13,8 @@ export const TUNING = {
   pusherAmp: 34,
   pusherSpeed: 1.9, // rad/s
   edgeY: 520,
-  payL: 66, // ここから payR までがGET口。外側は没収
-  payR: 294,
+  payL: 52, // ここから payR までがGET口。外側は没収
+  payR: 308,
 
   // メダル
   r: 13,
@@ -31,19 +31,20 @@ export const TUNING = {
   // チャッカー（ゲート）
   gateY: 46,
   gateW: 40,
-  gateSpeed: 1.35,
-  gateMin: 60,
-  gateMax: 300,
+  // 投入口（左右に往復。INは中央に固定）
+  launchSpeed: 150, // px/秒（等速で往復するのでタイミングを読みやすい）
+  launchMin: 34,
+  launchMax: 326,
 
   // スロット
   maxStock: 10,
   reelStops: [0.45, 0.65, 0.85],
   reachExtra: 0.7,
-  pJackpot: 0.02,
-  pBell: 0.10,
-  pCherry: 0.18,
-  payJackpot: 22,
-  payBell: 5,
+  pJackpot: 0.012,
+  pBell: 0.08,
+  pCherry: 0.1,
+  payJackpot: 20,
+  payBell: 4,
   payCherry: 2,
   pFakeReach: 0.35,
   feverTime: 5,
@@ -196,8 +197,9 @@ export interface Game {
   // 台
   phase: number;
   pusherY: number;
-  gatePhase: number;
-  gateX: number;
+  gateX: number; // IN（中央固定）
+  launchX: number; // 投入口の位置
+  launchDir: number;
   stock: number;
   reels: Reels;
   fever: number;
@@ -312,8 +314,9 @@ export function createGame(opts: { save?: Partial<SaveData>; seed?: number } = {
     bagCount: 0,
     phase: 0,
     pusherY: T.pusherMid,
-    gatePhase: 0,
-    gateX: (T.gateMin + T.gateMax) / 2,
+    gateX: T.width / 2,
+    launchX: T.width / 2,
+    launchDir: 1,
     stock: 0,
     reels: { spinning: false, t: 0, result: ["7", "BELL", "CHERRY"], stopped: 3, reach: false, duration: 0 },
     fever: 0,
@@ -500,7 +503,7 @@ function rollReels(g: Game): { result: Symbol[]; reach: boolean } {
     while (s === exclude);
     return s;
   };
-  const pj = T.pJackpot + part(g, "lucky") * 0.025;
+  const pj = T.pJackpot + part(g, "lucky") * 0.01;
   if (r < pj) return { result: ["7", "7", "7"], reach: true };
   if (r < pj + T.pBell) return { result: ["BELL", "BELL", "BELL"], reach: true };
   if (r < pj + T.pBell + T.pCherry) return { result: ["CHERRY", "CHERRY", "CHERRY"], reach: true };
@@ -538,8 +541,15 @@ export function step(g: Game, dt: number, ev: GameEvent[]) {
   g.pusherY = T.pusherMid + Math.sin(g.phase) * (T.pusherAmp + part(g, "pusher") * 7);
 
   // ゲート
-  g.gatePhase += dt * T.gateSpeed;
-  g.gateX = T.gateMin + ((Math.sin(g.gatePhase) + 1) / 2) * (T.gateMax - T.gateMin);
+  // 投入口の往復
+  g.launchX += g.launchDir * T.launchSpeed * dt;
+  if (g.launchX > T.launchMax) {
+    g.launchX = T.launchMax;
+    g.launchDir = -1;
+  } else if (g.launchX < T.launchMin) {
+    g.launchX = T.launchMin;
+    g.launchDir = 1;
+  }
 
   if (g.fever > 0) {
     g.fever -= dt;
@@ -616,17 +626,17 @@ export function step(g: Game, dt: number, ev: GameEvent[]) {
       if (!m.checked && k >= T.gateCheckT) {
         m.checked = true;
         // 通常メダルがINに入ると、そのメダルはスロットに吸い込まれて盤面には落ちない（押し出しとの二択）
-        // 特殊コインと、保留が満タンのときは素通りして盤面へ
+        // 保留が満タンでも吸い込まれる（無駄になる）。特殊コインだけは素通りして盤面へ
         if (m.kind === "normal" && Math.abs(m.x - g.gateX) < (T.gateW + part(g, "gate") * 8) / 2) {
+          m.state = "fall";
+          m.t = 0;
+          m.paid = false;
+          m.y = -999;
           if (g.stock < T.maxStock) {
             g.stock++;
-            m.state = "fall";
-            m.t = 0;
-            m.paid = false;
-            m.y = -999;
             ev.push({ type: "checkin", x: m.x });
-            continue;
           } else ev.push({ type: "stockFull" });
+          continue;
         }
       }
       if (k >= 1) {

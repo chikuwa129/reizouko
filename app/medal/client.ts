@@ -101,7 +101,7 @@ const CSS = `
 .mg-btn:disabled{opacity:.4;cursor:default}
 .mg-btn.primary{background:var(--mg-gold);color:#1a1300;border-color:var(--mg-gold);font-weight:900;font-size:15px;padding:10px 16px}
 .mg-stage{position:relative;width:100%}
-.mg-canvas{display:block;width:100%;max-width:100%;aspect-ratio:360/700;border-radius:10px;touch-action:none;cursor:crosshair}
+.mg-canvas{display:block;width:100%;max-width:100%;aspect-ratio:360/700;border-radius:10px;touch-action:none;cursor:pointer}
 .mg-tray{width:100%;max-width:480px;display:flex;gap:6px;align-items:center;min-height:52px}
 .mg-tray-label{font-size:10px;color:var(--mg-muted);line-height:1.3;text-align:center;flex:0 0 auto}
 .mg-slots{display:flex;gap:6px;flex:1;overflow-x:auto}
@@ -399,7 +399,7 @@ export function mountMedalGame(root: HTMLElement, opts: MountOptions = {}): () =
     </div>
     <div class="mg-stage" data-r="stage">
       <canvas class="mg-canvas" data-r="canvas" aria-label="メダル落としの盤面。タップした位置にメダルを投入"></canvas>
-      <div class="mg-hint" data-r="hint"><div class="a">タップでメダル投入</div><div class="b">長押しで連射<br>INに入るとスロット抽選（盤面には落ちない）<br>目標スコアでラウンドクリア</div></div>
+      <div class="mg-hint" data-r="hint"><div class="a">タップでメダル投入</div><div class="b">投入口は左右に動く。タイミングで落とそう<br>中央のINに入るとスロット抽選（盤面には落ちない）<br>目標スコアでラウンドクリア</div></div>
     </div>
     <div class="mg-tray"><span class="mg-tray-label">特殊<br>コイン</span><div class="mg-slots" data-r="slots"></div></div>
   `;
@@ -424,7 +424,6 @@ export function mountMedalGame(root: HTMLElement, opts: MountOptions = {}): () =
 
   const fx: Fx = { floats: [], parts: [], banner: null, shake: 0, flash: 0, hitstop: 0, gateFlash: 0, combo: 0, comboTimer: 0 };
   let sound: Sound | null = null;
-  let aim = LW / 2;
   let firing = false;
   let fireTimer = 0;
   let overlay: HTMLElement | null = null;
@@ -751,7 +750,8 @@ export function mountMedalGame(root: HTMLElement, opts: MountOptions = {}): () =
           fx.floats.push({ x: e.x, y: TOP + TUNING.gateY - 6, text: "IN!", color: "#7dfcff", t: 0, life: 0.7, size: 20 });
           break;
         case "stockFull":
-          fx.floats.push({ x: g.gateX, y: TOP + TUNING.gateY - 6, text: "MAX", color: "#bbbbbb", t: 0, life: 0.6, size: 14 });
+          s?.play("empty");
+          fx.floats.push({ x: g.gateX, y: TOP + TUNING.gateY - 6, text: "保留満タン", color: "#ff8a8a", t: 0, life: 0.8, size: 14 });
           break;
         case "reelStop":
           s?.play("reelStop", e.index);
@@ -842,7 +842,7 @@ export function mountMedalGame(root: HTMLElement, opts: MountOptions = {}): () =
   const fire = () => {
     if (g.mode !== "play") return;
     const ev: GameEvent[] = [];
-    if (dropMedal(g, aim, ev)) handleEvents(ev);
+    if (dropMedal(g, g.launchX, ev)) handleEvents(ev);
     else sound?.play("empty");
     el.hint.hidden = true;
   };
@@ -864,10 +864,6 @@ export function mountMedalGame(root: HTMLElement, opts: MountOptions = {}): () =
   ro.observe(el.canvas);
 
   // ---------- 入力 ----------
-  const toX = (e: PointerEvent) => {
-    const r = el.canvas.getBoundingClientRect();
-    return ((e.clientX - r.left) / r.width) * LW;
-  };
   const onDown = (e: PointerEvent) => {
     e.preventDefault();
     if (performance.now() < inputLockUntil || overlay) return;
@@ -877,16 +873,13 @@ export function mountMedalGame(root: HTMLElement, opts: MountOptions = {}): () =
       /* ignore */
     }
     ensureSound();
-    aim = toX(e);
     fire();
     firing = true;
     fireTimer = TUNING.autoFireInterval * 2;
   };
-  const onMove = (e: PointerEvent) => (aim = toX(e));
   const onUp = () => (firing = false);
   const noMenu = (e: Event) => e.preventDefault();
   el.canvas.addEventListener("pointerdown", onDown);
-  el.canvas.addEventListener("pointermove", onMove);
   el.canvas.addEventListener("pointerup", onUp);
   el.canvas.addEventListener("pointercancel", onUp);
   el.canvas.addEventListener("contextmenu", noMenu);
@@ -949,14 +942,12 @@ export function mountMedalGame(root: HTMLElement, opts: MountOptions = {}): () =
   const loop = (now: number) => {
     const frame = Math.min(0.1, (now - prev) / 1000);
     prev = now;
-    if (keys.has("ArrowLeft") || keys.has("a")) aim = Math.max(TUNING.wallL, aim - 240 * frame);
-    if (keys.has("ArrowRight") || keys.has("d")) aim = Math.min(TUNING.wallR, aim + 240 * frame);
     if (firing && g.mode === "play") {
       fireTimer -= frame;
       if (fireTimer <= 0) {
         fireTimer += TUNING.autoFireInterval;
         const ev: GameEvent[] = [];
-        if (dropMedal(g, aim, ev)) handleEvents(ev);
+        if (dropMedal(g, g.launchX, ev)) handleEvents(ev);
       }
     }
     if (fx.hitstop > 0) fx.hitstop -= frame;
@@ -996,7 +987,7 @@ export function mountMedalGame(root: HTMLElement, opts: MountOptions = {}): () =
       saveTimer = 0;
       if (g.mode !== "over") persist();
     }
-    render(ctx, g, fx, scale, sprites, aim, settings.shake);
+    render(ctx, g, fx, scale, sprites, settings.shake);
     raf = requestAnimationFrame(loop);
   };
   raf = requestAnimationFrame(loop);
@@ -1052,7 +1043,7 @@ function updateFx(fx: Fx, dt: number) {
   if (fx.comboTimer <= 0) fx.combo = 0;
 }
 
-function render(x: CanvasRenderingContext2D, g: Game, fx: Fx, scale: number, sprites: SpriteSet, aim: number, shakeOn: boolean) {
+function render(x: CanvasRenderingContext2D, g: Game, fx: Fx, scale: number, sprites: SpriteSet, shakeOn: boolean) {
   const T = TUNING;
   x.setTransform(1, 0, 0, 1, 0, 0);
   x.fillStyle = "#0d0f1a";
@@ -1077,47 +1068,52 @@ function render(x: CanvasRenderingContext2D, g: Game, fx: Fx, scale: number, spr
   const gw = T.gateW + part(g, "gate") * 8;
   const gx = g.gateX;
   const lit = fx.gateFlash > 0;
-  x.fillStyle = lit ? "#7dfcff" : "#0a3140";
-  x.strokeStyle = "#7dfcff";
+  const full = g.stock >= T.maxStock;
+  x.fillStyle = lit ? "#7dfcff" : full ? "#40121a" : "#0a3140";
+  x.strokeStyle = full ? "#ff5a6e" : "#7dfcff";
   x.lineWidth = 2;
   roundRect(x, gx - gw / 2, T.gateY - 12, gw, 24, 6);
   x.fill();
   x.stroke();
-  x.fillStyle = lit ? "#002030" : "#7dfcff";
+  x.fillStyle = lit ? "#002030" : full ? "#ff5a6e" : "#7dfcff";
   x.font = "900 13px system-ui, sans-serif";
   x.textAlign = "center";
   x.textBaseline = "middle";
-  x.fillText("IN", gx, T.gateY + 1);
+  x.fillText(full ? "MAX" : "IN", gx, T.gateY + 1);
   // 狙いマーカー（次が特殊コインなら、それを見せて狙わせる）
   const nk = nextKind(g);
   const armedKind = nk && nk !== "normal" ? nk : null;
-  const ax = Math.max(T.wallL + T.r, Math.min(T.wallR - T.r, aim));
-  x.strokeStyle = armedKind ? "rgba(255,210,58,.8)" : "rgba(255,255,255,0.55)";
+  const ax = g.launchX;
+  // レール
+  x.fillStyle = "#2c3352";
+  x.fillRect(T.launchMin - 16, 2, T.launchMax - T.launchMin + 32, 6);
+  x.strokeStyle = armedKind ? "rgba(255,210,58,.8)" : "rgba(255,255,255,0.45)";
   x.setLineDash([4, 4]);
   x.beginPath();
-  x.moveTo(ax, 4);
+  x.moveTo(ax, 18);
   x.lineTo(ax, T.pusherBack);
   x.stroke();
   x.setLineDash([]);
+  // 投入口（ノズル）
+  const ng = x.createLinearGradient(0, 0, 0, 18);
+  ng.addColorStop(0, "#e8ebf7");
+  ng.addColorStop(1, "#7d84a3");
+  x.fillStyle = ng;
+  roundRect(x, ax - 16, 0, 32, 16, 4);
+  x.fill();
+  x.fillStyle = "#1a1f36";
+  x.fillRect(ax - 9, 12, 18, 4);
   if (armedKind) {
     const sp = sprites.get(armedKind)!;
     const w = (sp.width / scale) * (1.15 + 0.08 * Math.sin(g.time * 10));
     x.fillStyle = "rgba(255,210,58,.25)";
     x.beginPath();
-    x.arc(ax, 20, w * 0.62, 0, Math.PI * 2);
+    x.arc(ax, 30, w * 0.62, 0, Math.PI * 2);
     x.fill();
-    x.drawImage(sp, ax - w / 2, 20 - w / 2, w, w);
+    x.drawImage(sp, ax - w / 2, 30 - w / 2, w, w);
     x.font = "900 10px system-ui, sans-serif";
     x.fillStyle = "#ffd23a";
-    x.fillText("NEXT", ax + (ax > LW - 60 ? -30 : 30), 20);
-  } else {
-    x.fillStyle = "#ffffff";
-    x.beginPath();
-    x.moveTo(ax - 7, 2);
-    x.lineTo(ax + 7, 2);
-    x.lineTo(ax, 12);
-    x.closePath();
-    x.fill();
+    x.fillText("NEXT", ax + (ax > LW - 60 ? -30 : 30), 30);
   }
 
   // フィールド（床は明るく、背景は落とす）
