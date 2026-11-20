@@ -19,7 +19,8 @@ export type SoundName =
   | "buy"
   | "explode"
   | "mult"
-  | "over";
+  | "over"
+  | "pin";
 
 export interface Sound {
   resume(): void;
@@ -168,6 +169,9 @@ export function createSound(): Sound {
           break;
         case "over":
           notes([392, 330, 262, 196], 0.16, "triangle", 0.15, 0.25);
+          break;
+        case "pin":
+          if (throttle(name, 45)) tone(3200 * rnd, 0.025, { type: "triangle", vol: 0.035 });
           break;
         case "empty":
           tone(200, 0.08, { type: "square", vol: 0.08 });

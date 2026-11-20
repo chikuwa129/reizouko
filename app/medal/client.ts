@@ -14,6 +14,8 @@ import {
   handPerRound,
   isBad,
   newRun,
+  gateWide,
+  pins,
   nextKind,
   nextRound,
   part,
@@ -710,6 +712,9 @@ export function mountMedalGame(root: HTMLElement, opts: MountOptions = {}): () =
         case "land":
           s?.play("land");
           break;
+        case "pin":
+          s?.play("pin");
+          break;
         case "pay": {
           if (e.pts < 0) {
             s?.play("lost");
@@ -1065,21 +1070,32 @@ function render(x: CanvasRenderingContext2D, g: Game, fx: Fx, scale: number, spr
   // 上段デッキ
   x.fillStyle = "#1a1f36";
   x.fillRect(0, 0, LW, T.pusherBack);
-  const gw = T.gateW + part(g, "gate") * 8;
+  const gw = T.gateW + gateWide(g) * 2;
   const gx = g.gateX;
   const lit = fx.gateFlash > 0;
   const full = g.stock >= T.maxStock;
   x.fillStyle = lit ? "#7dfcff" : full ? "#40121a" : "#0a3140";
   x.strokeStyle = full ? "#ff5a6e" : "#7dfcff";
   x.lineWidth = 2;
-  roundRect(x, gx - gw / 2, T.gateY - 12, gw, 24, 6);
+  roundRect(x, gx - gw / 2, T.gateY - 6, gw, 14, 4);
   x.fill();
   x.stroke();
   x.fillStyle = lit ? "#002030" : full ? "#ff5a6e" : "#7dfcff";
   x.font = "900 13px system-ui, sans-serif";
   x.textAlign = "center";
   x.textBaseline = "middle";
+  x.font = "900 11px system-ui, sans-serif";
   x.fillText(full ? "MAX" : "IN", gx, T.gateY + 1);
+  // 釘
+  for (const p of pins(gateWide(g))) {
+    x.beginPath();
+    x.arc(p.x, p.y, T.pinR + 0.5, 0, Math.PI * 2);
+    x.fillStyle = "#e3e7f5";
+    x.fill();
+    x.lineWidth = 1;
+    x.strokeStyle = "#3c425e";
+    x.stroke();
+  }
   // 狙いマーカー（次が特殊コインなら、それを見せて狙わせる）
   const nk = nextKind(g);
   const armedKind = nk && nk !== "normal" ? nk : null;
@@ -1214,7 +1230,16 @@ function render(x: CanvasRenderingContext2D, g: Game, fx: Fx, scale: number, spr
       x.filter = "none";
       x.globalAlpha = 1;
     } else if (m.state === "drop") {
-      const k = Math.max(0, Math.min(1, m.t / T.dropTime));
+      const deck = T.deckR / T.r; // 釘エリアでは当たり判定に合わせて小さく描く
+      if (m.pin) {
+        draw(m.kind, m.x, m.y, deck);
+        continue;
+      }
+      const k = Math.max(0, Math.min(1, m.t / m.dur));
+      if (m.y0 > 20) {
+        draw(m.kind, m.x, m.y, deck + (1 - deck) * k);
+        continue;
+      }
       x.fillStyle = "rgba(0,0,0,0.3)";
       x.beginPath();
       x.ellipse(m.x + 6 * (1 - k), m.y + 6 * (1 - k), m.r, m.r * 0.8, 0, 0, Math.PI * 2);

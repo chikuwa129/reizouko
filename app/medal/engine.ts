@@ -25,11 +25,20 @@ export const TUNING = {
 
   // 投入
   dropTime: 0.32,
-  gateCheckT: 0.4,
   autoFireInterval: 0.16,
 
   // チャッカー（ゲート）
-  gateY: 46,
+  gateY: 82,
+  // 釘（投入口とINのあいだ）。メダルはここで弾かれて軌道が変わる
+  pinRows: [28, 44, 60],
+  pinGap: 40,
+  pinR: 3,
+  pinNail: 2, // 命釘の締め具合（大きいほどINが狭い）
+  deckR: 9, // 釘エリアでのメダルの当たり判定（転がっている想定で小さめ）
+  deckGravity: 900,
+  pinBounce: 0.45,
+  pinJitter: 120, // 弾かれたときの横方向のばらつき（px/秒）
+  launchThrow: 0.25, // 投入口の移動速度がメダルに乗る割合
   gateW: 40,
   // 投入口（左右に往復。INは中央に固定）
   launchSpeed: 150, // px/秒（等速で往復するのでタイミングを読みやすい）
@@ -112,6 +121,11 @@ export interface Medal {
   t: number;
   sx: number;
   checked: boolean;
+  pin: boolean; // 釘エリアを物理で落下中
+  vx: number;
+  vy: number;
+  y0: number; // 着地までの演出用
+  dur: number;
   paid: boolean;
   tilt: number;
 }
@@ -141,7 +155,7 @@ export const PARTS: Part[] = [
   { id: "slotlink", name: "スロット連動", desc: "スロットが当たるたびに倍率+0.5（そのラウンド）", price: 12, max: 2 },
   { id: "guard", name: "サイドガード", desc: "左右の没収口が狭くなる", price: 10, max: 3 },
   { id: "pusher", name: "ロングプッシャー", desc: "プッシャーの押し出しが深くなる", price: 10, max: 3 },
-  { id: "gate", name: "ワイドゲート", desc: "INゲートが広くなる", price: 6, max: 3 },
+  { id: "gate", name: "ワイドゲート", desc: "INの命釘が開いて入りやすくなる", price: 8, max: 3 },
   { id: "lucky", name: "ラッキー7", desc: "スロットの777が出やすくなる", price: 12, max: 2 },
   { id: "bag", name: "チケット袋", desc: "GETしたメダル5枚ごとにチケット+1", price: 10, max: 2 },
   { id: "spare", name: "予備メダル", desc: "毎ラウンドの手持ち+10枚", price: 8, max: 3 },
@@ -172,7 +186,8 @@ export type GameEvent =
   | { type: "fail" }
   | { type: "gameOver"; round: number }
   | { type: "allClear" }
-  | { type: "clearHold" };
+  | { type: "clearHold" }
+  | { type: "pin"; x: number };
 
 export interface Game {
   medals: Medal[];
@@ -233,6 +248,7 @@ export function mulberry32(seed: number) {
 }
 
 export const part = (g: Game, id: string) => g.parts[id] ?? 0;
+export const gateWide = (g: Game) => part(g, "gate") * 3;
 
 export function baseTarget(round: number) {
   const T = TUNING;
@@ -262,6 +278,28 @@ export function buyMedalsPrice(g: Game) {
   return 6 + g.round * 2;
 }
 
+let pinCache: { x: number; y: number }[] | null = null;
+let pinCacheWide = -1;
+// wide: ワイドゲートによる命釘の開き（片側px）
+export function pins(wide = 0) {
+  if (pinCache && pinCacheWide === wide) return pinCache;
+  const T = TUNING;
+  const out: { x: number; y: number }[] = [];
+  T.pinRows.forEach((y, row) => {
+    const off = row % 2 ? T.pinGap / 2 : 0;
+    for (let x = T.width / 2 - T.pinGap * 4 + off; x <= T.wallR - 10; x += T.pinGap) {
+      if (x < T.wallL + 10) continue;
+      out.push({ x, y });
+    }
+  });
+  // INの左右の「命釘」。ここを抜けたメダルだけがINに入る
+  const half = T.gateW / 2 - T.pinNail + wide;
+  out.push({ x: T.width / 2 - half, y: T.gateY - 10 }, { x: T.width / 2 + half, y: T.gateY - 10 });
+  pinCache = out;
+  pinCacheWide = wide;
+  return out;
+}
+
 function radiusOf(kind: CoinKind) {
   return kind === "big" || kind === "lead" ? TUNING.r * TUNING.bigScale : TUNING.r;
 }
@@ -271,7 +309,7 @@ function massOf(kind: CoinKind) {
 }
 
 function newMedal(g: Game, x: number, y: number, state: MedalState, kind: CoinKind = "normal"): Medal {
-  return { id: g.nextId++, kind, r: radiusOf(kind), x, y, px: x, py: y, state, t: 0, sx: x, checked: false, paid: false, tilt: g.rng() * Math.PI * 2 };
+  return { id: g.nextId++, kind, r: radiusOf(kind), x, y, px: x, py: y, state, t: 0, sx: x, checked: false, pin: false, vx: 0, vy: 0, y0: y, dur: TUNING.dropTime, paid: false, tilt: g.rng() * Math.PI * 2 };
 }
 
 function fillField(g: Game) {
@@ -486,8 +524,10 @@ export function dropMedal(g: Game, x: number, ev: GameEvent[]): boolean {
   kinds.forEach((kind, i) => {
     const r = radiusOf(kind);
     const cx = Math.max(T.wallL + r, Math.min(T.wallR - r, x + (i ? (g.rng() < 0.5 ? -1 : 1) * T.r * 2 : 0)));
-    const m = newMedal(g, cx, 10, "drop", kind);
-    m.t = -i * 0.08;
+    const m = newMedal(g, cx, 16, "drop", kind);
+    m.pin = true;
+    m.vx = g.launchDir * T.launchSpeed * T.launchThrow + (i ? (g.rng() - 0.5) * 60 : 0);
+    m.vy = 60 - i * 40;
     g.medals.push(m);
     ev.push({ type: "drop", x: cx, kind });
   });
@@ -619,15 +659,44 @@ export function step(g: Game, dt: number, ev: GameEvent[]) {
   for (const m of g.medals) {
     m.t += dt;
     if (m.state === "drop") {
-      const k = Math.max(0, Math.min(1, m.t / T.dropTime));
-      const landY = g.pusherY + m.r + 4;
-      m.y = 10 + (landY - 10) * (k * k);
-      m.x = m.sx;
-      if (!m.checked && k >= T.gateCheckT) {
+      if (m.pin) {
+        // 釘エリア: 重力で転がり落ち、釘に当たるとランダムに弾かれる
+        m.vy += T.deckGravity * dt;
+        m.x += m.vx * dt;
+        m.y += m.vy * dt;
+        const rr = T.deckR + T.pinR;
+        for (const p of pins(gateWide(g))) {
+          const dx = m.x - p.x;
+          const dy = m.y - p.y;
+          const d2 = dx * dx + dy * dy;
+          if (d2 >= rr * rr || d2 < 1e-6) continue;
+          const d = Math.sqrt(d2);
+          const nx = dx / d;
+          const ny = dy / d;
+          m.x = p.x + nx * rr;
+          m.y = p.y + ny * rr;
+          const vn = m.vx * nx + m.vy * ny;
+          if (vn < 0) {
+            m.vx -= (1 + T.pinBounce) * vn * nx;
+            m.vy -= (1 + T.pinBounce) * vn * ny;
+            m.vx += (g.rng() - 0.5) * 2 * T.pinJitter;
+            ev.push({ type: "pin", x: m.x });
+          }
+        }
+        if (m.x < T.wallL + T.deckR) {
+          m.x = T.wallL + T.deckR;
+          m.vx = Math.abs(m.vx) * 0.5;
+        } else if (m.x > T.wallR - T.deckR) {
+          m.x = T.wallR - T.deckR;
+          m.vx = -Math.abs(m.vx) * 0.5;
+        }
+        if (m.y < T.gateY) continue;
+        // INの高さに到達
+        m.pin = false;
         m.checked = true;
         // 通常メダルがINに入ると、そのメダルはスロットに吸い込まれて盤面には落ちない（押し出しとの二択）
         // 保留が満タンでも吸い込まれる（無駄になる）。特殊コインだけは素通りして盤面へ
-        if (m.kind === "normal" && Math.abs(m.x - g.gateX) < (T.gateW + part(g, "gate") * 8) / 2) {
+        if (m.kind === "normal" && Math.abs(m.x - g.gateX) < T.gateW / 2 + gateWide(g)) {
           m.state = "fall";
           m.t = 0;
           m.paid = false;
@@ -638,7 +707,17 @@ export function step(g: Game, dt: number, ev: GameEvent[]) {
           } else ev.push({ type: "stockFull" });
           continue;
         }
+        m.x = Math.max(T.wallL + m.r, Math.min(T.wallR - m.r, m.x));
+        m.sx = m.x;
+        m.y0 = m.y;
+        m.dur = 0.12;
+        m.t = 0;
       }
+      // 盤面への着地（演出）
+      const k = Math.max(0, Math.min(1, m.t / m.dur));
+      const landY = g.pusherY + m.r + 4;
+      m.y = m.y0 + (landY - m.y0) * (k * k);
+      m.x = m.sx;
       if (k >= 1) {
         m.state = "field";
         m.t = 0;
