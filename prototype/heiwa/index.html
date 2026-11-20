@@ -255,8 +255,8 @@ const TERR = [
     boss: { name: 'ガラクタ王', role: 'staff', job: 'craft', line: 'こんな音が…鉄くずから出せるのか…！', look: { hair: 'bald', hc: '#8a8a8a', shirt: '#6a6a6a', pads: true, beard: true } } },
   { id: 'buggy', name: '爆走荒野', x: 225, y: 285, ten: 25, likes: ['punk', 'rock'], hates: ['lullaby'], tape: 'punk', war: 'バギーで走り回って何でも轢く',
     boss: { name: '爆走のジン', role: 'band', part: 'dr', line: '俺の太鼓より…熱いじゃねえか', look: { hair: 'mohawk', hc: '#d0452f', shirt: '#2a1f1a', pads: true } } },
-  { id: 'water', name: '水の砦', x: 345, y: 95, ten: 45, likes: ['ballad', 'enka'], hates: ['punk'], tape: 'enka', war: '水を独り占めして高値で売る',
-    boss: { name: 'オアシス婆', role: 'staff', job: 'manager', line: '水より…しみるねぇ', look: { hair: 'bun', hc: '#eeeeee', shirt: '#3f8fc0' } } },
+  { id: 'water', name: '水の砦', x: 345, y: 95, ten: 45, likes: ['ballad', 'enka'], hates: ['punk'], tape: 'enka', war: 'アマゾネスの女戦士たちが水を独り占めしている',
+    boss: { name: '砦の女王レイラ', role: 'staff', job: 'manager', line: '…水より、しみるじゃない。気に入ったわ', look: { hair: 'long', hc: '#7a2a1a', shirt: '#8a5a2a', skin: '#c98d5e', fem: true, band: '#e0a020' } } },
   { id: 'fire', name: '火炎峡谷', x: 370, y: 230, ten: 50, likes: ['metal', 'punk'], hates: ['enka'], tape: 'gospel', war: '気に入らないものは全部燃やす',
     boss: { name: '火炎のボンバ', role: 'staff', job: 'light', line: '俺の炎より…まぶしいぜ', look: { hair: 'helmet', hc: '#e07a1a', shirt: '#7a3a1a', pads: true } } },
   { id: 'swamp', name: '毒沼の村', x: 490, y: 160, ten: 55, likes: ['folk', 'gospel'], hates: ['metal'], tape: 'folk', war: '毒沼の呪いで村人が疑い合う',
@@ -595,10 +595,13 @@ function liberate(r) {
 }
 let pendingJoin = [];
 function addCrew(m) {
-  const isBand = !!m.part, list = isBand ? G.band : G.staff, max = isBand ? BAND_SLOTS : STAFF_SLOTS;
-  if (list.length < max) { list.push(m); news(`${m.name}が${isBand ? 'バンド' : 'スタッフ'}に加わった！（${isBand ? PARTS[m.part] : JOBS[m.job].title}）`); return; }
-  if (window.FAST) { formBand(m); return; }
+  if (window.FAST) { const isBand = !!m.part, list = isBand ? G.band : G.staff; if (list.length < (isBand ? BAND_SLOTS : STAFF_SLOTS)) joinCrew(m); else formBand(m); return; }
   pendingJoin.push(m);
+}
+function joinCrew(m) {
+  const isBand = !!m.part;
+  (isBand ? G.band : G.staff).push(m);
+  news(`${m.name}が${isBand ? 'バンド' : 'スタッフ'}に加わった！（${isBand ? PARTS[m.part] : JOBS[m.job].title}）`);
 }
 function formBand(m, why) {
   const name = m.boss ? `${m.name}と${pick(BAND_B)}` : `${pick(BAND_A)}${pick(BAND_B)}`;
@@ -608,16 +611,16 @@ function formBand(m, why) {
 }
 function showJoin() {
   if (!pendingJoin.length || $('ovl').innerHTML || $('cutin')) return;
-  const m = pendingJoin[0], isBand = !!m.part, list = isBand ? G.band : G.staff;
-  overlay(`<div class="card"><div class="kicker">仲間になりたそうに こちらを見ている</div><h2>${m.name}</h2>
-    <p>${isBand ? `${PARTS[m.part]}として加わりたいが、バンドの枠（${BAND_SLOTS}人）がいっぱいだ。` : `${JOBS[m.job].title}（${JOBS[m.job].eff}）として加わりたいが、スタッフの枠（${STAFF_SLOTS}人）がいっぱいだ。`}
-    外れた方は、自分のバンドを組んで前座になってくれる。</p>
-    <div class="choice">${list.filter(x => !x.hero).map(x => `<button class="go alt" data-swap="${x.id}">${x.name}（${x.part ? PARTS[x.part] : JOBS[x.job].title}）と入れかえる</button>`).join('')}
-    <button class="go" data-swap="">${m.name}には自分のバンドを組んでもらう</button></div></div>`);
-  $('ovl').querySelectorAll('[data-swap]').forEach(b => b.onclick = () => {
-    const id = b.dataset.swap;
-    if (id) { const i = list.findIndex(x => x.id === id), out = list.splice(i, 1)[0]; list.push(m); formBand(out, `${out.name}は${m.name}と交代して、自分のバンドを組んだ。前座をやってくれる`); news(`${m.name}が加わった！`); }
-    else formBand(m);
+  const m = pendingJoin[0], isBand = !!m.part, list = isBand ? G.band : G.staff, max = isBand ? BAND_SLOTS : STAFF_SLOTS, full = list.length >= max;
+  const role = isBand ? PARTS[m.part] : `${JOBS[m.job].title}（${JOBS[m.job].eff}）`;
+  overlay(`<div class="card"><div class="kicker">仲間になりたそうに こちらを見ている</div>
+    <div style="display:flex;gap:14px;align-items:center"><svg viewBox="-30 -80 60 86" width="96" height="138" aria-hidden="true">${person(m, 1)}</svg><h2>${m.name}</h2></div>
+    <p>${role}として加わりたがっている。${full ? `でも${isBand ? 'バンド' : 'スタッフ'}の枠（${max}人）はもういっぱいだ。` : ''}</p>
+    <p class="note">一度仲間にしたら入れ替えはしない。最後まで同じメンバーでやっていく。仲間にしなかった場合は、自分のバンドを組んで前座をやってくれる。</p>
+    <div class="choice">${full ? '' : `<button class="go" data-join="1">仲間にする（${isBand ? 'バンド' : 'スタッフ'} ${list.length + 1}/${max}）</button>`}
+    <button class="go alt" data-join="">${full ? 'わかった、前座を頼む' : '仲間にしない（前座を頼む）'}</button></div></div>`);
+  $('ovl').querySelectorAll('[data-join]').forEach(b => b.onclick = () => {
+    if (b.dataset.join) joinCrew(m); else formBand(m);
     pendingJoin.shift(); closeOv(); renderAll(); save(); setTimeout(showJoin, 100);
   });
 }
@@ -708,6 +711,7 @@ function person(m, s = 1) {
     hood: `<path d="M-15 -30 L-14 -46 A14 14 0 0 1 14 -46 L15 -30 L10 -32 L10 -44 A10 9 0 0 0 -10 -44 L-10 -32 Z" fill="${hc}"/>`,
     cap: `<rect x="-11" y="-55" width="22" height="9" rx="2" fill="${hc}" stroke="#bbb"/><rect x="-1.5" y="-54" width="3" height="7" fill="#e0503a"/><rect x="-4" y="-52" width="8" height="3" fill="#e0503a"/>`,
     afro: `<circle cy="-46" r="16" fill="${hc}"/>`,
+    long: `<path d="M-12 -44 Q-16 -24 -12 -12 L-7 -14 Q-10 -28 -8 -40 Z M12 -44 Q16 -24 12 -12 L7 -14 Q10 -28 8 -40 Z" fill="${hc}"/><path d="M-12 -42 A12 12 0 0 1 12 -42 L12 -46 A12 10 0 0 0 -12 -46 Z" fill="${hc}"/><rect x="-12" y="-47" width="24" height="3" fill="${L.band || '#e0a020'}"/><path d="M8 -46 l6 -10 l1 8 Z" fill="${L.band || '#e0a020'}"/>`,
     crown: `<path d="M-11 -50 L-11 -60 L-5 -54 L0 -62 L5 -54 L11 -60 L11 -50 Z" fill="${hc}" stroke="#7a5a00"/>`,
   }[L.hair || 'mohawk'];
   const pads = L.pads ? `<path d="M-15 -30 L-9 -30 L-9 -24 L-17 -24 Z M15 -30 L9 -30 L9 -24 L17 -24 Z" fill="#555"/><path d="M-16 -30 L-14 -36 L-12 -30 Z M16 -30 L14 -36 L12 -30 Z" fill="#bbb"/>` : '';
@@ -718,8 +722,8 @@ function person(m, s = 1) {
     kb: `<rect x="-22" y="-14" width="44" height="8" fill="#2a1f1a"/><rect x="-20" y="-13" width="40" height="3" fill="#fff"/>`,
     ba: `<path d="M-6 -14 L24 -34" stroke="#2a1f1a" stroke-width="3"/><path d="M-14 -18 L0 -10 L-4 -4 L-16 -8 Z" fill="#3f8fc0"/>`,
   }[m.part] : '';
-  return `<g transform="scale(${s})"><rect x="-9" y="-30" width="18" height="24" rx="5" fill="${shirt}"/><rect x="-8" y="-7" width="6" height="8" fill="#2a1f1a"/><rect x="2" y="-7" width="6" height="8" fill="#2a1f1a"/>${pads}
-    <circle cy="-40" r="11" fill="${skin}"/>${hair}<circle cx="-4" cy="-40" r="1.6" fill="#2a1f1a"/><circle cx="4" cy="-40" r="1.6" fill="#2a1f1a"/>${beard}${inst}</g>`;
+  return `<g transform="scale(${s})">${L.fem ? `<rect x="-8" y="-30" width="16" height="24" rx="5" fill="${skin}"/><path d="M-9 -29 L9 -29 L8 -21 L-8 -21 Z" fill="${shirt}"/><rect x="-9" y="-12" width="18" height="6" fill="${shirt}"/><circle cy="-9" r="2" fill="#e0a020"/><path d="M-15 -30 L-8 -30 L-9 -25 Z M15 -30 L8 -30 L9 -25 Z" fill="#e0a020"/>` : ''}<rect x="-9" y="-30" width="18" height="24" rx="5" fill="${L.fem ? 'none' : shirt}"/><rect x="-8" y="-7" width="6" height="8" fill="#2a1f1a"/><rect x="2" y="-7" width="6" height="8" fill="#2a1f1a"/>${pads}
+    <circle cy="-40" r="11" fill="${skin}"/>${hair}<circle cx="-4" cy="-40" r="1.6" fill="#2a1f1a"/><circle cx="4" cy="-40" r="1.6" fill="#2a1f1a"/>${L.fem ? '<path d="M-7 -42.5 l-2 -1.5 M7 -42.5 l2 -1.5" stroke="#2a1f1a" stroke-width="1.2"/><path d="M-2.5 -34.5 Q0 -33 2.5 -34.5" stroke="#c0303a" stroke-width="1.8" fill="none"/>' : ''}${beard}${inst}</g>`;
 }
 
 // ================= cut-ins =================
@@ -929,7 +933,7 @@ function renderDesk() {
     h = `<div class="lab">バンド（${G.band.length}/${BAND_SLOTS}）</div><div class="grid2">${G.band.map(card).join('')}${Array.from({ length: BAND_SLOTS - G.band.length }, () => `<div class="item empty">空き：縄張りのボスを音楽で屈服させると加わる</div>`).join('')}</div>
       <div class="lab">スタッフ（${G.staff.length}/${STAFF_SLOTS}）</div><div class="grid2">${G.staff.map(card).join('')}${Array.from({ length: STAFF_SLOTS - G.staff.length }, () => `<div class="item empty">空き</div>`).join('')}</div>
       <div class="lab">前座バンド（${G.openers.length}組）　信者が ${G.nextBand.toLocaleString()} 人になると、また新しいバンドができる</div>
-      <div class="note">${G.openers.length ? G.openers.map(b => `<b>${b.name}</b>（力${Math.round(b.pow)}）`).join('　') : 'まだいない。枠からあふれた仲間や、増えた信者が勝手にバンドを組んで前座になる。前座は勝手に近くの縄張りを回って、殺気も下げてくれる。'}</div>`;
+      <div class="note">${G.openers.length ? G.openers.map(b => `<b>${b.name}</b>（力${Math.round(b.pow)}）`).join('　') : 'まだいない。仲間にしなかったボスや、枠からあふれたやつ、増えた信者が勝手にバンドを組んで前座になる。前座は勝手に近くの縄張りを回って、殺気も下げてくれる。'}</div>`;
   }
   if (G.tab === 'base') {
     const nv = VENUES[G.venue + 1];
@@ -953,7 +957,7 @@ function showIntro() {
   overlay(`<div class="card"><div class="kicker">文明が滅んで何十年</div><h2>ヒャッハー！ …いや、ロックだ。</h2>
     <p>荒れ果てた荒野。娯楽はなく、縄張り争いばかり。あなたはそんな世界の、ただのモヒカンのザコだった。</p>
     <p>ある日、廃墟で拾った一本のカセットテープ。流れてきたのは<strong>ロック</strong>だった。</p>
-    <p>ギターを片手に曲を作り、縄張りに殴り込んでライブをしよう。殺気を0にすればボスは仲間になる。仲間の枠からあふれたやつらは、勝手にバンドを組んで前座になる。最後は荒野の王都で2daysフェスだ。</p>
+    <p>ギターを片手に曲を作り、縄張りに殴り込んでライブをしよう。殺気を0にすればボスは仲間になる。仲間にするかは自分で決める（一度入れたら入れ替えない）。仲間にしなかったやつや枠からあふれたやつは、勝手にバンドを組んで前座になる。最後は荒野の王都で2daysフェスだ。</p>
     <div style="display:flex;gap:8px;flex-wrap:wrap">${saved && !saved.over ? '<button class="go alt" id="cont">続きから</button>' : ''}<button class="go" id="start" style="flex:1">ギターを手に取る</button></div></div>`);
   $('start').onclick = () => { G = newGame(); news('ガソスタ跡をねぐらにした。まずは1曲作ろう'); closeOv(); renderAll(); save(); };
   if ($('cont')) $('cont').onclick = () => { G = saved; pendingJoin = []; closeOv(); renderAll(); };
