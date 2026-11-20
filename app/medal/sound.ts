@@ -14,7 +14,12 @@ export type SoundName =
   | "jackpot"
   | "feverEnd"
   | "goal"
-  | "empty";
+  | "empty"
+  | "special"
+  | "buy"
+  | "explode"
+  | "mult"
+  | "over";
 
 export interface Sound {
   resume(): void;
@@ -147,6 +152,22 @@ export function createSound(): Sound {
           break;
         case "goal":
           notes([523, 659, 784, 1046, 1319], 0.08, "triangle", 0.16, 0.2);
+          break;
+        case "special":
+          notes([880, 1320], 0.04, "triangle", 0.12, 0.08);
+          break;
+        case "buy":
+          notes([1319, 1760], 0.05, "square", 0.1, 0.08);
+          break;
+        case "explode":
+          noise(0.45, 0.9, 300);
+          tone(90, 0.4, { type: "sawtooth", vol: 0.25, slide: 0.4 });
+          break;
+        case "mult":
+          notes([659, 988, 1319, 1976], 0.05, "square", 0.13, 0.12);
+          break;
+        case "over":
+          notes([392, 330, 262, 196], 0.16, "triangle", 0.15, 0.25);
           break;
         case "empty":
           tone(200, 0.08, { type: "square", vol: 0.08 });
