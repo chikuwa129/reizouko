@@ -87,7 +87,7 @@ button:focus-visible, [tabindex]:focus-visible { outline: 3px solid var(--neon);
 .ticker { font-size: 12px; color: var(--muted); border-top: 2px dashed var(--line); padding-top: 6px; line-height: 1.5; }
 .ticker b { color: var(--ink); }
 
-.room { position: relative; border-radius: 8px; overflow: hidden; border: 2px solid var(--ink); aspect-ratio: 360 / 104; flex: none; max-width: 100%; }
+.room { position: relative; border-radius: 8px; overflow: hidden; border: 2px solid var(--ink); aspect-ratio: 360 / 104; max-height: 120px; flex: none; max-width: 100%; background: #c9b08a; }
 .room svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
 .mem { animation: bob .45s ease-in-out infinite alternate; }
 .mem.idle { animation-duration: 1.4s; }
@@ -100,6 +100,10 @@ button:focus-visible, [tabindex]:focus-visible { outline: 3px solid var(--neon);
 .desk { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 8px; touch-action: pan-y; }
 .desk.slide-l { animation: slideL .2s ease-out; } .desk.slide-r { animation: slideR .2s ease-out; }
 @keyframes slideL { from { transform: translateX(26px); opacity: 0; } } @keyframes slideR { from { transform: translateX(-26px); opacity: 0; } }
+.desk.busy button { pointer-events: none; opacity: .55; }
+.actbar { display: flex; gap: 6px; flex-wrap: wrap; }
+.actbar .go { flex: 1; padding: 7px 10px; font-size: 14px; }
+.actbar .go.wait { flex: 0 0 auto; background: var(--dust); color: var(--ink); }
 .lab { font-size: 11px; color: var(--muted); letter-spacing: .06em; }
 .chipset { display: flex; flex-wrap: wrap; gap: 4px; }
 .pick { border: 2px solid var(--line); background: var(--dust); border-radius: 5px; padding: 3px 8px; font-size: 13px; display: flex; gap: 4px; align-items: center; }
@@ -108,6 +112,7 @@ button:focus-visible, [tabindex]:focus-visible { outline: 3px solid var(--neon);
 .pick.fusion { border-style: dashed; border-color: var(--neon); }
 .go { border: 2px solid var(--ink); background: var(--neon); color: #fff; border-radius: 8px; padding: 9px 14px; font-weight: 800; font-size: 15px; box-shadow: 3px 3px 0 var(--ink); }
 .go:active:not([disabled]) { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--ink); }
+.go.street { background: #e0a020; }
 .go[disabled] { background: #cdb894; color: #fff; box-shadow: none; cursor: default; }
 .go.alt { background: var(--rust); }
 .prog { display: flex; flex-direction: column; gap: 6px; background: var(--dust); border-radius: 8px; padding: 8px 10px; border: 2px solid var(--line); }
@@ -116,6 +121,7 @@ button:focus-visible, [tabindex]:focus-visible { outline: 3px solid var(--neon);
 .pbar i { display: block; height: 100%; background: var(--neon); transition: width .4s; }
 .mn { display: flex; gap: 12px; font-family: var(--f-dot); font-size: 14px; }
 .mn .m { color: var(--melody); } .mn .n { color: var(--groove); }
+.grid3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
 .grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
 .item { border: 2px solid var(--line); background: var(--dust); border-radius: 8px; padding: 6px 8px; text-align: left; display: flex; flex-direction: column; gap: 3px; min-width: 0; }
 .item.empty { border-style: dashed; color: var(--muted); justify-content: center; align-items: center; min-height: 40px; font-size: 12px; text-align: center; }
@@ -215,9 +221,6 @@ button.item[disabled] { opacity: .4; cursor: default; }
   <div class="top">
     <div class="logo">荒野ロック平和伝<small>モヒカンのザコ、ギター一本で世界を平和にする</small></div>
     <div class="stats" id="stats"></div>
-    <div class="speed" id="speed" role="group" aria-label="時間の速さ">
-      <button data-s="0">停止</button><button data-s="1">1倍</button><button data-s="2">2倍</button><button data-s="4">4倍</button>
-    </div>
     <button class="snd" id="snd">音 ON</button>
   </div>
   <div class="main">
@@ -225,7 +228,6 @@ button.item[disabled] { opacity: .4; cursor: default; }
       <div class="peace">
         <div><div class="lbl">荒野の平和度</div><div class="big" id="gpeace">0%</div></div>
         <div><div class="lbl">信者</div><div class="big" id="gfans" style="font-size:22px;color:var(--neon)">0</div></div>
-        <div><div class="lbl">ステージ</div><div class="big" id="gvenue" style="font-size:18px;color:var(--ink)">路上</div></div>
         <div><div class="lbl">警備スタッフ</div><div class="big" id="gguard" style="font-size:18px;color:#b08000">0</div></div>
         <div class="goal" id="goal"></div>
       </div>
@@ -238,9 +240,9 @@ button.item[disabled] { opacity: .4; cursor: default; }
     </section>
     <section class="panel">
       <div class="room" id="room"></div>
+      <div class="actbar" id="actbar"></div>
       <div class="tabs" id="tabs" role="tablist"></div>
       <div class="desk" id="desk" role="tabpanel"></div>
-      <div class="foot">左右にスワイプでもタブを切り替え・スペースキーで停止</div>
     </section>
   </div>
 </div>
@@ -392,7 +394,7 @@ function sfx(name, arg) {
 function startSong() {
   if (G.prod || G.tour || !G.band.some(m => !busy(m))) return;
   G.prod = { g: G.pickG, t: G.pickT, prog: 0, m: 0, n: 0 };
-  sfx('pop'); renderAll();
+  sfx('pop'); renderAll(); runWeeks(songWeeks());
 }
 function finishSong() {
   const p = G.prod, g = GEN[p.g], c = compat(p.g, p.t);
@@ -421,8 +423,8 @@ function startTour() {
   const weeks = travelWeeks();
   G.tour = { reg: G.sel, song: song.id, left: weeks };
   sfx('pop');
-  news(`バンドが${terrOf(G.sel).name}へ出発（${weeks}週）。曲は「${song.title}」`);
-  renderAll();
+  news(`${terrOf(G.sel).name}へ出発（${weeks}週）`);
+  renderAll(); runWeeks(weeks);
 }
 function ourPower(r, song) {
   const st = G.t[r.id], g = GEN[song.g];
@@ -552,14 +554,15 @@ function endBattle(b, ok) {
 }
 
 // street lives: small shows near home that slowly grow your fan security
+const streetSpot = () => { const r = terrOf(G.sel); return !r.final && (r.home || G.t[r.id].free || reach(r.id)) ? r : terrOf('base'); };
 function streetLive() {
   if (G.prod || G.tour) return;
-  const r = terrOf(G.sel);
+  const r = streetSpot();
   if (!(r.home || G.t[r.id].free || reach(r.id)) || r.final) return;
   if (G.goods < 2) return;
   G.goods -= 2;
   G.tour = { reg: r.id, street: true, left: 1 };
-  sfx('pop'); renderAll();
+  sfx('pop'); renderAll(); runWeeks(1);
 }
 function streetResult() {
   const r = terrOf(G.tour.reg), st = G.t[r.id]; G.tour = null; G.at = r.id;
@@ -707,7 +710,6 @@ function tick() {
   }
   if (G.week % PER_YEAR === 1 && G.week > 1) award();
   if (G.goods < -60) return end('broke');
-  if (G.week > WEEKS) return end('time');
   renderLive();
   if (G.tab === 'make' || G.week % 4 === 1) renderDesk();
   showJoin();
@@ -877,8 +879,8 @@ function closeCut() {
 // ================= rendering =================
 function buildMap() {
   let h = `<defs><radialGradient id="dune" cx=".5" cy=".5" r=".75"><stop offset="0" stop-color="#ecd3a0"/><stop offset="1" stop-color="#c99c5c"/></radialGradient></defs><rect width="720" height="330" fill="url(#dune)"/>`;
-  for (let i = 0; i < 14; i++) { const x = R(20, 700), y = R(20, 310); h += `<path d="M${x.toFixed(0)} ${y.toFixed(0)} l${R(-20, 20).toFixed(0)} ${R(5, 20).toFixed(0)} l${R(-15, 15).toFixed(0)} ${R(5, 15).toFixed(0)}" stroke="#a87a48" stroke-width="2" fill="none" opacity=".6"/>`; }
-  [[30, 60], [130, 60], [290, 310], [440, 40], [700, 310], [570, 230], [30, 160]].forEach(([x, y]) => { h += `<g transform="translate(${x},${y})" opacity=".75"><rect x="-3" y="-18" width="6" height="18" rx="3" fill="#6a8a4a"/><rect x="-10" y="-14" width="5" height="9" rx="2.5" fill="#6a8a4a"/><rect x="5" y="-12" width="5" height="8" rx="2.5" fill="#6a8a4a"/></g>`; });
+  for (let i = 0; i < 6; i++) { const x = R(20, 700), y = R(20, 310); h += `<path d="M${x.toFixed(0)} ${y.toFixed(0)} l${R(-20, 20).toFixed(0)} ${R(5, 20).toFixed(0)} l${R(-15, 15).toFixed(0)} ${R(5, 15).toFixed(0)}" stroke="#a87a48" stroke-width="2" fill="none" opacity=".6"/>`; }
+  [[30, 60], [440, 40], [700, 310]].forEach(([x, y]) => { h += `<g transform="translate(${x},${y})" opacity=".75"><rect x="-3" y="-18" width="6" height="18" rx="3" fill="#6a8a4a"/><rect x="-10" y="-14" width="5" height="9" rx="2.5" fill="#6a8a4a"/><rect x="5" y="-12" width="5" height="8" rx="2.5" fill="#6a8a4a"/></g>`; });
   for (const [a, b] of ROADS) { const A = terrOf(a), B = terrOf(b); h += `<line id="road_${a}_${b}" x1="${A.x}" y1="${A.y}" x2="${B.x}" y2="${B.y}" stroke="#7a5a3a" stroke-width="5" stroke-dasharray="10 7" stroke-linecap="round" opacity=".75"/>`; }
   for (const r of TERR) h += `<g class="terr" id="tr_${r.id}" data-r="${r.id}"></g>`;
   h += `<g id="bandmark"></g>`;
@@ -887,38 +889,37 @@ function buildMap() {
 }
 function renderLive() {
   const gp = globalPeace();
-  $('stats').innerHTML = `<div class="stat"><b>日付</b>${dateStr(G.week)}</div><div class="stat ${G.goods < 0 ? 'neg' : ''}"><b>物資</b>${G.goods}</div>`;
+  $('stats').innerHTML = `<div class="stat ${G.goods < 0 ? 'neg' : ''}"><b>物資</b>${G.goods}</div>`;
   $('gpeace').textContent = gp.toFixed(1) + '%';
   $('gfans').textContent = G.fans.toLocaleString();
-  $('gvenue').textContent = VENUES[G.venue].name;
   $('gguard').textContent = G.guards + '人';
-  $('goal').innerHTML = `王都を解放すれば平和<br>残り ${Math.max(0, WEEKS - G.week + 1)} 週`;
+  $('goal').innerHTML = `${dateStr(G.week)}<br>${VENUES[G.venue].name}`;
   for (const r of TERR) {
     const st = G.t[r.id], el = $('tr_' + r.id), rad = r.final ? 34 : r.home ? 24 : 28;
     const locked = !r.home && !st.free && !reach(r.id);
     el.setAttribute('class', `terr ${G.sel === r.id ? 'sel' : ''} ${locked ? 'locked' : ''}`);
-    const icon = r.home ? `<rect x="-9" y="-11" width="14" height="20" rx="2" fill="#fff" stroke="#2a1f1a" stroke-width="2"/><rect x="-6" y="-8" width="8" height="6" fill="#2a1f1a"/><path d="M5 -6 L10 -2 L10 8" stroke="#2a1f1a" stroke-width="2" fill="none"/>`
+    const icon = locked ? '' : r.home ? `<rect x="-9" y="-11" width="14" height="20" rx="2" fill="#fff" stroke="#2a1f1a" stroke-width="2"/><rect x="-6" y="-8" width="8" height="6" fill="#2a1f1a"/><path d="M5 -6 L10 -2 L10 8" stroke="#2a1f1a" stroke-width="2" fill="none"/>`
       : st.free ? `<path d="M-2 12 L-2 -14 L14 -8 L-2 -2" fill="#ff3d8b" stroke="#2a1f1a" stroke-width="2"/><text x="-14" y="8" style="font-size:13px;font-weight:800;fill:#fff">♪</text>`
       : r.final ? `<path d="M-13 6 L-13 -8 L-6 -1 L0 -13 L6 -1 L13 -8 L13 6 Z" fill="#e0a020" stroke="#2a1f1a" stroke-width="2"/>`
       : `<circle cy="-3" r="9" fill="#f4ecdc" stroke="#2a1f1a" stroke-width="2"/><rect x="-5" y="4" width="10" height="6" fill="#f4ecdc" stroke="#2a1f1a" stroke-width="2"/><circle cx="-3.5" cy="-3" r="2.4" fill="#2a1f1a"/><circle cx="3.5" cy="-3" r="2.4" fill="#2a1f1a"/>`;
     el.innerHTML = `<g transform="translate(${r.x},${r.y})"><circle class="ring" r="${rad + 5}" fill="none"/><circle class="body" r="${rad}" fill="${r.home ? '#ff3d8b' : st.free ? '#3a9a62' : tenColor(st.ten)}"/>${icon}
-      <text class="tlabel" y="${rad + 15}">${r.name}</text>${!r.home && !st.free ? `<text class="tval" y="${-rad - 5}" fill="#2a1f1a">殺気${Math.round(st.ten)}</text>` : ''}${locked ? `<text class="tval" y="${-rad - 18}" fill="#7a5a3a">道がない</text>` : r.final && !st.free && !VENUES[G.venue].fes ? `<text class="tval" y="${-rad - 18}" fill="#b5452a">フェスが必要</text>` : ''}</g>`;
+      <text class="tlabel" y="${rad + 15}">${r.name}</text>${locked ? `<g transform="translate(0,2)"><path d="M-5 -4 V-8 A5 5 0 0 1 5 -8 V-4" fill="none" stroke="#2a1f1a" stroke-width="2.5"/><rect x="-8" y="-4" width="16" height="12" rx="2" fill="#7a5a3a" stroke="#2a1f1a" stroke-width="2"/></g>` : ''}</g>`;
   }
   for (const [a, b] of ROADS) { const l = $(`road_${a}_${b}`); if (l) l.setAttribute('stroke', G.t[a].free && G.t[b].free ? '#ff3d8b' : '#7a5a3a'); }
   const at = terrOf(G.tour ? G.tour.reg : G.at);
   $('bandmark').innerHTML = `<g transform="translate(${at.x + 26},${at.y - 30})"><g class="bandmark"><rect x="-19" y="-12" width="38" height="18" rx="4" fill="${G.tour ? '#3f8fc0' : '#2a1f1a'}" stroke="#fff" stroke-width="2"/><text x="0" y="2" text-anchor="middle" fill="#fff" style="font-size:11px;font-weight:800">${G.tour ? '移動中' : 'バンド'}</text></g></g>`;
   const r = terrOf(G.sel), st = G.t[r.id];
   const gname = id => GEN[id].name + (G.genres[id] ? '' : '<span style="font-weight:500;color:var(--muted)">（未）</span>');
-  if (r.home) $('rinfo').innerHTML = `<h3>${r.name}<small style="color:var(--muted)">あなたたちのねぐら。ここで曲を作る</small></h3>`;
-  else $('rinfo').innerHTML = `<h3>${r.name}<small>${st.free ? '解放済み。毎週 物資を届けてくれる' : r.war}</small></h3>
+  if (r.home) $('rinfo').innerHTML = `<h3>${r.name}<small style="color:var(--muted)">あなたたちのねぐら</small></h3>`;
+  else if (!st.free && !reach(r.id)) $('rinfo').innerHTML = `<h3>${r.name}<small style="color:var(--muted)">まだ道がない</small></h3>`;
+  else $('rinfo').innerHTML = `<h3>${r.name}<small>${st.free ? '解放済み' : r.final ? '荒野フェスでしか戦えない' : r.war}</small></h3>
     ${st.free ? '' : `<div class="tbar"><i style="width:${st.ten}%;background:${tenColor(st.ten)}"></i></div>`}
-    <div class="row"><span>ボス <b>${r.boss.name}</b>${st.free || r.final ? '' : `（倒すと${r.boss.role === 'band' ? 'バンドの' + PARTS[r.boss.part] : JOBS[r.boss.job].title}に）`}</span>
-    ${r.final ? '<span>荒野フェスでしか戦えない</span>' : `<span>好き <b>${r.likes.map(gname).join('・')}</b></span><span>苦手 <b>${r.hates.map(gname).join('・')}</b></span><span>眠っているテープ <b>${G.genres[r.tape] ? GEN[r.tape].name : '？？？'}</b></span>`}</div>`;
+    ${st.free || r.final ? '' : `<div class="row"><span>ボス <b>${r.boss.name}</b></span><span>好き <b>${r.likes.map(gname).join('・')}</b></span><span>苦手 <b>${r.hates.map(gname).join('・')}</b></span></div>`}`;
   renderRoom();
 }
-function renderTicker() { $('ticker').innerHTML = G.news.slice(0, 4).map(n => `<div><b>${dateStr(n.w).replace(/ \d週$/, '')}</b>　${n.text}</div>`).join(''); }
+function renderTicker() { $('ticker').innerHTML = G.news.slice(0, 2).map(n => `<div><b>${dateStr(n.w).replace(/ \d週$/, '')}</b>　${n.text}</div>`).join(''); }
 function renderRoom() {
-  let h = `<svg viewBox="0 0 360 104"><rect width="360" height="104" fill="#c9b08a"/><rect width="360" height="20" fill="#b5452a"/><text x="180" y="14" text-anchor="middle" fill="#fff" style="font-size:10px;font-weight:800;letter-spacing:.2em">GARAGE STUDIO  Lv${G.fac.studio}</text>
+  let h = `<svg viewBox="0 0 360 104" preserveAspectRatio="xMidYMid meet"><rect width="360" height="104" fill="#c9b08a"/><rect width="360" height="20" fill="#b5452a"/><text x="180" y="14" text-anchor="middle" fill="#fff" style="font-size:10px;font-weight:800;letter-spacing:.2em">GARAGE STUDIO  Lv${G.fac.studio}</text>
     <rect y="82" width="360" height="22" fill="#8a7050"/><rect x="8" y="30" width="20" height="52" fill="#d0452f"/><rect x="11" y="34" width="14" height="10" fill="#f4e6c8"/><rect x="332" y="46" width="20" height="36" rx="4" fill="#666"/><rect x="335" y="40" width="14" height="8" fill="#e0a020"/>`;
   if (G.tour) h += `<text x="180" y="62" text-anchor="middle" style="font-size:15px;font-weight:800;fill:#2a1f1a">ツアー中…（${terrOf(G.tour.reg).name}まで あと${G.tour.left}週）</text>`;
   else G.band.forEach((m, i) => {
@@ -950,18 +951,15 @@ function renderDesk() {
       const gs = GENRES.filter(x => G.genres[x.id]);
       h = `<div class="lab">ジャンル（${gs.length}/${GENRES.length}　縄張りを解放するとテープが見つかる）</div><div class="chipset">${gs.map(x => `<button class="pick ${x.fusion ? 'fusion' : ''}" data-g="${x.id}" aria-pressed="${G.pickG === x.id}" style="${G.pickG === x.id ? `background:${x.c};border-color:${x.c}` : ''}">${x.name}</button>`).join('')}</div>
         <div class="lab">テーマ（相性は作ってみるとわかる）</div><div class="chipset">${THEMES.map(t => { const k = G.known[G.pickG + '|' + t]; return `<button class="pick" data-th="${t}" aria-pressed="${G.pickT === t}">${t}<span class="mk">${k ? CMARK[compat(G.pickG, t)] : ''}</span></button>`; }).join('')}</div>
-        <button class="go" id="goMake">${GEN[G.pickG].name} × ${G.pickT} で曲を作る</button>
-        <div class="note">バンド全員で作曲する。できた曲はカセットにして荒野にばらまく（物資と信者が増え、近くの殺気も少し下がる）。同じ2ジャンルで2曲ずつ作ると、新しいジャンルが生まれることがある。</div>`;
+        <button class="go" id="goMake">${GEN[G.pickG].name} × ${G.pickT} で曲を作る（${songWeeks()}週）</button>`;
     }
   }
   if (G.tab === 'tour') {
     if (G.tour) h = `<div class="prog"><div class="t">${G.tour.street ? terrOf(G.tour.reg).name + 'で路上ライブ中' : terrOf(G.tour.reg).name + 'へ移動中'}</div><div class="note">あと ${G.tour.left} 週。</div></div>`;
     else {
       const r = terrOf(G.sel), st = G.t[r.id];
-      const canStreet = !r.final && (r.home || st.free || reach(r.id));
-      const street = canStreet ? `<button class="go" id="goStreet" ${G.prod || G.goods < 2 ? 'disabled' : ''} style="background:#e0a020">${r.name}で路上ライブ（1週・物資2）→ 警備スタッフが増える</button>` : '';
-      if (r.home || st.free) h = `<div class="note">ボスに挑むなら、地図で まだ解放していない縄張りを選ぼう。ここでは路上ライブで警備スタッフ（今 ${G.guards}人）を増やせる。</div>${street}`;
-      else if (!canGo(r.id)) h = `<div class="note">${r.final && reach(r.id) ? '荒野の王都は「荒野フェス」でしか戦えない。拠点タブでステージを大きくしよう。' : 'まだ道がない。となりの縄張りを先に解放しよう。'}</div>${street}`;
+      if (r.home || st.free) h = `<div class="note">地図で縄張りを選ぶと殴り込める。路上ライブをすると警備スタッフ（今 ${G.guards}人）が増える。</div>`;
+      else if (!canGo(r.id)) h = `<div class="note">${r.final && reach(r.id) ? '荒野の王都は「荒野フェス」でしか戦えない。拠点タブでステージを大きくしよう。' : 'まだ道がない。となりの縄張りを先に解放しよう。'}</div>`;
       else {
         const sc = s => ourPower(r, s).d;
         const list = G.songs.slice().sort((a, b) => sc(b) - sc(a)).slice(0, 4);
@@ -979,17 +977,19 @@ function renderDesk() {
               <span class="sub">${GEN[s.g].name}×${s.t}　最後まで演れば 殺気-${(sc(s) * (fes ? 1.4 : 1)).toFixed(1)}前後</span><span>${lk > 1.2 ? '<span class="tag like">好き</span>' : lk < 1 ? '<span class="tag hate">苦手</span>' : ''} ${GEN[s.g].hot >= 2 ? '<span class="tag hate">激しい</span>' : GEN[s.g].hot < 0 ? '<span class="tag like">癒し</span>' : ''} ${n ? `<span class="tag tired">${n}回目</span>` : ''}</span></button>`;
           }).join('')}</div>
           <button class="go alt" id="goTour" ${G.prod || G.goods < travelCost() ? 'disabled' : ''}>${r.name}へ殴り込みライブ（${travelWeeks()}週・物資${travelCost()}）</button>
-          <div class="note">${G.prod ? '曲の制作中は出発できない。' : `ライブ中、${r.boss.name}の手下がステージに押し寄せる。警備スタッフが押しとどめている間に1曲演りきれ。「あおる！」で押し返せる。${fes ? '荒野フェスは2days。1日目はみんなで、2日目は自分たちだけ。' : '激しい曲は効くが、相手も熱くなる。子守唄は相手がだんだん眠くなる。'}`}</div>${street}`;
+          <div class="note">着いたら${r.boss.name}の手下がステージに押し寄せる。1曲演りきるまで警備スタッフで持ちこたえろ。</div>`;
         }
       }
     }
   }
   if (G.tab === 'crew') {
     const sbar = (l, v, c) => `<div class="sbar"><span>${l}</span><span class="tb"><i style="width:${Math.min(100, v)}%;background:${c}"></i></span><span>${v}</span></div>`;
-    const card = m => `<div class="item"><span class="nm"><span>${m.name}</span><span style="font-size:11px">${m.part ? 'Lv' + m.lv : ''}</span></span><span class="sub">${m.part ? PARTS[m.part] : JOBS[m.job].title + '：' + JOBS[m.job].eff}</span>
-      ${m.part ? `<span class="sub" style="font-family:var(--f-dot);color:var(--ink)"><span style="color:#ff3d8b">作${m.comp}</span> <span style="color:#e07a1a">演${m.play}</span> <span style="color:#3f8fc0">歌${m.sing}</span> <span style="color:#b08000">華${m.star}</span></span>` + `<button class="small" data-train="${m.id}" ${busy(m) || G.goods < trainCost(m) ? 'disabled' : ''}>${busy(m) ? '特訓中' : `特訓（物資${trainCost(m)}）`}</button>` : ''}</div>`;
-    h = `<div class="lab">バンド（${G.band.length}/${BAND_SLOTS}）</div><div class="grid2">${G.band.map(card).join('')}${Array.from({ length: BAND_SLOTS - G.band.length }, () => `<div class="item empty">空き：縄張りのボスを音楽で屈服させると加わる</div>`).join('')}</div>
-      <div class="lab">スタッフ（${G.staff.length}/${STAFF_SLOTS}）</div><div class="grid2">${G.staff.map(card).join('')}${Array.from({ length: STAFF_SLOTS - G.staff.length }, () => `<div class="item empty">空き</div>`).join('')}</div>
+    const card = m => m.part ? `<div class="item"><span class="nm"><span>${m.name}</span><span style="font-size:11px">${PARTS[m.part]} Lv${m.lv}</span></span>
+      <span style="display:flex;justify-content:space-between;align-items:center;gap:4px"><span class="sub" style="font-family:var(--f-dot);color:var(--ink)"><span style="color:#ff3d8b">作${m.comp}</span> <span style="color:#e07a1a">演${m.play}</span> <span style="color:#3f8fc0">歌${m.sing}</span> <span style="color:#b08000">華${m.star}</span></span>
+      <button class="small" data-train="${m.id}" ${busy(m) || G.goods < trainCost(m) ? 'disabled' : ''}>${busy(m) ? '特訓中' : `特訓 ${trainCost(m)}`}</button></span></div>`
+      : `<div class="item"><span class="nm"><span>${m.name}</span></span><span class="sub">${JOBS[m.job].title}：${JOBS[m.job].eff}</span></div>`;
+    h = `<div class="lab">バンド（${G.band.length}/${BAND_SLOTS}）　一度入れたら入れ替えなし</div><div class="grid2">${G.band.map(card).join('')}${Array.from({ length: BAND_SLOTS - G.band.length }, () => `<div class="item empty">空き：縄張りのボスを音楽で屈服させると加わる</div>`).join('')}</div>
+      <div class="lab">スタッフ（${G.staff.length}/${STAFF_SLOTS}）　入れ替えできる</div><div class="grid3">${G.staff.map(card).join('')}${Array.from({ length: STAFF_SLOTS - G.staff.length }, () => `<div class="item empty">空き</div>`).join('')}</div>
       ${G.alumni.length ? `<div class="lab">客席から応援している元スタッフ</div><div class="note">${G.alumni.map(a => `<b>${a.name}</b>`).join('　')}</div>` : ''}
       <div class="lab">荒野のバンド</div>
       <div class="note">${shownBands().length ? shownBands().map(b => `<b>${b.name}</b>`).join('　') + (G.openers.length > shownBands().length ? '　ほか噂が少し' : '') : G.openers.length ? `噂だけが聞こえてくる…（${G.openers.length}件）` : 'まだ何も聞かない。'}</div>`;
@@ -1003,9 +1003,12 @@ function renderDesk() {
       <div class="note">物資は、カセット・ライブ・解放した縄張りから入る。毎月、仲間ひとりにつき物資2を食べる。</div>`;
   }
   $('desk').innerHTML = h;
+  $('desk').classList.toggle('busy', running);
+  const idle = !G.prod && !G.tour && !running && !G.over;
+  $('actbar').innerHTML = `<button class="go street" id="goStreet" ${idle && G.goods >= 2 ? '' : 'disabled'}>${streetSpot().name}で路上ライブ<span style="font-weight:500;font-size:12px">（1週・物資2）警備スタッフ+</span></button><button class="go wait" id="goRest" ${idle ? '' : 'disabled'}>1週休む</button>`;
 }
 function renderAll() { renderLive(); renderDesk(); renderTicker(); syncSpeed(); }
-function syncSpeed() { document.querySelectorAll('#speed button').forEach(b => b.setAttribute('aria-pressed', +b.dataset.s === G.speed)); $('snd').textContent = soundOn ? '音 ON' : '音 OFF'; }
+function syncSpeed() { $('snd').textContent = soundOn ? '音 ON' : '音 OFF'; }
 function setTab(id, dir) { G.tab = id; renderDesk(); const d = $('desk'); d.classList.remove('slide-l', 'slide-r'); void d.offsetWidth; if (dir) d.classList.add(dir > 0 ? 'slide-l' : 'slide-r'); }
 
 // ================= overlays =================
@@ -1032,7 +1035,7 @@ function end(kind) {
   else if (fc >= 5) { title = 'まだ王都は遠い'; body = 'いくつもの縄張りが仲間になった。でも王都にはまだ音楽が届いていない。ツアーは続く。'; }
   else { title = '荒野は今日も荒れている'; body = 'ロックだけでは足りなかった…。いや、まだ曲が足りなかっただけだ。'; }
   const best = G.songs.slice().sort((a, b) => b.q - a.q)[0];
-  overlay(`<div class="card"><div class="kicker">${dateStr(Math.min(G.week, WEEKS))}</div><h2>${title}</h2><p>${body}</p>
+  overlay(`<div class="card"><div class="kicker">${dateStr(G.week)}</div><h2>${title}</h2><p>${body}</p>
     <div class="rows"><div><b>平和度</b><span>${gp.toFixed(1)}%</span></div><div><b>解放した縄張り</b><span>${fc}/${TERR.length - 1}</span></div><div><b>信者</b><span>${G.fans.toLocaleString()}人</span></div>
     <div><b>荒野のバンド</b><span>${G.openers.length}組</span></div><div><b>代表曲</b><span>${best ? `「${best.title}」（${best.rank}）` : 'なし'}</span></div></div>
     <button class="go" id="again">もう一度やる</button></div>`);
@@ -1042,30 +1045,40 @@ function end(kind) {
 
 // ================= save / loop / input =================
 function save() { if (window.FAST) return; try { localStorage.setItem('koya-save', JSON.stringify(G)); } catch (e) {} }
-let acc = 0, last = performance.now();
-function loop(now) {
-  const dt = Math.min(250, now - last); last = now;
-  if (G && !G.over && !G.won && G.speed > 0 && !pausedByCut && !$('ovl').innerHTML) {
-    acc += dt * G.speed;
-    if (acc >= 1500) { acc = 0; tick(); if (G.week % 4 === 0) save(); }
-  }
-  requestAnimationFrame(loop);
+// time only moves when you act: each action runs its weeks quickly, then waits for you
+let running = false;
+function runWeeks(n) {
+  if (window.FAST) { for (let i = 0; i < n && !G.over && !G.won; i++) tick(); return; }
+  running = true; renderDesk();
+  let k = 0;
+  const step = () => {
+    if (G.over || G.won) { running = false; return; }
+    if (pausedByCut || $('ovl').innerHTML) { setTimeout(step, 200); return; }
+    if (k >= n || (!G.prod && !G.tour && k > 0)) { running = false; save(); renderAll(); return; }
+    tick(); k++;
+    setTimeout(step, 450);
+  };
+  step();
 }
+const songWeeks = () => Math.ceil(4 / (1 + G.fac.studio * .3));
 G = newGame();
 buildMap(); renderAll(); showIntro();
-requestAnimationFrame(loop);
 
-$('speed').addEventListener('click', e => { const b = e.target.closest('[data-s]'); if (b) { G.speed = +b.dataset.s; syncSpeed(); } });
 $('snd').onclick = () => { soundOn = !soundOn; try { localStorage.setItem('koya-sound', soundOn ? 'on' : 'off'); } catch (e) {} syncSpeed(); if (soundOn) sfx('coin'); };
 $('tabs').addEventListener('click', e => { const b = e.target.closest('[data-t]'); if (!b) return; const ids = TABS.map(t => t[0]); setTab(b.dataset.t, Math.sign(ids.indexOf(b.dataset.t) - ids.indexOf(G.tab))); });
+$('actbar').addEventListener('click', e => {
+  const t = e.target.closest('button'); if (!t || t.disabled || running) return;
+  if (t.id === 'goStreet') streetLive(); else if (t.id === 'goRest') { news('ねぐらでひと休みした'); runWeeks(1); }
+});
 $('desk').addEventListener('click', e => {
-  const t = e.target.closest('button'); if (!t || t.disabled) return;
+  const t = e.target.closest('button'); if (!t || t.disabled || running) return;
   if (t.dataset.g) { G.pickG = t.dataset.g; renderDesk(); }
   else if (t.dataset.th) { G.pickT = t.dataset.th; renderDesk(); }
   else if (t.id === 'goMake') startSong();
   else if (t.dataset.song) { G.pickSong = t.dataset.song; renderDesk(); }
   else if (t.id === 'goTour') startTour();
   else if (t.id === 'goStreet') streetLive();
+  else if (t.id === 'goRest') { news('ねぐらでひと休みした'); runWeeks(1); }
   else if (t.dataset.train) train(t.dataset.train);
   else if (t.dataset.fac) buildFac(t.dataset.fac);
   else if (t.dataset.venue) upVenue();
@@ -1080,6 +1093,5 @@ $('desk').addEventListener('pointerup', e => {
 });
 document.addEventListener('keydown', e => {
   if ($('ovl').innerHTML) return;
-  if (e.key === ' ' && (e.target === document.body || e.target.tagName === 'BUTTON')) { e.preventDefault(); G.speed = G.speed ? 0 : 1; syncSpeed(); }
 });
 </script>
