@@ -484,8 +484,9 @@ function openBattle(b) {
     <rect width="720" height="330" fill="url(#bsky)"/><rect y="236" width="720" height="94" fill="#b08a5a"/>
     <rect x="10" y="200" width="240" height="40" fill="#4a3a3a"/><rect x="10" y="196" width="240" height="6" fill="#ff3d8b"/><line x1="250" y1="196" x2="250" y2="330" stroke="#ffd34d" stroke-width="3" stroke-dasharray="6 5"/>
     ${G.band.map((m, i) => `<g transform="translate(${40 + i * 54},200)"><g class="mem">${person(m, 1.05)}</g></g>`).join('')}
-    <g transform="translate(676,236)"><g class="angry">${person({ look: b.r.boss.look }, 1.7)}</g></g><text x="676" y="112" text-anchor="middle" fill="#fff" style="font-size:12px;font-weight:800;paint-order:stroke;stroke:#000;stroke-width:3px">${b.r.boss.name}</text>
+    
     <g id="bfront"><g class="angry">${gx}</g><g class="angry" style="animation-delay:.05s">${thugs}</g></g>
+    <g transform="translate(676,236)"><g class="angry">${person({ look: b.r.boss.look }, 1.7, 'angry')}</g></g><text x="676" y="112" text-anchor="middle" fill="#fff" style="font-size:12px;font-weight:800;paint-order:stroke;stroke:#000;stroke-width:3px">${b.r.boss.name}</text>
     <g id="bnotes"></g></svg>
     <div class="hud"><div class="hrow"><b>♪「${b.song.title}」</b><span id="bpct">0%</span></div><div class="hbar"><i id="bprog"></i></div>
       <div class="hrow"><span>ステージまで</span><span id="bdist"></span></div><div class="hbar danger"><i id="bpress"></i></div>
@@ -498,9 +499,10 @@ function openBattle(b) {
   requestAnimationFrame(battleFrame);
 }
 function guardFig() {
-  return `<rect x="-10" y="-36" width="20" height="30" rx="5" fill="#ffd34d"/><text x="0" y="-18" text-anchor="middle" style="font-size:7px;font-weight:800;fill:#2a1f1a">STAFF</text>
-    <rect x="-8" y="-6" width="6" height="8" fill="#2a1f1a"/><rect x="2" y="-6" width="6" height="8" fill="#2a1f1a"/><circle cy="-44" r="9" fill="#e8b98e"/><path d="M-2 -52 L0 -62 L2 -52 Z" fill="#ff3d8b"/>
-    <line x1="8" y1="-30" x2="24" y2="-28" stroke="#ffd34d" stroke-width="5" stroke-linecap="round"/><line x1="8" y1="-22" x2="24" y2="-20" stroke="#ffd34d" stroke-width="5" stroke-linecap="round"/>`;
+  return `<path d="M-7 -7 v7 h5 v-7 M2 -7 v7 h5 v-7" fill="#2a1f1a" ${SW} stroke-width="1"/><path d="M-10 -30 Q-12 -18 -10 -6 L10 -6 Q12 -18 10 -30 Q0 -26 -10 -30 Z" fill="#ffd34d" ${SW}/>
+    <text x="0" y="-15" text-anchor="middle" style="font-size:6.5px;font-weight:800;fill:#1a1210">STAFF</text>
+    <path d="M8 -26 L25 -25 M8 -19 L25 -18" stroke="#ffd34d" stroke-width="5" stroke-linecap="round"/><path d="M8 -26 L25 -25 M8 -19 L25 -18" stroke="${INK}" stroke-width="1" opacity=".5"/>
+    <g transform="translate(0,4) scale(.85)">${face('#e8b98e', 'angry')}${hairOf({ hair: 'mohawk' }, '#ff3d8b')}</g>`;
 }
 function hype(b) {
   if (b.cd > 0 || b.done) return;
@@ -720,41 +722,69 @@ function award() {
 }
 
 // ================= drawing people =================
-function person(m, s = 1) {
-  const L = m.look || {}, hc = L.hc || '#2a1f1a', skin = L.skin || '#e8b98e', shirt = L.shirt || '#4a3a2a';
-  const hair = {
-    mohawk: `<path d="M-3 -50 L-5 -64 L-1 -56 L0 -68 L1 -56 L5 -64 L3 -50 Z" fill="${hc}"/>`,
-    bald: `<path d="M-6 -50 A6 3 0 0 1 6 -50" stroke="#fff8" stroke-width="2" fill="none"/>`,
-    bun: `<circle cy="-53" r="6" fill="${hc}"/><path d="M-12 -42 A12 12 0 0 1 12 -42 L12 -45 A12 9 0 0 0 -12 -45 Z" fill="${hc}"/>`,
-    helmet: `<path d="M-13 -40 A13 13 0 0 1 13 -40 Z" fill="${hc}"/><rect x="-14" y="-42" width="28" height="4" fill="#333"/>`,
-    hood: `<path d="M-15 -30 L-14 -46 A14 14 0 0 1 14 -46 L15 -30 L10 -32 L10 -44 A10 9 0 0 0 -10 -44 L-10 -32 Z" fill="${hc}"/>`,
-    cap: `<rect x="-11" y="-55" width="22" height="9" rx="2" fill="${hc}" stroke="#bbb"/><rect x="-1.5" y="-54" width="3" height="7" fill="#e0503a"/><rect x="-4" y="-52" width="8" height="3" fill="#e0503a"/>`,
-    afro: `<circle cy="-46" r="16" fill="${hc}"/>`,
-    long: `<path d="M-12 -44 Q-16 -24 -12 -12 L-7 -14 Q-10 -28 -8 -40 Z M12 -44 Q16 -24 12 -12 L7 -14 Q10 -28 8 -40 Z" fill="${hc}"/><path d="M-12 -42 A12 12 0 0 1 12 -42 L12 -46 A12 10 0 0 0 -12 -46 Z" fill="${hc}"/><rect x="-12" y="-47" width="24" height="3" fill="${L.band || '#e0a020'}"/><path d="M8 -46 l6 -10 l1 8 Z" fill="${L.band || '#e0a020'}"/>`,
-    crown: `<path d="M-11 -50 L-11 -60 L-5 -54 L0 -62 L5 -54 L11 -60 L11 -50 Z" fill="${hc}" stroke="#7a5a00"/>`,
+// manga look: ink outlines, big eyes with highlights, thick brows, spiky hair
+const INK = '#1a1210', SW = 'stroke="#1a1210" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"';
+// mood: 'cool' (default), 'angry', 'happy', 'fem', 'cry', 'sleep'
+function face(skin, mood = 'cool', extra = '') {
+  const eyes = mood === 'sleep' ? `<path d="M-7 -42 q2.5 2 5 0 M2 -42 q2.5 2 5 0" fill="none" ${SW}/>`
+    : mood === 'happy' ? `<path d="M-7.5 -41 q3 -4 6 0 M1.5 -41 q3 -4 6 0" fill="none" ${SW} stroke-width="2"/>`
+    : `<ellipse cx="-4.6" cy="-42" rx="2.9" ry="${mood === 'fem' ? 3.8 : 3.3}" fill="#fff" ${SW} stroke-width="1.1"/><ellipse cx="4.6" cy="-42" rx="2.9" ry="${mood === 'fem' ? 3.8 : 3.3}" fill="#fff" ${SW} stroke-width="1.1"/>
+       <circle cx="${mood === 'angry' ? -4 : -4.2}" cy="-41.4" r="1.9" fill="${INK}"/><circle cx="${mood === 'angry' ? 4 : 4.9}" cy="-41.4" r="1.9" fill="${INK}"/><circle cx="-3.6" cy="-42.4" r=".7" fill="#fff"/><circle cx="5.5" cy="-42.4" r=".7" fill="#fff"/>`;
+  const brows = mood === 'angry' ? `<path d="M-8.5 -47.5 L-1.5 -45 M8.5 -47.5 L1.5 -45" ${SW} stroke-width="2.6"/>`
+    : mood === 'fem' ? `<path d="M-7.5 -47.6 q3 -1.4 5.4 0 M2.1 -47.6 q3 -1.4 5.4 0" fill="none" ${SW} stroke-width="1"/><path d="M-7.6 -44.6 l-1.8 -1.2 M7.6 -44.6 l1.8 -1.2" ${SW} stroke-width="1"/>`
+    : mood === 'cry' ? `<path d="M-8 -45.5 L-2 -47.5 M8 -45.5 L2 -47.5" ${SW} stroke-width="2.2"/>`
+    : `<path d="M-8.2 -46.5 L-1.8 -46 M8.2 -46.5 L1.8 -46" ${SW} stroke-width="2.4"/>`;
+  const mouth = mood === 'angry' ? `<path d="M-4 -33.5 L4 -33.5 L3 -31.5 L-3 -31.5 Z" fill="#fff" ${SW} stroke-width="1.2"/>`
+    : mood === 'happy' ? `<path d="M-4 -34.5 Q0 -29.5 4 -34.5 Z" fill="#c0303a" ${SW} stroke-width="1.2"/>`
+    : mood === 'fem' ? `<path d="M-2.6 -33.8 Q0 -32.4 2.6 -33.8" fill="none" stroke="#c0303a" stroke-width="1.9" stroke-linecap="round"/>`
+    : mood === 'cry' ? `<path d="M-3.5 -32.5 Q0 -35.5 3.5 -32.5" fill="none" ${SW}/>`
+    : `<path d="M-3 -33.6 L3 -34.4" ${SW} stroke-width="1.3"/>`;
+  return `<path d="M-11.5 -44 Q-11.5 -31 -4 -28.6 Q0 -27.4 4 -28.6 Q11.5 -31 11.5 -44 Q11.5 -55.5 0 -55.5 Q-11.5 -55.5 -11.5 -44 Z" fill="${skin}" ${SW}/>
+    <path d="M4 -28.8 Q11.2 -31.5 11.2 -42 Q8.5 -33 3 -30.5 Z" fill="#0000001f"/>${eyes}${brows}<path d="M0.5 -39.5 l-1 3 l1.6 .2" fill="none" ${SW} stroke-width="1"/>${mouth}${extra}`;
+}
+function hairOf(L, hc) {
+  const band = L.band || '#e0a020';
+  return {
+    mohawk: `<path d="M-4 -53 L-7 -62 L-2.5 -59 L-3 -70 L1 -61.5 L3 -72 L4.5 -60 L8 -65 L5 -53 Z" fill="${hc}" ${SW}/><path d="M0 -60 L2 -68" stroke="#ffffff88" stroke-width="1.3"/><path d="M-11 -46 Q-11.5 -51 -8.5 -53.5 M11 -46 Q11.5 -51 8.5 -53.5" fill="none" ${SW} stroke-width="1"/>`,
+    bald: `<path d="M-6 -52 Q0 -55 5 -52" fill="none" stroke="#ffffffaa" stroke-width="2"/><path d="M-11.5 -42 l-2 -3 M11.5 -42 l2 -3" ${SW}/>`,
+    helmet: `<path d="M-13 -44 Q-13 -59 0 -59 Q13 -59 13 -44 Z" fill="${hc}" ${SW}/><rect x="-14" y="-47" width="28" height="5" rx="2" fill="#3a3a3a" ${SW}/><path d="M-6 -56 L0 -63 L6 -56" fill="#bbb" ${SW} stroke-width="1.2"/><rect x="-9" y="-46.5" width="18" height="4" rx="2" fill="#7ac8ff" ${SW} stroke-width="1"/>`,
+    hood: `<path d="M-15 -26 L-15 -46 Q-15 -61 0 -61 Q15 -61 15 -46 L15 -26 L10 -28 L10 -45 Q10 -53 0 -53 Q-10 -53 -10 -45 L-10 -28 Z" fill="${hc}" ${SW}/><path d="M-10 -46 Q0 -50 10 -46" fill="none" stroke="#0004" stroke-width="3"/>`,
+    cap: `<path d="M-11 -50 L-10 -60 L10 -60 L11 -50 Z" fill="${hc}" ${SW}/><rect x="-1.6" y="-58.5" width="3.2" height="7" fill="#e0503a"/><rect x="-4" y="-56.6" width="8" height="3.2" fill="#e0503a"/><path d="M-11.5 -48 Q-12 -38 -11 -34 M11.5 -48 Q12 -38 11 -34" fill="none" stroke="${INK}" stroke-width="1"/>`,
+    afro: `<path d="M-16 -44 Q-20 -54 -13 -60 Q-12 -68 -3 -67 Q3 -71 9 -66 Q17 -64 16 -55 Q20 -48 14 -42 Q12 -50 0 -50 Q-12 -50 -14 -42 Z" fill="${hc}" ${SW}/>`,
+    long: `<path d="M-12 -44 Q-13 -57 0 -57.5 Q13 -57 12 -44 Q8 -50 3 -49 Q0 -52 -4 -48.5 Q-9 -50 -12 -44 Z" fill="${hc}" ${SW}/><path d="M-12.2 -48.5 Q0 -53 12.2 -48.5" fill="none" stroke="${band}" stroke-width="3"/><path d="M9 -50 L15 -63 L13.5 -50 Z" fill="${band}" ${SW} stroke-width="1"/><path d="M-6 -54 L-3 -50" stroke="#ffffff66" stroke-width="1.5"/>`,
+    crown: `<path d="M-11.5 -52 L-12 -64 L-6 -57.5 L0 -67 L6 -57.5 L12 -64 L11.5 -52 Z" fill="${hc}" ${SW}/><circle cy="-57" r="1.8" fill="#d0452f"/><path d="M-11.5 -47 Q-12 -53 -8 -53 M11.5 -47 Q12 -53 8 -53" fill="none" stroke="#e8e8e8" stroke-width="3"/>`,
+    bun: `<circle cy="-56" r="6" fill="${hc}" ${SW}/><path d="M-12 -44 Q-12 -56 0 -56 Q12 -56 12 -44 Q6 -50 0 -50 Q-6 -50 -12 -44 Z" fill="${hc}" ${SW}/>`,
   }[L.hair || 'mohawk'];
-  const pads = L.pads ? `<path d="M-15 -30 L-9 -30 L-9 -24 L-17 -24 Z M15 -30 L9 -30 L9 -24 L17 -24 Z" fill="#555"/><path d="M-16 -30 L-14 -36 L-12 -30 Z M16 -30 L14 -36 L12 -30 Z" fill="#bbb"/>` : '';
-  const beard = L.beard ? `<path d="M-8 -35 Q0 -25 8 -35 Z" fill="${L.hair === 'crown' ? '#8a6a3a' : hc}"/>` : '';
+}
+function person(m, s = 1, mood) {
+  const L = m.look || {}, hc = L.hc || '#2a1f1a', skin = L.skin || '#e8b98e', shirt = L.shirt || '#4a3a2a';
+  mood = mood || (L.fem ? 'fem' : m.hero ? 'happy' : 'cool');
+  const pads = L.pads ? `<path d="M-17 -27 Q-17 -33 -9 -32 L-9 -25 Z M17 -27 Q17 -33 9 -32 L9 -25 Z" fill="#6a6a6a" ${SW}/><path d="M-16 -31 L-15 -38 L-12.5 -32 Z M16 -31 L15 -38 L12.5 -32 Z M-12 -32.5 L-10.5 -38 L-9.5 -32.5 Z M12 -32.5 L10.5 -38 L9.5 -32.5 Z" fill="#e8e8e8" ${SW} stroke-width="1"/>` : '';
+  const beard = L.beard ? `<path d="M-10 -38 Q-9 -24 0 -22 Q9 -24 10 -38 Q6 -32 0 -32 Q-6 -32 -10 -38 Z" fill="${L.hair === 'crown' ? '#e8e8e8' : hc}" ${SW} stroke-width="1.2"/>` : '';
   const inst = m.part ? {
-    vo: `<path d="M-6 -16 L20 -30" stroke="#5a3a2a" stroke-width="3"/><path d="M-14 -20 L-2 -12 L-6 -6 L-16 -10 Z" fill="#ff3d8b"/>`,
-    dr: `<rect x="-18" y="-10" width="36" height="16" fill="#8a8a8a"/><rect x="-18" y="-6" width="36" height="2" fill="#555"/><rect x="-18" y="0" width="36" height="2" fill="#555"/>`,
-    kb: `<rect x="-22" y="-14" width="44" height="8" fill="#2a1f1a"/><rect x="-20" y="-13" width="40" height="3" fill="#fff"/>`,
-    ba: `<path d="M-6 -14 L24 -34" stroke="#2a1f1a" stroke-width="3"/><path d="M-14 -18 L0 -10 L-4 -4 L-16 -8 Z" fill="#3f8fc0"/>`,
+    vo: `<path d="M-6 -15 L22 -32" stroke="#5a3a2a" stroke-width="3.2" stroke-linecap="round"/><path d="M-15 -21 L-1 -13 L-5 -5 L-12 -9 L-18 -11 Z" fill="#ff3d8b" ${SW}/><circle cx="-8" cy="-12" r="1.6" fill="${INK}"/>`,
+    dr: `<rect x="-18" y="-11" width="36" height="17" rx="3" fill="#9a9a9a" ${SW}/><path d="M-18 -5 H18 M-18 1 H18" stroke="${INK}" stroke-width="1.2"/><path d="M-14 -16 L-6 -11 M14 -16 L6 -11" ${SW} stroke-width="2.2"/>`,
+    kb: `<rect x="-23" y="-15" width="46" height="9" rx="2" fill="#2a1f1a" ${SW}/><rect x="-21" y="-14" width="42" height="4" fill="#fff"/><path d="M-15 -14 v4 M-9 -14 v4 M-3 -14 v4 M3 -14 v4 M9 -14 v4 M15 -14 v4" stroke="${INK}" stroke-width="1"/>`,
+    ba: `<path d="M-6 -13 L26 -36" stroke="#2a1f1a" stroke-width="3.2" stroke-linecap="round"/><path d="M-16 -19 L0 -11 L-4 -3 L-12 -6 L-19 -9 Z" fill="#3f8fc0" ${SW}/>`,
   }[m.part] : '';
-  return `<g transform="scale(${s})">${L.fem ? `<rect x="-8" y="-30" width="16" height="24" rx="5" fill="${skin}"/><path d="M-9 -29 L9 -29 L8 -21 L-8 -21 Z" fill="${shirt}"/><rect x="-9" y="-12" width="18" height="6" fill="${shirt}"/><circle cy="-9" r="2" fill="#e0a020"/><path d="M-15 -30 L-8 -30 L-9 -25 Z M15 -30 L8 -30 L9 -25 Z" fill="#e0a020"/>` : ''}<rect x="-9" y="-30" width="18" height="24" rx="5" fill="${L.fem ? 'none' : shirt}"/><rect x="-8" y="-7" width="6" height="8" fill="#2a1f1a"/><rect x="2" y="-7" width="6" height="8" fill="#2a1f1a"/>${pads}
-    <circle cy="-40" r="11" fill="${skin}"/>${hair}<circle cx="-4" cy="-40" r="1.6" fill="#2a1f1a"/><circle cx="4" cy="-40" r="1.6" fill="#2a1f1a"/>${L.fem ? '<path d="M-7 -42.5 l-2 -1.5 M7 -42.5 l2 -1.5" stroke="#2a1f1a" stroke-width="1.2"/><path d="M-2.5 -34.5 Q0 -33 2.5 -34.5" stroke="#c0303a" stroke-width="1.8" fill="none"/>' : ''}${beard}${inst}</g>`;
+  const torso = L.fem
+    ? `<path d="M-8 -30 Q-10 -18 -8 -7 L8 -7 Q10 -18 8 -30 Q0 -27 -8 -30 Z" fill="${skin}" ${SW}/><path d="M-9 -30 Q0 -26 9 -30 L8 -21 Q0 -19 -8 -21 Z" fill="${shirt}" ${SW} stroke-width="1.2"/><path d="M-9 -13 L9 -13 L9 -6 L-9 -6 Z" fill="${shirt}" ${SW} stroke-width="1.2"/><circle cy="-10" r="2" fill="#e0a020" ${SW} stroke-width="1"/><path d="M-16 -31 L-8 -30 L-10 -25 Z M16 -31 L8 -30 L10 -25 Z" fill="#e0a020" ${SW} stroke-width="1"/>`
+    : `<path d="M-10 -30 Q-12 -18 -10 -6 L10 -6 Q12 -18 10 -30 Q0 -26 -10 -30 Z" fill="${shirt}" ${SW}/><path d="M-3 -29 L0 -22 L3 -29" fill="none" ${SW} stroke-width="1.1"/><path d="M-7 -20 v10 M7 -20 v10" stroke="#ffffff22" stroke-width="2"/>`;
+  return `<g transform="scale(${s})"><path d="M-8 -7 L-8 1 L-1.5 1 L-1.5 -7 Z M1.5 -7 L1.5 1 L8 1 L8 -7 Z" fill="#2a1f1a" ${SW} stroke-width="1.2"/>${torso}${pads}${L.hair === 'long' ? `<path d="M-12.5 -46 Q-17 -26 -14 -10 L-6 -13 Q-9.5 -28 -8 -42 Z M12.5 -46 Q17 -26 14 -10 L6 -13 Q9.5 -28 8 -42 Z" fill="${hc}" ${SW}/>` : ''}
+    ${face(skin, mood, '')}${hairOf(L, hc)}${beard}${inst}</g>`;
 }
 
 // ================= cut-ins =================
 let cutTimer = 0, pausedByCut = false;
 function thug(x, y, i, kind) {
   const d = (.55 + (i % 5) * .05).toFixed(2), body = pick(['#4a3a2a', '#5a4a3a', '#3a2f2a']), hc = pick(['#ff3d8b', '#e0a020', '#3f8fc0', '#d0452f', '#3a9a62']);
-  const bat = `<g class="${kind === 'riot' ? '' : 'drop'}" style="animation-delay:${d}s"><line x1="10" y1="-30" x2="20" y2="-58" stroke="#7a5a3a" stroke-width="5" stroke-linecap="round"/><path d="M17 -56 l-4 -3 M21 -52 l4 -2 M19 -60 l1 -4" stroke="#ccc" stroke-width="2"/></g>`;
-  const arms = kind === 'riot' ? `<line x1="-8" y1="-34" x2="-16" y2="-50" stroke="${body}" stroke-width="5"/>`
-    : kind === 'sleep' ? '' : `<g class="armsup" style="animation-delay:${d}s"><line x1="-8" y1="-34" x2="-18" y2="-56" stroke="${body}" stroke-width="5" stroke-linecap="round"/><line x1="8" y1="-34" x2="18" y2="-56" stroke="${body}" stroke-width="5" stroke-linecap="round"/></g>`;
-  const head = `<g class="${kind === 'metal' ? 'head' : ''}" style="animation-delay:${d}s"><circle cy="-44" r="9" fill="#e8b98e"/><path d="M-2 -52 L0 -63 L2 -52 Z" fill="${hc}"/></g>`;
+  const bat = `<g class="${kind === 'riot' ? '' : 'drop'}" style="animation-delay:${d}s"><path d="M9 -28 L21 -60" stroke="#7a5a3a" stroke-width="5.5" stroke-linecap="round"/><path d="M9 -28 L21 -60" stroke="${INK}" stroke-width="1" stroke-linecap="round" opacity=".6"/><path d="M17 -55 l-5 -2 M21 -51 l5 -1 M19 -60 l1 -5 M23 -57 l4 -3" ${SW} stroke="#ddd" stroke-width="2"/></g>`;
+  const arms = kind === 'riot' ? `<path d="M-8 -26 L-17 -44" stroke="${body}" stroke-width="5" stroke-linecap="round"/><circle cx="-17" cy="-46" r="3" fill="#e8b98e" ${SW} stroke-width="1"/>`
+    : kind === 'sleep' ? '' : `<g class="armsup" style="animation-delay:${d}s"><path d="M-8 -26 L-19 -50 M8 -26 L19 -50" stroke="${body}" stroke-width="5" stroke-linecap="round"/><circle cx="-19" cy="-52" r="3" fill="#e8b98e" ${SW} stroke-width="1"/><circle cx="19" cy="-52" r="3" fill="#e8b98e" ${SW} stroke-width="1"/></g>`;
+  const mood = kind === 'riot' ? 'angry' : kind === 'sleep' ? 'sleep' : 'happy';
+  const head = `<g class="${kind === 'metal' ? 'head' : ''}" style="animation-delay:${d}s"><g transform="translate(0,4) scale(.85)">${face('#e8b98e', mood)}${hairOf({ hair: 'mohawk' }, hc)}</g></g>`;
   const cls = kind === 'riot' ? 'angry' : kind === 'sleep' ? 'sleepy' : 'dance';
-  return `<g transform="translate(${x},${y})"><g class="${cls}" style="animation-delay:${kind === 'sleep' ? d : (i % 4) * .08}s"><rect x="-10" y="-36" width="20" height="30" rx="5" fill="${body}"/><path d="M-12 -36 l4 -4 l4 4 M4 -36 l4 -4 l4 4" stroke="#aaa" stroke-width="2" fill="none"/>${arms}${head}</g>${bat}</g>`;
+  return `<g transform="translate(${x},${y})"><g class="${cls}" style="animation-delay:${kind === 'sleep' ? d : (i % 4) * .08}s"><path d="M-7 -7 v7 h5 v-7 M2 -7 v7 h5 v-7" fill="#2a1f1a" ${SW} stroke-width="1"/><path d="M-10 -30 Q-12 -18 -10 -6 L10 -6 Q12 -18 10 -30 Q0 -26 -10 -30 Z" fill="${body}" ${SW}/><path d="M-14 -27 L-12 -34 L-9 -29 M14 -27 L12 -34 L9 -29" fill="#ddd" ${SW} stroke-width="1"/>${arms}${head}</g>${bat}</g>`;
 }
 function stageSvg(venue) {
   if (venue === 0) return `<rect x="110" y="222" width="140" height="16" fill="#8a6a4a"/><rect x="110" y="222" width="140" height="4" fill="#6a4a2a"/>`;
@@ -784,7 +814,7 @@ function scene(kind, o) {
     G.alumni.slice(0, 3).forEach((a, i) => { front += `<g transform="translate(${400 + i * 70},318)">${person(a, .9)}<text x="0" y="-62" text-anchor="middle" fill="#ff3d8b" style="font-size:16px">♥</text></g>`; });
     if (o.boss) {
       const cry = o.win;
-      front += `<g transform="translate(660,262)"><g class="${k === 'riot' ? 'angry' : cry ? '' : 'shake'}">${person({ look: o.boss.look }, 2)}</g>`
+      front += `<g transform="translate(660,262)"><g class="${k === 'riot' ? 'angry' : cry ? '' : 'shake'}">${person({ look: o.boss.look }, 2, cry ? 'cry' : 'angry')}</g>`
         + (cry ? `<circle class="tear" cx="-9" cy="-80" r="3.5" fill="#7ac8ff"/><circle class="tear" cx="9" cy="-80" r="3.5" fill="#7ac8ff" style="animation-delay:.3s"/><g class="armsup" style="animation-delay:1s"><line x1="16" y1="-50" x2="30" y2="-104" stroke="${o.boss.look.shirt}" stroke-width="10" stroke-linecap="round"/><circle cx="30" cy="-108" r="8" fill="#e8b98e"/></g>` : '') + `</g>`;
     }
     if (k === 'riot') front += Array.from({ length: 8 }, () => `<rect class="fly" x="${R(420, 660)}" y="${R(220, 280)}" width="8" height="12" fill="#c0c0c0" style="--dx:${-R(80, 220)}px;animation-delay:${R(.2, .9).toFixed(2)}s"/>`).join('');
