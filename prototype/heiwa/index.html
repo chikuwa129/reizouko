@@ -1,0 +1,817 @@
+<title>平和音楽事務所</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rampart+One&family=DotGothic16&family=M+PLUS+Rounded+1c:wght@500;800&display=swap">
+<style>
+/* Layout: a small music agency's office on one screen. World map (tension → peace) on the left,
+   the studio room and tabbed desk on the right. Warm, poster-ish, deliberately one light look. */
+:root {
+  --paper: #fbf3e4;
+  --card: #fffaf0;
+  --ink: #2d2433;
+  --muted: #7b6f80;
+  --line: #e2d3bb;
+  --peace: #3fae6a;
+  --tense: #e0503a;
+  --mid: #f0b93a;
+  --melody: #e5568f;
+  --groove: #f08a24;
+  --sky: #5aa8d8;
+  --gold: #e8a400;
+  --sea: #cfe6f2;
+  --f-display: 'Rampart One', 'Hiragino Maru Gothic ProN', 'M PLUS Rounded 1c', sans-serif;
+  --f-dot: 'DotGothic16', 'Osaka-Mono', 'MS Gothic', monospace;
+  --f-body: 'M PLUS Rounded 1c', 'Hiragino Maru Gothic ProN', 'Hiragino Sans', 'Noto Sans JP', system-ui, sans-serif;
+  color-scheme: light;
+}
+html, body { height: 100%; }
+body {
+  margin: 0;
+  background: var(--paper);
+  background-image: radial-gradient(#e9dcc4 1px, transparent 1.2px);
+  background-size: 18px 18px;
+  color: var(--ink);
+  font-family: var(--f-body);
+  font-size: 14px;
+  box-sizing: border-box;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 10px;
+  overflow-x: hidden;
+  -webkit-tap-highlight-color: transparent;
+}
+* { box-sizing: border-box; }
+button { font: inherit; color: inherit; cursor: pointer; }
+button:focus-visible, [tabindex]:focus-visible { outline: 3px solid var(--sky); outline-offset: 2px; }
+.app { max-width: 1280px; height: 100%; margin: 0 auto; display: grid; grid-template-rows: auto minmax(0, 1fr); gap: 10px; }
+
+.top { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; }
+.logo { font-family: var(--f-display); font-size: 24px; color: var(--ink); margin-right: auto; line-height: 1.05; letter-spacing: .02em; }
+.logo small { display: block; font-family: var(--f-body); font-size: 11px; color: var(--muted); letter-spacing: .08em; font-weight: 500; }
+.stats { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; }
+.stat { background: var(--card); border: 2px solid var(--line); border-radius: 10px; padding: 3px 9px; font-family: var(--f-dot); font-variant-numeric: tabular-nums; font-size: 15px; display: flex; gap: 5px; align-items: baseline; }
+.stat b { font-family: var(--f-body); font-weight: 500; font-size: 11px; color: var(--muted); }
+.stat.neg { color: var(--tense); }
+.speed { display: flex; gap: 3px; background: var(--card); border: 2px solid var(--line); border-radius: 10px; padding: 3px; }
+.speed button { border: 0; background: transparent; border-radius: 7px; padding: 3px 8px; font-size: 12px; font-weight: 800; }
+.speed button[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+
+.main { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 12px; min-height: 0; }
+.panel { background: var(--card); border: 2px solid var(--line); border-radius: 14px; padding: 10px; display: flex; flex-direction: column; gap: 8px; min-width: 0; min-height: 0; }
+
+.peace { display: flex; align-items: flex-end; gap: 14px; flex-wrap: wrap; }
+.peace .big { font-family: var(--f-display); font-size: 34px; color: var(--peace); line-height: 1; font-variant-numeric: tabular-nums; }
+.peace .lbl { font-size: 11px; color: var(--muted); }
+.peace .goal { margin-left: auto; font-family: var(--f-dot); font-size: 12px; color: var(--muted); text-align: right; }
+.gauge { height: 10px; background: #efe4d0; border-radius: 5px; overflow: hidden; position: relative; flex: none; }
+.gauge i { position: absolute; inset: 0 auto 0 0; background: linear-gradient(90deg, var(--mid), var(--peace)); transition: width .6s; }
+.gauge::after { content: ""; position: absolute; left: 90%; top: 0; bottom: 0; width: 2px; background: var(--ink); }
+.stage { container-type: inline-size; position: relative; border-radius: 10px; overflow: hidden; background: var(--sea); aspect-ratio: 720 / 330; max-width: 100%; flex: none; border: 2px solid var(--line); }
+.stage > svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.reg { cursor: pointer; stroke: #fff; stroke-width: 1.5; transition: fill .8s; }
+.reg.sel { stroke: var(--ink); stroke-width: 3; }
+.rlabel { font-family: var(--f-dot); font-size: 12px; fill: var(--ink); paint-order: stroke; stroke: #fffc; stroke-width: 3px; pointer-events: none; text-anchor: middle; }
+.bandmark { animation: bob .6s ease-in-out infinite alternate; }
+@keyframes bob { to { transform: translateY(-4px); } }
+
+.regs { display: flex; flex-wrap: wrap; gap: 4px; }
+.regs button { border: 2px solid var(--line); background: var(--paper); border-radius: 999px; padding: 2px 9px; font-size: 12px; display: flex; gap: 5px; align-items: baseline; }
+.regs button span { font-family: var(--f-dot); font-variant-numeric: tabular-nums; }
+.regs button[aria-pressed="true"] { border-color: var(--ink); background: #fff; font-weight: 800; }
+.rinfo { display: flex; flex-direction: column; gap: 4px; font-size: 12px; }
+.rinfo h3 { margin: 0; font-size: 16px; display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+.rinfo h3 small { font-weight: 500; color: var(--tense); font-size: 12px; }
+.rinfo .row { display: flex; flex-wrap: wrap; gap: 4px 10px; color: var(--muted); }
+.rinfo .row b { color: var(--ink); font-weight: 800; }
+.tbar { height: 8px; background: #efe4d0; border-radius: 4px; overflow: hidden; }
+.tbar i { display: block; height: 100%; transition: width .6s, background .6s; }
+
+.ticker { font-size: 12px; color: var(--muted); border-top: 2px dashed var(--line); padding-top: 6px; min-height: 2.6em; line-height: 1.45; }
+.ticker b { color: var(--ink); }
+
+/* studio room */
+.room { position: relative; border-radius: 10px; overflow: hidden; border: 2px solid var(--line); aspect-ratio: 360 / 104; flex: none; max-width: 100%; }
+.room svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.mem { animation: bob .45s ease-in-out infinite alternate; }
+.mem.idle { animation-duration: 1.4s; }
+.bub { font-family: var(--f-dot); font-size: 11px; paint-order: stroke; stroke: #fff; stroke-width: 3px; animation: bub 1.1s ease-out both; text-anchor: middle; }
+@keyframes bub { from { transform: translateY(0); opacity: 0; } 15% { opacity: 1; } to { transform: translateY(-26px); opacity: 0; } }
+
+.tabs { display: flex; flex-wrap: wrap; gap: 4px; }
+.tab { border: 2px solid var(--line); background: var(--paper); border-radius: 999px; padding: 3px 12px; font-size: 13px; font-weight: 800; }
+.tab[aria-selected="true"] { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.desk { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 8px; touch-action: pan-y; }
+.desk.slide-l { animation: slideL .2s ease-out; } .desk.slide-r { animation: slideR .2s ease-out; }
+@keyframes slideL { from { transform: translateX(26px); opacity: 0; } } @keyframes slideR { from { transform: translateX(-26px); opacity: 0; } }
+.lab { font-size: 11px; color: var(--muted); letter-spacing: .08em; }
+.chipset { display: flex; flex-wrap: wrap; gap: 4px; }
+.pick { border: 2px solid var(--line); background: var(--paper); border-radius: 8px; padding: 3px 8px; font-size: 13px; display: flex; gap: 4px; align-items: center; }
+.pick[aria-pressed="true"] { border-color: var(--ink); background: var(--ink); color: var(--paper); }
+.pick .mk { font-size: 12px; font-weight: 800; }
+.pick.fusion { border-style: dashed; }
+.pick[disabled] { opacity: .35; cursor: default; }
+.go { border: 0; background: var(--peace); color: #fff; border-radius: 10px; padding: 10px 14px; font-weight: 800; font-size: 15px; box-shadow: 0 3px 0 #2a7a4a; }
+.go:active:not([disabled]) { transform: translateY(2px); box-shadow: 0 1px 0 #2a7a4a; }
+.go[disabled] { background: #c9bfae; box-shadow: none; cursor: default; }
+.go.alt { background: var(--sky); box-shadow: 0 3px 0 #2f7aa8; }
+.prog { display: flex; flex-direction: column; gap: 6px; background: var(--paper); border-radius: 10px; padding: 8px 10px; border: 2px solid var(--line); }
+.prog .t { font-weight: 800; font-size: 15px; }
+.pbar { height: 12px; background: #efe4d0; border-radius: 6px; overflow: hidden; }
+.pbar i { display: block; height: 100%; background: var(--sky); transition: width .4s; }
+.mn { display: flex; gap: 12px; font-family: var(--f-dot); font-size: 14px; }
+.mn .m { color: var(--melody); } .mn .n { color: var(--groove); }
+.grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+.item { border: 2px solid var(--line); background: var(--paper); border-radius: 10px; padding: 6px 8px; text-align: left; display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+button.item[aria-pressed="true"] { border-color: var(--ink); background: #fff; }
+button.item[disabled] { opacity: .4; cursor: default; }
+.item .nm { font-weight: 800; font-size: 13px; display: flex; justify-content: space-between; gap: 6px; }
+.item .sub { font-size: 11px; color: var(--muted); }
+.rank { font-family: var(--f-display); font-size: 15px; line-height: 1; }
+.rank.S { color: var(--gold); } .rank.A { color: var(--melody); } .rank.B { color: var(--sky); } .rank.C, .rank.D { color: var(--muted); }
+.tag { font-size: 11px; padding: 0 5px; border-radius: 4px; background: #efe4d0; }
+.tag.like { background: #d6f0de; color: #1d6a3c; } .tag.hate { background: #fbdcd5; color: #a3301d; } .tag.tired { background: #eee; color: var(--muted); }
+.sbar { display: grid; grid-template-columns: 2.6em minmax(0, 1fr) 2em; gap: 4px; align-items: center; font-size: 11px; color: var(--muted); }
+.sbar span:last-child { font-family: var(--f-dot); color: var(--ink); text-align: right; }
+.sbar .tb { height: 5px; background: #efe4d0; border-radius: 3px; overflow: hidden; }
+.sbar .tb i { display: block; height: 100%; }
+.small { border: 2px solid var(--line); background: #fff; border-radius: 8px; padding: 3px 8px; font-size: 12px; font-weight: 800; }
+.small[disabled] { opacity: .4; cursor: default; }
+.note { font-size: 12px; color: var(--muted); line-height: 1.6; }
+.foot { display: flex; gap: 8px; align-items: center; font-size: 11px; color: var(--muted); justify-content: center; }
+
+/* cut-in over the map */
+.cutin { position: absolute; inset: 0; z-index: 3; cursor: pointer; background: #000; }
+.cutin svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.cap { position: absolute; left: 0; right: 0; bottom: 0; padding: 8px 14px 10px; background: linear-gradient(transparent, #000b 45%); display: flex; align-items: flex-end; gap: 10px; color: #fff; pointer-events: none; }
+.cap .nm { font-family: var(--f-display); font-size: clamp(18px, 3vw, 28px); line-height: 1.1; animation: capin .3s cubic-bezier(.2,1.6,.4,1) both; }
+.cap .rg { font-size: 12px; opacity: .85; }
+.cap .val { margin-left: auto; font-family: var(--f-display); font-size: clamp(18px, 3.2vw, 30px); color: #9ff0b8; white-space: nowrap; animation: capin .3s .4s cubic-bezier(.2,1.6,.4,1) both; }
+.cap .val.bad { color: #ff9a86; }
+@keyframes capin { from { transform: scale(1.8); opacity: 0; } }
+.stamp { position: absolute; left: 50%; top: 32%; transform: translate(-50%, -50%) rotate(-8deg); font-family: var(--f-display); font-size: var(--fs, 7cqw); color: #fff; border: 5px solid #fff; padding: 2px 16px; border-radius: 12px; background: #e5568fcc; white-space: nowrap; animation: stamp .35s .9s cubic-bezier(.3,1.8,.5,1) both; pointer-events: none; }
+.stamp.gold { background: #e8a400dd; }
+@keyframes stamp { from { transform: translate(-50%, -50%) rotate(-8deg) scale(3); opacity: 0; } }
+.skip { position: absolute; right: 8px; top: 6px; font-size: 11px; color: #fffa; font-family: var(--f-dot); pointer-events: none; }
+.scene * { transform-box: fill-box; }
+.fly { animation: fly 1.6s ease-out both; }
+@keyframes fly { from { transform: translate(0, 0); opacity: 0; } 15% { opacity: 1; } to { transform: translate(var(--dx, 20px), -110px); opacity: 0; } }
+.drop { transform-origin: 50% 100%; animation: drop .5s ease-in both; }
+@keyframes drop { to { transform: translateY(26px) rotate(80deg); opacity: 0; } }
+.dance { transform-origin: 50% 100%; animation: dance .32s ease-in-out infinite alternate; }
+@keyframes dance { from { transform: rotate(-7deg); } to { transform: rotate(7deg) translateY(-3px); } }
+.armsup { transform-origin: 50% 100%; animation: armsup .3s both; }
+@keyframes armsup { from { transform: scaleY(0); } }
+.angry { animation: angry .12s linear infinite alternate; }
+@keyframes angry { to { transform: translateX(3px); } }
+.sleepy { transform-origin: 50% 100%; animation: sleepy 1s ease-in-out both; }
+@keyframes sleepy { to { transform: rotate(-70deg) translateY(10px); } }
+.head { transform-origin: 50% 100%; animation: bang .22s ease-in-out infinite alternate; }
+@keyframes bang { from { transform: rotate(-25deg); } to { transform: rotate(25deg); } }
+.spin { transform-origin: center; animation: spin 1.2s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.pop { transform-origin: center; animation: pop .5s cubic-bezier(.2,1.6,.4,1) both; }
+@keyframes pop { from { transform: scale(0); } }
+.appear { animation: appear .3s both; }
+@keyframes appear { from { opacity: 0; } }
+.light { transform-origin: 50% 0; animation: light 1.2s ease-in-out infinite alternate; }
+@keyframes light { from { transform: rotate(-14deg); } to { transform: rotate(14deg); } }
+
+/* overlays */
+.ov { position: fixed; inset: 0; background: #2d2433cc; z-index: 20; display: flex; align-items: center; justify-content: center;
+  padding: max(12px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) max(12px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); }
+.card { background: var(--card); border: 3px solid var(--ink); border-radius: 16px; padding: 20px; width: min(600px, 100%); max-height: 100%; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
+.card h2 { margin: 0; font-family: var(--f-display); font-weight: normal; font-size: 28px; text-wrap: balance; }
+.card p { margin: 0; line-height: 1.8; }
+.kicker { font-family: var(--f-dot); font-size: 12px; color: var(--muted); letter-spacing: .1em; }
+.rows { border-top: 2px dashed var(--line); padding-top: 8px; display: flex; flex-direction: column; gap: 4px; }
+.rows div { display: grid; grid-template-columns: 7em 1fr; gap: 8px; }
+.rows b { font-weight: 500; color: var(--muted); font-size: 12px; }
+.toast { position: fixed; left: 50%; bottom: calc(18px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--ink); color: var(--paper); padding: 8px 16px; border-radius: 999px; font-size: 14px; font-weight: 800; z-index: 30; animation: toast 1.6s ease-out both; pointer-events: none; white-space: nowrap; }
+@keyframes toast { 0% { transform: translate(-50%, 20px); opacity: 0; } 12% { transform: translate(-50%, 0); opacity: 1; } 82% { opacity: 1; } 100% { opacity: 0; } }
+
+@media (max-width: 860px) {
+  html, body { height: auto; }
+  .app { height: auto; }
+  .main { grid-template-columns: minmax(0, 1fr); }
+  .regs { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 2px; }
+  .regs button { flex: none; }
+  .cutin { position: fixed; left: 0; right: 0; top: 0; bottom: auto; aspect-ratio: 720 / 330; max-height: 60vh; z-index: 15; box-shadow: 0 10px 30px #0008; }
+  .logo small { display: none; }
+}
+@media (prefers-reduced-motion: reduce) { .scene *, .mem, .bandmark, .bub, .toast, .stamp, .cap * { animation-duration: .01s !important; animation-iteration-count: 1 !important; } }
+</style>
+
+<div class="app">
+  <div class="top">
+    <div class="logo">平和音楽事務所<small>音楽の力で、世界の争いを止める</small></div>
+    <div class="stats" id="stats"></div>
+    <div class="speed" id="speed" role="group" aria-label="時間の速さ">
+      <button data-s="0">停止</button><button data-s="1">1倍</button><button data-s="2">2倍</button><button data-s="4">4倍</button>
+    </div>
+  </div>
+  <div class="main">
+    <section class="panel">
+      <div class="peace">
+        <div><div class="lbl">世界の平和度</div><div class="big" id="gpeace">0%</div></div>
+        <div><div class="lbl">ファン</div><div class="big" id="gfans" style="font-size:22px;color:var(--melody)">0</div></div>
+        <div class="goal" id="goal"></div>
+      </div>
+      <div class="gauge"><i id="gg" style="width:0"></i></div>
+      <div class="stage" id="stage">
+        <svg id="map" viewBox="0 0 720 330" role="img" aria-label="世界地図。地域をタップして選ぶ"></svg>
+        <div id="cut"></div>
+      </div>
+      <div class="regs" id="regs" role="group" aria-label="地域を選ぶ"></div>
+      <div class="rinfo" id="rinfo"></div>
+      <div class="ticker" id="ticker" aria-live="polite"></div>
+    </section>
+    <section class="panel">
+      <div class="room" id="room"></div>
+      <div class="tabs" id="tabs" role="tablist"></div>
+      <div class="desk" id="desk" role="tabpanel"></div>
+      <div class="foot">左右にスワイプでもタブを切り替え</div>
+    </section>
+  </div>
+</div>
+<div id="ovl"></div>
+
+<script>
+// ================= data =================
+const P = (lon, lat) => [(lon + 180) * 2, (90 - lat) * 2 - 20];
+const POLYS = {"na":[[[-165,65],[-140,70],[-95,72],[-75,62],[-60,50],[-80,32],[-82,25],[-97,20],[-105,22],[-117,32],[-125,48],[-140,60]],[[-55,60],[-45,60],[-20,70],[-25,82],[-60,80],[-70,76]]],"sa":[[[-97,20],[-80,10],[-60,8],[-50,0],[-35,-7],[-40,-22],[-58,-38],[-68,-55],[-75,-45],[-72,-20],[-81,-5],[-85,10]]],"eu":[[[-10,36],[-9,43],[-2,48],[-5,58],[5,62],[15,70],[30,70],[40,62],[40,46],[28,40],[20,38],[12,44],[3,42]]],"af":[[[-17,15],[-10,30],[0,36],[10,37],[32,31],[43,12],[51,11],[40,-5],[35,-25],[20,-35],[12,-18],[9,4],[-8,5]]],"ru":[[[40,46],[40,62],[30,70],[60,72],[100,78],[140,72],[180,68],[170,60],[140,55],[130,48],[90,50],[75,40],[60,50]]],"mi":[[[28,40],[40,46],[60,50],[75,40],[90,30],[92,22],[80,8],[72,20],[57,25],[52,13],[43,12],[35,30]]],"ea":[[[75,40],[90,50],[130,48],[135,42],[122,30],[120,22],[108,18],[105,10],[100,14],[92,22],[90,30]]],"jp":[[[130,31],[131,34],[136,35],[140,36],[142,40],[141,45],[145,44],[140,41],[140,35],[135,33]]],"oc":[[[114,-22],[122,-18],[132,-12],[142,-11],[153,-25],[150,-37],[140,-38],[130,-32],[116,-34]],[[95,5],[105,-6],[120,-9],[140,-5],[125,5],[110,2]]]};
+// each region: what it likes, what it hates, the genre you learn by playing there, and the silly conflict
+const REG = [
+  { id: 'jp', name: '日本', w: 1, likes: ['enka', 'pop'], hates: ['metal'], local: 'enka', war: 'きのこ派とたけのこ派の冷戦', ten: 45 },
+  { id: 'ea', name: '東アジア', w: 4, likes: ['pop', 'edm'], hates: ['enka'], local: 'edm', war: '国境の餃子の皮の厚さ論争', ten: 60 },
+  { id: 'mi', name: '中東・インド', w: 4, likes: ['kayo', 'folk'], hates: ['classic'], local: 'kayo', war: 'カレーの辛さをめぐる百年戦争', ten: 75 },
+  { id: 'ru', name: 'ロシア・北アジア', w: 5, likes: ['metal', 'classic'], hates: ['reggae'], local: 'metal', war: '寒すぎて全員が機嫌が悪い', ten: 70 },
+  { id: 'eu', name: 'ヨーロッパ', w: 3, likes: ['classic', 'edm'], hates: ['enka'], local: 'classic', war: 'サッカーの判定をめぐる大論争', ten: 55 },
+  { id: 'af', name: 'アフリカ', w: 5, likes: ['folk', 'reggae'], hates: ['classic'], local: 'folk', war: '太鼓の音量をめぐるご近所トラブル', ten: 65 },
+  { id: 'na', name: '北米', w: 5, likes: ['rock', 'hiphop'], hates: ['enka'], local: 'hiphop', war: 'ピザにパイナップルを乗せるかの内戦', ten: 70 },
+  { id: 'sa', name: '南米', w: 4, likes: ['latin', 'reggae'], hates: ['classic'], local: 'latin', war: 'お祭りの日程が決まらない', ten: 60 },
+  { id: 'oc', name: 'オセアニア', w: 3, likes: ['reggae', 'rock'], hates: ['metal'], local: 'reggae', war: 'カンガルーと人間の縄張り争い', ten: 50 },
+];
+REG.forEach(r => r.polys = POLYS[r.id]);
+const RW = REG.reduce((s, r) => s + r.w, 0);
+
+// m/n = how much the genre weighs melody vs groove; hot = how fired-up it gets a crowd
+const GENRES = [
+  { id: 'pop', name: 'ポップ', m: .5, n: .5, hot: 1, c: '#e5568f', start: true },
+  { id: 'rock', name: 'ロック', m: .4, n: .6, hot: 2, c: '#d0452f', start: true },
+  { id: 'enka', name: '演歌', m: .7, n: .3, hot: 0, c: '#8a5a2c' },
+  { id: 'edm', name: 'EDM', m: .25, n: .75, hot: 2, c: '#6a4fd8' },
+  { id: 'kayo', name: 'ダンス歌謡', m: .45, n: .55, hot: 1, c: '#e88a1a' },
+  { id: 'metal', name: 'メタル', m: .2, n: .8, hot: 3, c: '#3a3540' },
+  { id: 'classic', name: 'クラシック', m: .8, n: .2, hot: 0, c: '#3a6fb0' },
+  { id: 'folk', name: '民族音楽', m: .5, n: .5, hot: 1, c: '#2f8a5a' },
+  { id: 'hiphop', name: 'ヒップホップ', m: .3, n: .7, hot: 2, c: '#c4762a' },
+  { id: 'latin', name: 'ラテン', m: .4, n: .6, hot: 1, c: '#e0503a' },
+  { id: 'reggae', name: 'レゲエ', m: .45, n: .55, hot: 0, c: '#3fae6a' },
+  { id: 'lullaby', name: '子守唄', m: .85, n: .15, hot: -1, c: '#8fa6d8' },
+  // fusions: discovered by making songs in both parents
+  { id: 'enkametal', name: '演歌メタル', m: .5, n: .5, hot: 2, c: '#5a3a3a', fusion: ['enka', 'metal'] },
+  { id: 'symedm', name: '交響EDM', m: .55, n: .45, hot: 1, c: '#4a5fc8', fusion: ['classic', 'edm'] },
+  { id: 'tribalrap', name: '民族ラップ', m: .4, n: .6, hot: 1, c: '#6a7a2a', fusion: ['folk', 'hiphop'] },
+  { id: 'lullmetal', name: '子守唄メタル', m: .55, n: .45, hot: -1, c: '#5a5a8a', fusion: ['lullaby', 'metal'] },
+  { id: 'latinenka', name: 'ラテン演歌', m: .55, n: .45, hot: 1, c: '#b04a3a', fusion: ['latin', 'enka'] },
+];
+const GEN = Object.fromEntries(GENRES.map(g => [g.id, g]));
+const THEMES = ['愛', '友情', 'ふるさと', '平和', 'ごはん', '宇宙', 'お祭り', '雨', '自由', '家族', '仕事', '動物'];
+// the one best theme per genre (◎). The rest is hashed so it stays the same every game.
+const BEST = { pop: '愛', rock: '友情', enka: 'ふるさと', edm: 'お祭り', kayo: 'ごはん', metal: '平和', classic: '宇宙', folk: '動物',
+  hiphop: '仕事', latin: 'お祭り', reggae: '自由', lullaby: '家族', enkametal: 'ふるさと', symedm: '宇宙', tribalrap: '動物', lullmetal: '平和', latinenka: '愛' };
+const CMUL = [0.6, 1.0, 1.3, 1.8], CMARK = ['×', '△', '○', '◎'];
+function compat(g, t) {
+  if (BEST[g] === t) return 3;
+  let h = 7; for (const ch of g + t) h = (h * 31 + ch.charCodeAt(0)) % 1000;
+  return h % 10 < 2 ? 0 : h % 10 < 6 ? 1 : 2;
+}
+
+const PARTS = {
+  vo: { name: 'ボーカル', bias: { sing: 9, star: 6 } },
+  gt: { name: 'ギター', bias: { play: 8, comp: 4 } },
+  ba: { name: 'ベース', bias: { play: 7, star: 2 } },
+  dr: { name: 'ドラム', bias: { play: 10 } },
+  kb: { name: 'キーボード', bias: { comp: 10 } },
+  dj: { name: 'DJ', bias: { comp: 5, play: 5 } },
+};
+const FIRST = ['ジョニー', 'ミドリ', 'ケン', 'サチコ', 'ボブ', 'ハナ', 'タロウ', 'リンダ', 'ゴロー', 'マリア', 'テツ', 'ユキ', 'ポール', 'カオル', 'ジロー', 'エミ', 'ラジ', 'アミナ'];
+const LAST = ['山田', 'ゴンザレス', '鈴木', 'スミス', '田中', 'ペトロフ', '佐藤', 'オコンクォ', '高橋', 'シン', '中村', 'リー', 'ロッシ'];
+const HAIR = ['#2d2433', '#8a5a2c', '#e8a400', '#d0452f', '#6a4fd8', '#3fae6a', '#f2f2f2'];
+const SHIRT = ['#e5568f', '#5aa8d8', '#f08a24', '#3fae6a', '#6a4fd8', '#e0503a'];
+const SKIN = ['#f6d7b8', '#e8b98e', '#c98d5e', '#8a5a3a'];
+
+const FAC = [
+  { id: 'studio', name: 'スタジオ', base: 120, desc: '曲づくりが速くなる', eff: l => `制作 ${Math.round(100 + l * 30)}%` },
+  { id: 'pr', name: '宣伝部', base: 150, desc: '新曲の売上とファンが増える', eff: l => `売上 ${Math.round(100 + l * 30)}%` },
+  { id: 'bus', name: 'ツアーバス', base: 100, desc: '移動が速く、安くなる', eff: l => `移動 ${Math.max(1, 3 - l)}週・${travelCostAt(l)}万` },
+  { id: 'gym', name: '練習室', base: 90, desc: '特訓の伸びが大きくなる', eff: l => `特訓 ${Math.round(100 + l * 25)}%` },
+];
+const travelCostAt = l => Math.max(10, 40 - l * 10);
+
+const TITLE_TAIL = { pop: ['ラブソング', 'のうた', 'キラキラ'], rock: ['ロックンロール', 'ブルース', '魂'], enka: ['の港', '酒場', '恋しぐれ'], edm: ['フィーバー', 'ドロップ', 'ナイト'],
+  kayo: ['音頭', 'ダンス', 'マサラ'], metal: ['の咆哮', 'ヘルファイア', '鋼鉄'], classic: ['交響曲', '組曲', 'ソナタ'], folk: ['の太鼓', 'の大地', 'の祈り'],
+  hiphop: ['フリースタイル', 'ライム', 'ビーツ'], latin: ['のサンバ', 'カーニバル', 'マンボ'], reggae: ['の風', 'ジャー', 'ゆるり'], lullaby: ['ねんね', 'のゆりかご', 'おやすみ'],
+  enkametal: ['の鋼鉄港', '地獄しぐれ'], symedm: ['第九ドロップ', '銀河組曲'], tribalrap: ['大地ライム', '太鼓ビーツ'], lullmetal: ['ねんね鋼鉄', 'おやすみヘル'], latinenka: ['恋しぐれマンボ', 'の港サンバ'] };
+
+// ================= state =================
+const WEEKS = 240, PER_YEAR = 48;
+let G;
+function mkMember(part) {
+  const bias = PARTS[part].bias, r = (a, b) => Math.round(a + Math.random() * (b - a));
+  const m = { id: Math.random().toString(36).slice(2, 8), name: pick(FIRST) + '・' + pick(LAST), part, lv: 1, xp: 0,
+    comp: r(6, 14) + (bias.comp || 0), play: r(6, 14) + (bias.play || 0), sing: r(6, 14) + (bias.sing || 0), star: r(4, 12) + (bias.star || 0),
+    hair: pick(HAIR), shirt: pick(SHIRT), skin: pick(SKIN), train: 0 };
+  m.salary = Math.round((m.comp + m.play + m.sing + m.star) / 5);
+  return m;
+}
+function newGame() {
+  const g = {
+    week: 1, money: 300, fans: 0, members: [mkMember('vo'), mkMember('gt')], cands: [], songs: [], prod: null, tour: null, at: 'jp', sel: 'jp',
+    genres: Object.fromEntries(GENRES.filter(x => x.start).map(x => [x.id, 1])), made: {}, known: {}, fac: { studio: 0, pr: 0, bus: 0, gym: 0 },
+    regs: Object.fromEntries(REG.map(r => [r.id, { ten: r.ten, fans: 0, played: {} }])), tab: 'make', pickG: 'pop', pickT: '愛', pickSong: null,
+    yearBest: null, awards: 0, over: false, news: [], speed: 1, lastHire: 0,
+  };
+  g.members[0].name = 'あなた（' + g.members[0].name.split('・')[0] + '）';
+  return g;
+}
+const genreOk = id => !!G.genres[id];
+const busy = m => m.train > 0;
+const peaceOf = r => 100 - G.regs[r.id].ten;
+const globalPeace = () => REG.reduce((s, r) => s + peaceOf(r) * r.w, 0) / RW;
+const dateStr = w => `${Math.floor((w - 1) / PER_YEAR) + 1}年目 ${Math.floor(((w - 1) % PER_YEAR) / 4) + 1}月 ${((w - 1) % 4) + 1}週`;
+const regOf = id => REG.find(r => r.id === id);
+const likeOf = (r, gid) => { const g = GEN[gid]; if (g.fusion) return 1.25; return r.likes.includes(gid) ? 1.5 : r.hates.includes(gid) ? .6 : 1; };
+const trainCost = m => 30 + m.lv * 10 + (m.trained || 0) * 15;
+const facCost = f => Math.round(f.base * 1.8 ** G.fac[f.id]);
+const prodNeed = () => 4;
+const rankOf = q => q >= 120 ? 'S' : q >= 85 ? 'A' : q >= 55 ? 'B' : q >= 30 ? 'C' : 'D';
+
+// ================= helpers =================
+const $ = id => document.getElementById(id);
+const pick = a => a[Math.floor(Math.random() * a.length)];
+const R = (a, b) => a + Math.random() * (b - a);
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const mix = (a, b, t) => { const p = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16)); const A = p(a), B = p(b); return '#' + A.map((x, i) => Math.round(x + (B[i] - x) * t).toString(16).padStart(2, '0')).join(''); };
+const tenColor = t => t > 50 ? mix('#f0b93a', '#e0503a', (t - 50) / 50) : mix('#3fae6a', '#f0b93a', t / 50);
+function news(text, kind = '') { G.news.unshift({ w: G.week, text, kind }); G.news = G.news.slice(0, 8); renderTicker(); }
+function toast(t) { if (window.FAST) return; const el = document.createElement('div'); el.className = 'toast'; el.textContent = t; document.body.appendChild(el); setTimeout(() => el.remove(), 1700); }
+
+// ================= sound =================
+let AC = null, soundOn = true;
+try { soundOn = localStorage.getItem('heiwa-sound') !== 'off'; } catch (e) {}
+function ac() { if (!AC) { try { AC = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { AC = null; } } return AC; }
+function note(f, t, dur, type = 'triangle', vol = .14) {
+  const c = ac(); if (!c) return;
+  const s = c.currentTime + t, o = c.createOscillator(), g = c.createGain();
+  o.type = type; o.frequency.value = f; g.gain.setValueAtTime(0, s); g.gain.linearRampToValueAtTime(vol, s + .02); g.gain.exponentialRampToValueAtTime(.001, s + dur);
+  o.connect(g); g.connect(c.destination); o.start(s); o.stop(s + dur + .05);
+}
+const hz = n => 440 * 2 ** ((n - 69) / 12);
+// short phrases per genre feel
+const PHRASE = {
+  0: [[67, 0], [64, .3], [60, .6], [64, .9], [62, 1.2]],             // calm
+  1: [[60, 0], [64, .15], [67, .3], [72, .45], [67, .6], [72, .9]],   // bright
+  2: [[52, 0], [52, .12], [55, .24], [57, .36], [52, .6], [59, .75]], // driving
+  3: [[40, 0], [40, .1], [43, .2], [40, .3], [46, .4], [45, .55]],    // heavy
+  '-1': [[72, 0], [69, .5], [67, 1], [64, 1.5]],                       // lullaby
+};
+function sfx(name, arg) {
+  if (!soundOn || window.FAST) return; const c = ac(); if (!c) return; if (c.state === 'suspended') c.resume();
+  if (name === 'concert') { const hot = arg; (PHRASE[hot] || PHRASE[1]).forEach(([n, t]) => { note(hz(n), t, .35, hot >= 2 ? 'sawtooth' : 'triangle', hot >= 2 ? .07 : .14); note(hz(n - 12), t, .3, 'sine', .1); }); }
+  if (name === 'done') [60, 64, 67, 72, 76].forEach((n, i) => note(hz(n), i * .08, .4, 'square', .06));
+  if (name === 'award') [72, 76, 79, 84, 79, 84].forEach((n, i) => note(hz(n), i * .12, .5, 'triangle', .14));
+  if (name === 'boo') { note(110, 0, .5, 'sawtooth', .1); note(98, .3, .6, 'sawtooth', .1); }
+  if (name === 'coin') { note(988, 0, .1, 'square', .07); note(1319, .08, .25, 'square', .07); }
+  if (name === 'pop') note(880, 0, .08, 'sine', .08);
+}
+
+// ================= actions =================
+function startSong() {
+  if (G.prod || G.tour) return;
+  const avail = G.members.filter(m => !busy(m));
+  if (!avail.length) return;
+  G.prod = { g: G.pickG, t: G.pickT, prog: 0, m: 0, n: 0 };
+  sfx('pop');
+  renderAll();
+}
+function finishSong() {
+  const p = G.prod, g = GEN[p.g], c = compat(p.g, p.t);
+  const raw = (p.m * g.m + p.n * g.n) * 2 / 8;
+  const q = Math.round(raw * CMUL[c] * (g.fusion ? 1.2 : 1));
+  const key = p.g + '|' + p.t, newKnow = !G.known[key];
+  G.known[key] = 1;
+  const title = (p.t === '平和' && Math.random() < .5 ? 'ピース' : p.t) + pick(TITLE_TAIL[p.g]);
+  const song = { id: Math.random().toString(36).slice(2, 8), title, g: p.g, t: p.t, q, rank: rankOf(q), out: 0, sold: 0, week: G.week };
+  G.songs.unshift(song);
+  G.made[p.g] = (G.made[p.g] || 0) + 1;
+  G.prod = null;
+  G.fans += Math.round(q * 3 * (1 + G.fac.pr * .3));
+  for (const m of G.members) gainXp(m, 6);
+  if (!G.yearBest || q > G.yearBest.q) G.yearBest = song;
+  news(`新曲「${song.title}」（${g.name}×${p.t}）をリリース。曲の力 ${q}・${song.rank}ランク`, 'good');
+  // fusions
+  const fused = [];
+  for (const f of GENRES) if (f.fusion && !G.genres[f.id] && f.fusion.every(x => (G.made[x] || 0) >= 2)) { G.genres[f.id] = 1; fused.push(f); }
+  playCut('record', { name: `「${song.title}」完成`, where: `${g.name} × ${p.t}`, val: `曲の力 ${q}`, rank: song.rank, color: g.c,
+    stamp: newKnow ? `相性 ${CMARK[c]} 発見！` : '', gold: c === 3 });
+  for (const f of fused) setTimeout(() => { playCut('fusion', { name: `新ジャンル「${f.name}」誕生！`, where: f.fusion.map(x => GEN[x].name).join(' × '), val: 'どの地域でも好かれる', color: f.c }); news(`新ジャンル「${f.name}」が生まれた！`, 'good'); }, window.FAST ? 0 : 2600);
+  save();
+}
+function startTour() {
+  const song = G.songs.find(s => s.id === G.pickSong);
+  if (!song || G.prod || G.tour) return;
+  const cost = travelCostAt(G.fac.bus);
+  if (G.money < cost) return;
+  G.money -= cost;
+  const weeks = G.sel === G.at ? 1 : Math.max(1, 3 - G.fac.bus);
+  G.tour = { reg: G.sel, song: song.id, left: weeks };
+  sfx('pop');
+  news(`バンドが${regOf(G.sel).name}へ出発（${weeks}週）。曲は「${song.title}」`);
+  renderAll();
+}
+function concert() {
+  const t = G.tour, r = regOf(t.reg), st = G.regs[r.id], song = G.songs.find(s => s.id === t.song), g = GEN[song.g];
+  G.at = r.id; G.tour = null;
+  const like = likeOf(r, song.g);
+  const tired = .6 ** (st.played[song.id] || 0);
+  const star = G.members.reduce((s, m) => s + m.star, 0);
+  const local = !G.genres[r.local];
+  // risk: hot music in a tense place can turn into a riot; lullabies work best where it is tense
+  const riot = st.ten > 60 && g.hot >= 2 && Math.random() < (g.hot - 1) * .14 * (st.ten - 50) / 50;
+  let d;
+  if (riot) d = -6;
+  else {
+    d = 4.5 * (song.q / 50) ** .7 * like * tired * (1 + Math.max(0, g.hot) * .22) * (1 + star / 250);
+    if (g.hot < 0 && st.ten > 60) d *= 1.4;
+  }
+  st.ten = clamp(st.ten - d, 0, 100);
+  st.played[song.id] = (st.played[song.id] || 0) + 1;
+  const fansGain = riot ? 0 : Math.round(song.q * like * tired * 2);
+  st.fans += fansGain; G.fans += fansGain;
+  const ticket = riot ? 0 : Math.round(20 + song.q * .5 * like + st.fans / 200);
+  G.money += ticket;
+  for (const m of G.members) gainXp(m, 5);
+  if (local) { G.genres[r.local] = 1; }
+  const peaceNow = st.ten <= 0;
+  const kind = riot ? 'riot' : g.hot < 0 ? 'sleep' : g.hot >= 3 ? 'metal' : 'dance';
+  playCut('concert', { kind, name: riot ? '暴動！ ライブ中止' : `${r.name}ライブ`, where: `「${song.title}」${g.name}${like > 1.2 ? '（大好き）' : like < 1 ? '（苦手）' : ''}${tired < 1 ? '・聞き飽き' : ''}`,
+    val: riot ? '緊張 +6' : `緊張 -${d.toFixed(1)}`, bad: riot, hot: g.hot, color: g.c, stamp: peaceNow ? `${r.name} 平和達成！` : local ? `「${GEN[r.local].name}」を覚えた！` : '', gold: peaceNow });
+  news(riot ? `${r.name}のライブで暴動。激しすぎた…` : `${r.name}でライブ。緊張 -${d.toFixed(1)}、チケット ${ticket}万、ファン +${fansGain}`, riot ? 'bad' : 'good');
+  if (local) news(`${r.name}の音楽「${GEN[r.local].name}」を覚えた`, 'good');
+  save();
+}
+function gainXp(m, x) {
+  m.xp += x;
+  while (m.xp >= 20 + m.lv * 10) { m.xp -= 20 + m.lv * 10; m.lv++; m.comp += 2; m.play += 2; m.sing += 2; m.star += 1; m.salary += 1; if (!window.FAST) toast(`${m.name.split('（')[0]} が Lv${m.lv} に！`); }
+}
+function hire(i) {
+  const c = G.cands[i]; if (!c || G.members.length >= 4) return;
+  const fee = c.salary * 3; if (G.money < fee) return;
+  G.money -= fee; G.members.push(c); G.cands.splice(i, 1);
+  news(`${c.name}（${PARTS[c.part].name}）が加入！`, 'good'); sfx('coin'); renderAll(); save();
+}
+function fire(id) {
+  const i = G.members.findIndex(m => m.id === id); if (i <= 0) return;
+  const m = G.members.splice(i, 1)[0]; news(`${m.name} が事務所を去った`); renderAll(); save();
+}
+function train(id) {
+  const m = G.members.find(x => x.id === id); if (!m || busy(m)) return;
+  const cost = trainCost(m); if (G.money < cost) return;
+  G.money -= cost; m.train = 2; sfx('pop'); renderAll(); save();
+}
+function buildFac(id) {
+  const f = FAC.find(x => x.id === id), c = facCost(f); if (G.money < c) return;
+  G.money -= c; G.fac[id]++; sfx('coin'); toast(`${f.name} が Lv${G.fac[id]} に！`); news(`${f.name}を強化（Lv${G.fac[id]}）`); renderAll(); save();
+}
+function refreshCands() {
+  const parts = Object.keys(PARTS);
+  G.cands = Array.from({ length: 3 }, () => { const m = mkMember(pick(parts)); const boost = Math.floor(G.week / 40); m.comp += boost * 2; m.play += boost * 2; m.sing += boost * 2; m.salary = Math.round((m.comp + m.play + m.sing + m.star) / 5); return m; });
+}
+
+// ================= the clock =================
+function tick() {
+  if (G.over) return;
+  G.week++;
+  // making a song: everyone in the studio pushes melody (pink) and groove (orange)
+  if (G.prod && !G.tour) {
+    const g = GEN[G.prod.g];
+    const team = G.members.filter(m => !busy(m));
+    for (const m of team) {
+      const dm = Math.round((m.comp * .6 + m.sing * .3) * R(.6, 1.4)), dn = Math.round((m.play * .6 + m.sing * .3 + m.star * .1) * R(.6, 1.4));
+      G.prod.m += dm; G.prod.n += dn;
+      bubble(m.id, dm, dn);
+    }
+    G.prod.prog += 1 + G.fac.studio * .3;
+    if (G.prod.prog >= prodNeed()) finishSong();
+  }
+  if (G.tour) { G.tour.left--; if (G.tour.left <= 0) concert(); }
+  for (const m of G.members) if (m.train > 0) {
+    m.train--;
+    if (m.train === 0) { const k = 1 + G.fac.gym * .25; m.comp += Math.round(R(1, 3) * k); m.play += Math.round(R(1, 3) * k); m.sing += Math.round(R(1, 3) * k); m.star += Math.round(R(0, 2) * k); m.trained = (m.trained || 0) + 1; news(`${m.name} の特訓が終わった。能力アップ！`, 'good'); }
+  }
+  // released songs keep selling and keep playing on radios around the world
+  for (const s of G.songs) {
+    if (s.out >= 24) continue;
+    const decay = .85 ** s.out;
+    const sale = Math.round(s.q * .5 * decay * (1 + G.fac.pr * .3) * (1 + G.fans / 20000));
+    G.money += sale; s.sold += sale; s.out++;
+    for (const r of REG) G.regs[r.id].ten = clamp(G.regs[r.id].ten - Math.sqrt(s.q) / 150 * likeOf(r, s.g) * decay, 0, 100);
+  }
+  // tension creeps back
+  for (const r of REG) { const st = G.regs[r.id]; if (st.ten > 0) st.ten = clamp(st.ten + .2, 0, 100); }
+  if (G.week % 4 === 1) {
+    const pay = G.members.reduce((s, m) => s + m.salary, 0);
+    G.money -= pay;
+    if (G.week % 8 === 1) refreshCands();
+    if (Math.random() < .6) {
+      const r = pick(REG.filter(x => G.regs[x.id].ten > 0) .concat(REG));
+      G.regs[r.id].ten = clamp(G.regs[r.id].ten + R(3, 7), 0, 100);
+      news(`${r.name}でまた揉めごと：${r.war}`, 'bad');
+    }
+  }
+  if (G.week % PER_YEAR === 1 && G.week > 1) award();
+  if (G.money < -300) return end('broke');
+  if (globalPeace() >= 90) return end('peace');
+  if (G.week > WEEKS) return end('time');
+  renderLive();
+  if (G.tab === 'make' || G.week % 4 === 1) renderDesk();
+}
+function award() {
+  const s = G.yearBest; G.yearBest = null;
+  if (s && s.q >= 85) {
+    const prize = 100 + s.q; G.money += prize; G.fans += s.q * 10; G.awards++;
+    for (const r of REG) G.regs[r.id].ten = clamp(G.regs[r.id].ten - 3, 0, 100);
+    playCut('award', { name: '世界平和音楽大賞！', where: `「${s.title}」`, val: `賞金 ${prize}万・全世界の緊張 -3`, color: GEN[s.g].c, stamp: '大賞', gold: true });
+    news(`「${s.title}」が世界平和音楽大賞を受賞！`, 'good');
+  } else news(`今年の世界平和音楽大賞は、ほかの事務所の曲だった…（Aランク以上が必要）`, 'bad');
+}
+
+// ================= cut-ins =================
+let cutTimer = 0, pausedByCut = false;
+function soldier(x, y, i, kind) {
+  const delay = (.55 + (i % 5) * .05).toFixed(2), body = pick(['#5a6a3a', '#4a5a34', '#66744a']);
+  const gun = `<line x1="10" y1="-30" x2="22" y2="-52" stroke="#222" stroke-width="4" stroke-linecap="round" class="${kind === 'riot' ? '' : 'drop'}" style="animation-delay:${delay}s"/>`;
+  const arms = kind === 'riot' ? `<line x1="-8" y1="-34" x2="-16" y2="-50" stroke="${body}" stroke-width="5"/><line x1="8" y1="-34" x2="16" y2="-50" stroke="${body}" stroke-width="5"/>`
+    : kind === 'sleep' ? '' : `<g class="armsup" style="animation-delay:${delay}s"><line x1="-8" y1="-34" x2="-18" y2="-56" stroke="${body}" stroke-width="5" stroke-linecap="round"/><line x1="8" y1="-34" x2="18" y2="-56" stroke="${body}" stroke-width="5" stroke-linecap="round"/></g>`;
+  const head = `<g class="${kind === 'metal' ? 'head' : ''}" style="animation-delay:${delay}s"><circle cy="-44" r="9" fill="#e8c9a0"/><path d="M-11 -46 A11 10 0 0 1 11 -46 Z" fill="${body}"/></g>`;
+  const cls = kind === 'riot' ? 'angry' : kind === 'sleep' ? 'sleepy' : 'dance';
+  return `<g transform="translate(${x},${y})"><g class="${cls}" style="animation-delay:${kind === 'sleep' ? delay : (i % 4) * .08}s"><rect x="-10" y="-36" width="20" height="30" rx="5" fill="${body}"/><rect x="-9" y="-6" width="7" height="8" fill="#333"/><rect x="2" y="-6" width="7" height="8" fill="#333"/>${arms}${head}</g>${gun}</g>`;
+}
+function bandOnStage(color) {
+  return G.members.map((m, i) => {
+    const x = 110 + i * 64;
+    return `<g transform="translate(${x},222)"><g class="mem">${person(m, 1.15)}</g></g>`;
+  }).join('');
+}
+function person(m, s = 1) {
+  const inst = {
+    vo: `<line x1="16" y1="0" x2="16" y2="-40" stroke="#555" stroke-width="2"/><circle cx="16" cy="-42" r="4" fill="#333"/>`,
+    gt: `<path d="M-6 -16 L20 -30" stroke="#8a5a2c" stroke-width="3"/><ellipse cx="-6" cy="-14" rx="10" ry="7" fill="#c4762a"/>`,
+    ba: `<path d="M-6 -14 L24 -34" stroke="#3a3540" stroke-width="3"/><ellipse cx="-6" cy="-12" rx="10" ry="7" fill="#3a6fb0"/>`,
+    dr: `<ellipse cx="0" cy="-2" rx="20" ry="7" fill="#e0503a"/><rect x="-20" y="-2" width="40" height="10" fill="#c43a2a"/><ellipse cx="22" cy="-18" rx="8" ry="2" fill="#e8a400"/>`,
+    kb: `<rect x="-22" y="-14" width="44" height="8" fill="#2d2433"/><rect x="-20" y="-13" width="40" height="3" fill="#fff"/>`,
+    dj: `<rect x="-24" y="-12" width="48" height="12" fill="#2d2433"/><circle cx="-11" cy="-12" r="6" fill="#444"/><circle cx="11" cy="-12" r="6" fill="#444"/>`,
+  }[m.part];
+  return `<g transform="scale(${s})"><rect x="-9" y="-30" width="18" height="24" rx="6" fill="${m.shirt}"/><rect x="-8" y="-7" width="6" height="8" fill="#2d2433"/><rect x="2" y="-7" width="6" height="8" fill="#2d2433"/>
+    <circle cy="-40" r="11" fill="${m.skin}"/><path d="M-12 -42 A12 12 0 0 1 12 -42 L12 -46 A12 9 0 0 0 -12 -46 Z" fill="${m.hair}"/><circle cx="-4" cy="-40" r="1.6" fill="#2d2433"/><circle cx="4" cy="-40" r="1.6" fill="#2d2433"/>${inst}</g>`;
+}
+function scene(kind, o) {
+  let back = '', front = '', sky = ['#2a1f4a', '#5a3a7a'];
+  if (kind === 'concert') {
+    const k = o.kind;
+    if (k === 'riot') sky = ['#5a1a1a', '#a03a2a'];
+    if (k === 'sleep') sky = ['#0e1030', '#2a2a5a'];
+    back = `<rect x="0" y="236" width="720" height="94" fill="#3a2f2a"/><rect x="70" y="200" width="300" height="36" fill="#5a4a6a"/>`;
+    back += [140, 260, 360].map((x, i) => `<g transform="translate(${x},0)"><polygon class="light" points="0,0 -40,220 40,220" fill="${pick(['#ffe27a', '#9ff0b8', '#ff9ad0'])}" opacity=".25" style="animation-delay:${i * .3}s"/></g>`).join('');
+    back += bandOnStage(o.color);
+    front = Array.from({ length: 14 }, (_, i) => soldier(420 + (i % 5) * 56 + (Math.floor(i / 5) % 2) * 26, 270 + Math.floor(i / 5) * 26, i, k)).join('');
+    if (k === 'riot') front += Array.from({ length: 8 }, () => `<rect class="fly" x="${R(420, 680)}" y="${R(220, 280)}" width="8" height="12" fill="#c0c0c0" style="--dx:${-R(80, 220)}px;animation-delay:${R(.2, .9).toFixed(2)}s"/>`).join('') + `<text class="fly" x="560" y="200" fill="#fff" style="font-family:var(--f-display);font-size:30px;--dx:0px;animation-delay:.3s">ブーッ！</text>`;
+    else if (k === 'sleep') front += ['Z', 'z', 'Z', 'z'].map((z, i) => `<text class="fly" x="${470 + i * 50}" y="230" fill="#c9c3ff" style="font-family:var(--f-display);font-size:26px;--dx:10px;animation-delay:${.8 + i * .2}s">${z}</text>`).join('');
+    else front += Array.from({ length: 12 }, (_, i) => `<text class="fly" x="${R(120, 680)}" y="${R(150, 240)}" fill="${pick(['#ffe27a', '#9ff0b8', '#ff9ad0', '#fff'])}" style="font-size:${R(18, 30).toFixed(0)}px;--dx:${R(-30, 30).toFixed(0)}px;animation-delay:${R(0, 1.2).toFixed(2)}s">${pick(['♪', '♫', '♪', '♥'])}</text>`).join('')
+      + `<g class="fly" style="--dx:120px;animation-delay:.9s"><path d="M560 120 q20 -20 40 0 q-10 -4 -20 6 q-10 -10 -20 -6z" fill="#fff"/></g>`;
+  }
+  if (kind === 'record' || kind === 'fusion' || kind === 'award') {
+    sky = kind === 'award' ? ['#5a3a00', '#c08a10'] : ['#1e2a4a', '#3a5a8a'];
+    back = Array.from({ length: 16 }, () => `<circle cx="${R(0, 720)}" cy="${R(0, 330)}" r="${R(1, 3)}" fill="#fff" opacity=".6"/>`).join('');
+    if (kind === 'award') front = `<g class="pop" style="animation-delay:.1s"><path d="M310 70 h100 v40 a50 50 0 0 1 -100 0z" fill="#ffd34d" stroke="#a87a10" stroke-width="4"/><path d="M310 80 h-26 a20 20 0 0 0 26 34 M410 80 h26 a20 20 0 0 1 -26 34" fill="none" stroke="#ffd34d" stroke-width="7"/><rect x="348" y="158" width="24" height="30" fill="#ffd34d"/><rect x="320" y="188" width="80" height="18" fill="#a87a10"/></g>`;
+    else front = `<g transform="translate(360,140)"><g class="spin"><circle r="96" fill="#1a1a1a"/>${[80, 64, 50].map(r => `<circle r="${r}" fill="none" stroke="#333" stroke-width="2"/>`).join('')}<circle r="34" fill="${o.color}"/><circle r="5" fill="#fff"/><rect x="-3" y="-34" width="6" height="12" fill="#fff8"/></g></g>`
+      + (kind === 'fusion' ? `<g class="pop" style="animation-delay:.4s"><circle cx="250" cy="100" r="30" fill="#ffe27a"/><circle cx="470" cy="100" r="30" fill="#9ff0b8"/><text x="360" y="60" text-anchor="middle" fill="#fff" style="font-family:var(--f-display);font-size:26px">＋</text></g>` : '')
+      + (o.rank ? `<text class="pop" x="560" y="120" text-anchor="middle" style="animation-delay:.5s;font-family:var(--f-display);font-size:90px;fill:${o.rank === 'S' ? '#ffd34d' : o.rank === 'A' ? '#ff9ad0' : '#9fd0ff'};paint-order:stroke;stroke:#000;stroke-width:6px">${o.rank}</text>` : '');
+    front += Array.from({ length: 10 }, () => `<text class="fly" x="${R(80, 640)}" y="${R(200, 300)}" fill="#fff" style="font-size:22px;--dx:${R(-20, 20).toFixed(0)}px;animation-delay:${R(0, .8).toFixed(2)}s">${pick(['♪', '♫', '★'])}</text>`).join('');
+  }
+  return `<svg class="scene" viewBox="0 0 720 330" preserveAspectRatio="xMidYMid slice"><defs><linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${sky[0]}"/><stop offset="1" stop-color="${sky[1]}"/></linearGradient></defs><rect width="720" height="330" fill="url(#sky)"/>${back}${front}</svg>`;
+}
+const cutQueue = [];
+function playCut(kind, o) {
+  if (window.FAST) return;
+  if ($('cutin')) { cutQueue.push([kind, o]); return; }
+  pausedByCut = true;
+  $('cut').innerHTML = `<div class="cutin" id="cutin" role="status" aria-live="polite">${scene(kind, o)}
+    <div class="cap"><div><div class="nm">${o.name}</div><div class="rg">${o.where || ''}</div></div>${o.val ? `<div class="val ${o.bad ? 'bad' : ''}">${o.val}</div>` : ''}</div>
+    ${o.stamp ? `<div class="stamp ${o.gold ? 'gold' : ''}" style="--fs:${Math.min(8, 72 / o.stamp.length).toFixed(1)}cqw">${o.stamp}</div>` : ''}<div class="skip">タップで閉じる</div></div>`;
+  $('cutin').onclick = closeCut;
+  if (kind === 'concert') sfx(o.bad ? 'boo' : 'concert', o.hot); else if (kind === 'award') sfx('award'); else sfx('done');
+  clearTimeout(cutTimer); cutTimer = setTimeout(closeCut, o.stamp ? 3000 : 2400);
+  renderAll();
+}
+function closeCut() {
+  clearTimeout(cutTimer); $('cut').innerHTML = ''; pausedByCut = false;
+  const nx = cutQueue.shift(); if (nx) setTimeout(() => playCut(...nx), 120);
+}
+
+// ================= rendering =================
+function buildMap() {
+  let h = '';
+  for (const r of REG) {
+    const pts = r.polys.map(poly => poly.map(([lo, la]) => P(lo, la)));
+    const main = pts[0];
+    r.cx = main.reduce((s, p) => s + p[0], 0) / main.length;
+    r.cy = main.reduce((s, p) => s + p[1], 0) / main.length;
+    if (r.id === 'jp') { r.cx += 22; r.cy += 4; }
+    h += pts.map(p => `<polygon class="reg" data-r="${r.id}" points="${p.map(q => q.join(',')).join(' ')}"/>`).join('');
+  }
+  for (const r of REG) h += `<text class="rlabel" id="lb_${r.id}" x="${r.cx.toFixed(0)}" y="${r.cy.toFixed(0)}"></text>`;
+  h += `<g id="bandmark"></g>`;
+  $('map').innerHTML = h;
+  $('map').addEventListener('click', e => { const t = e.target.closest('[data-r]'); if (t) { G.sel = t.dataset.r; renderAll(); } });
+}
+function renderLive() {
+  const gp = globalPeace();
+  $('stats').innerHTML = `<div class="stat"><b>日付</b>${dateStr(G.week)}</div><div class="stat ${G.money < 0 ? 'neg' : ''}"><b>資金</b>${G.money}万</div>`;
+  $('gpeace').textContent = gp.toFixed(1) + '%';
+  $('gfans').textContent = G.fans.toLocaleString();
+  $('gg').style.width = gp + '%';
+  $('goal').innerHTML = `目標 90%<br>残り ${Math.max(0, WEEKS - G.week + 1)} 週`;
+  for (const r of REG) {
+    const st = G.regs[r.id];
+    document.querySelectorAll(`polygon[data-r="${r.id}"]`).forEach(p => { p.style.fill = tenColor(st.ten); p.classList.toggle('sel', G.sel === r.id); });
+    $('lb_' + r.id).textContent = st.ten <= 0 ? '平和' : `緊張${Math.round(st.ten)}`;
+  }
+  const at = regOf(G.tour ? G.tour.reg : G.at);
+  $('bandmark').innerHTML = `<g transform="translate(${(at.cx + 18).toFixed(0)},${(at.cy - 16).toFixed(0)})"><g class="bandmark"><rect x="-14" y="-12" width="28" height="16" rx="4" fill="${G.tour ? '#5aa8d8' : '#e5568f'}" stroke="#fff" stroke-width="2"/><text x="0" y="1" text-anchor="middle" fill="#fff" style="font-size:11px;font-weight:800">${G.tour ? '移動' : '♪'}</text></g></g>`;
+  $('regs').innerHTML = REG.map(x => `<button data-r="${x.id}" aria-pressed="${G.sel === x.id}">${x.name}<span style="color:${tenColor(G.regs[x.id].ten)}">${G.regs[x.id].ten <= 0 ? '平和' : Math.round(G.regs[x.id].ten)}</span></button>`).join('');
+  const r = regOf(G.sel), st = G.regs[r.id];
+  const gname = id => GEN[id].name + (G.genres[id] ? '' : '<span style="font-weight:500;color:var(--muted)">（未）</span>');
+  $('rinfo').innerHTML = `<h3>${r.name}<small>${st.ten <= 0 ? '争いは終わった' : '揉めごと：' + r.war}</small></h3>
+    <div class="tbar"><i style="width:${st.ten}%;background:${tenColor(st.ten)}"></i></div>
+    <div class="row"><span>好き <b>${r.likes.map(gname).join('・')}</b></span><span>苦手 <b>${r.hates.map(gname).join('・')}</b></span><span>この地の音楽 <b>${G.genres[r.local] ? GEN[r.local].name : '？？？（ライブで覚える）'}</b></span><span>ファン <b>${st.fans}</b></span></div>`;
+  renderRoom();
+}
+function renderTicker() { $('ticker').innerHTML = G.news.slice(0, 4).map(n => `<div><b>${dateStr(n.w).replace(/ \d週$/, '')}</b>　${n.text}</div>`).join(''); }
+function renderRoom() {
+  const touring = !!G.tour;
+  let h = `<svg viewBox="0 0 360 104" id="roomsvg"><rect width="360" height="104" fill="#f6e3c4"/><rect y="78" width="360" height="26" fill="#c9a77a"/>
+    <rect x="12" y="10" width="44" height="30" fill="#fff" stroke="#c9a77a" stroke-width="3"/><text x="34" y="30" text-anchor="middle" style="font-size:16px">♪</text>
+    <rect x="300" y="8" width="48" height="34" fill="#5aa8d8" stroke="#c9a77a" stroke-width="3"/><text x="324" y="30" text-anchor="middle" fill="#fff" style="font-size:10px;font-weight:800">PEACE</text>
+    <text x="180" y="20" text-anchor="middle" style="font-size:10px;fill:#7b6f80">スタジオ Lv${G.fac.studio}</text>`;
+  if (touring) h += `<text x="180" y="62" text-anchor="middle" style="font-size:16px;font-weight:800;fill:#7b6f80">ツアー中…（${regOf(G.tour.reg).name}まで あと${G.tour.left}週）</text>`;
+  else G.members.forEach((m, i) => {
+    const x = 60 + i * 80;
+    h += `<g transform="translate(${x},82)" id="mem_${m.id}"><g class="mem ${G.prod ? '' : 'idle'}">${person(m)}</g>${busy(m) ? `<text x="0" y="-58" text-anchor="middle" style="font-size:10px;font-weight:800;fill:#e0503a">特訓中</text>` : ''}</g>`;
+  });
+  $('room').innerHTML = h + '</svg>';
+}
+function bubble(id, dm, dn) {
+  if (window.FAST) return;
+  const g = document.getElementById('mem_' + id); if (!g) return;
+  const ns = 'http://www.w3.org/2000/svg';
+  [[dm, '#e5568f', -10], [dn, '#f08a24', 12]].forEach(([v, c, dx], i) => {
+    const t = document.createElementNS(ns, 'text'); t.setAttribute('class', 'bub'); t.setAttribute('x', dx); t.setAttribute('y', -56); t.setAttribute('fill', c);
+    t.style.animationDelay = (i * .15) + 's'; t.textContent = '+' + v; g.appendChild(t); setTimeout(() => t.remove(), 1400);
+  });
+}
+const TABS = [['make', '曲づくり'], ['tour', 'ツアー'], ['band', 'メンバー'], ['fac', '施設']];
+function renderDesk() {
+  $('tabs').innerHTML = TABS.map(([id, n]) => `<button class="tab" role="tab" data-t="${id}" aria-selected="${G.tab === id}">${n}</button>`).join('');
+  const d = $('desk');
+  let h = '';
+  if (G.tab === 'make') {
+    if (G.prod) {
+      const g = GEN[G.prod.g], c = compat(G.prod.g, G.prod.t), known = G.known[G.prod.g + '|' + G.prod.t];
+      h = `<div class="prog"><div class="t">制作中：${g.name} × ${G.prod.t}　<span style="font-size:12px;color:var(--muted)">相性 ${known ? CMARK[c] : '？'}</span></div>
+        <div class="pbar"><i id="pb" style="width:${Math.min(100, G.prod.prog / prodNeed() * 100)}%"></i></div>
+        <div class="mn"><span class="m">メロディ ${G.prod.m}</span><span class="n">ノリ ${G.prod.n}</span></div>
+        <div class="note">${g.name}は${g.m > .6 ? 'メロディ' : g.n > .6 ? 'ノリ' : 'メロディとノリの両方'}が大事。${G.tour ? 'ツアー中は制作が止まる。' : ''}</div></div>`;
+    } else if (G.tour) h = `<div class="note">ツアー中は曲を作れない。</div>`;
+    else {
+      const gs = GENRES.filter(x => genreOk(x.id));
+      h = `<div class="lab">ジャンル（${gs.length}/${GENRES.length}　地域でライブすると増える）</div><div class="chipset">${gs.map(x => `<button class="pick ${x.fusion ? 'fusion' : ''}" data-g="${x.id}" aria-pressed="${G.pickG === x.id}" style="${G.pickG === x.id ? `background:${x.c};border-color:${x.c}` : ''}">${x.name}</button>`).join('')}</div>
+        <div class="lab">テーマ（相性は作ってみるとわかる）</div><div class="chipset">${THEMES.map(t => { const k = G.known[G.pickG + '|' + t]; return `<button class="pick" data-th="${t}" aria-pressed="${G.pickT === t}">${t}<span class="mk">${k ? CMARK[compat(G.pickG, t)] : ''}</span></button>`; }).join('')}</div>
+        <button class="go" id="goMake">${GEN[G.pickG].name} × ${G.pickT} で曲を作る（${prodNeed()}週${G.fac.studio ? '弱' : ''}）</button>
+        <div class="note">メンバー全員で作曲。メロディ（ピンク）とノリ（オレンジ）が貯まる。同じ2ジャンルで2曲ずつ作ると、新ジャンルが生まれることがある。</div>`;
+    }
+  }
+  if (G.tour && G.tab === 'tour') h = `<div class="prog"><div class="t">ツアー中：${regOf(G.tour.reg).name}へ移動</div><div class="note">あと ${G.tour.left} 週で到着。到着するとライブ。</div></div>`;
+  else if (G.tab === 'tour') {
+    const r = regOf(G.sel), st = G.regs[r.id];
+    const list = G.songs.slice().sort((a, b) => b.q * likeOf(r, b.g) * .6 ** (st.played[b.id] || 0) - a.q * likeOf(r, a.g) * .6 ** (st.played[a.id] || 0)).slice(0, 6);
+    if (!G.pickSong || !list.some(s => s.id === G.pickSong)) G.pickSong = list[0] && list[0].id;
+    const cost = travelCostAt(G.fac.bus), weeks = G.sel === G.at ? 1 : Math.max(1, 3 - G.fac.bus);
+    h = `<div class="lab">行き先：<b style="color:var(--ink)">${r.name}</b>（地図で選ぶ）　緊張 ${Math.round(st.ten)}</div>`;
+    if (!list.length) h += `<div class="note">まだ曲がない。まず「曲づくり」で1曲作ろう。</div>`;
+    else {
+      h += `<div class="lab">演奏する曲（${r.name}に効く順）</div><div class="grid2">${list.map(s => {
+        const lk = likeOf(r, s.g), n = st.played[s.id] || 0;
+        return `<button class="item" data-song="${s.id}" aria-pressed="${G.pickSong === s.id}"><span class="nm"><span>「${s.title}」</span><span class="rank ${s.rank}">${s.rank}</span></span>
+          <span class="sub">${GEN[s.g].name}×${s.t}　曲の力 ${s.q}</span><span>${lk > 1.2 ? '<span class="tag like">好き</span>' : lk < 1 ? '<span class="tag hate">苦手</span>' : ''} ${GEN[s.g].hot >= 2 ? '<span class="tag hate">激しい</span>' : GEN[s.g].hot < 0 ? '<span class="tag like">癒し</span>' : ''} ${n ? `<span class="tag tired">${n}回目</span>` : ''}</span></button>`;
+      }).join('')}</div>
+      <button class="go alt" id="goTour" ${G.prod || G.money < cost ? 'disabled' : ''}>${r.name}でライブ（${weeks}週・${cost}万）</button>
+      <div class="note">${G.prod ? '曲の制作中は出発できない。' : '好きなジャンルほど効く。同じ曲は聞き飽きられる。激しい曲は効くが、緊張が高い地域では暴動の危険。子守唄は緊張が高いほど効く。'}</div>`;
+    }
+  }
+  if (G.tab === 'band') {
+    const sbar = (l, v, c) => `<div class="sbar"><span>${l}</span><span class="tb"><i style="width:${Math.min(100, v)}%;background:${c}"></i></span><span>${v}</span></div>`;
+    h = `<div class="grid2">${G.members.map((m, i) => `<div class="item"><span class="nm"><span>${m.name}</span><span style="font-size:11px">Lv${m.lv}</span></span><span class="sub">${PARTS[m.part].name}　月給 ${m.salary}万</span>
+      ${sbar('作曲', m.comp, '#e5568f')}${sbar('演奏', m.play, '#f08a24')}${sbar('歌', m.sing, '#5aa8d8')}${sbar('華', m.star, '#e8a400')}
+      <span style="display:flex;gap:4px"><button class="small" data-train="${m.id}" ${busy(m) || G.money < trainCost(m) ? 'disabled' : ''}>${busy(m) ? '特訓中' : `特訓（${trainCost(m)}万）`}</button>${i > 0 ? `<button class="small" data-fire="${m.id}">解雇</button>` : ''}</span></div>`).join('')}</div>`;
+    h += `<div class="lab">スカウト候補（2か月ごとに入れ替わる・最大4人）</div><div class="grid2">${G.cands.map((c, i) => `<div class="item"><span class="nm"><span>${c.name}</span><span style="font-size:11px">${PARTS[c.part].name}</span></span>
+      <span class="sub">作曲${c.comp} 演奏${c.play} 歌${c.sing} 華${c.star}　月給${c.salary}万</span><button class="small" data-hire="${i}" ${G.members.length >= 4 || G.money < c.salary * 3 ? 'disabled' : ''}>契約（${c.salary * 3}万）</button></div>`).join('')}</div>`;
+  }
+  if (G.tab === 'fac') {
+    h = `<div class="grid2">${FAC.map(f => { const c = facCost(f); return `<button class="item" data-fac="${f.id}" ${G.money < c ? 'disabled' : ''}><span class="nm"><span>${f.name}</span><span style="font-size:11px">Lv${G.fac[f.id]}</span></span>
+      <span class="sub">${f.desc}</span><span class="sub">いま：${f.eff(G.fac[f.id])} → ${f.eff(G.fac[f.id] + 1)}</span><span class="tag">強化 ${c}万</span></button>`; }).join('')}</div>
+      <div class="note">ヒット曲の売上で施設を強化しよう。売れた曲は世界中のラジオで流れて、少しずつ緊張を下げてくれる。</div>`;
+  }
+  d.innerHTML = h;
+}
+function renderAll() { renderLive(); renderDesk(); renderTicker(); syncSpeed(); }
+function syncSpeed() { document.querySelectorAll('#speed button').forEach(b => b.setAttribute('aria-pressed', +b.dataset.s === G.speed)); }
+function setTab(id, dir) { G.tab = id; renderDesk(); const d = $('desk'); d.classList.remove('slide-l', 'slide-r'); void d.offsetWidth; if (dir) d.classList.add(dir > 0 ? 'slide-l' : 'slide-r'); }
+
+// ================= overlays =================
+function overlay(html) { $('ovl').innerHTML = `<div class="ov" role="dialog" aria-modal="true">${html}</div>`; }
+function closeOv() { $('ovl').innerHTML = ''; }
+function showIntro() {
+  let saved = null; try { saved = JSON.parse(localStorage.getItem('heiwa-save') || 'null'); } catch (e) {}
+  overlay(`<div class="card"><div class="kicker">設立 1年目</div><h2>音楽で、世界を平和に。</h2>
+    <p>世界のあちこちで、しょうもない理由の争いが続いている。カレーの辛さ、ピザのパイナップル、きのことたけのこ。</p>
+    <p>あなたは小さな音楽事務所の社長兼ボーカル。<strong>曲を作って売り、その曲を持って各地でライブをして、争いを止めよう。</strong>5年以内に世界の平和度90%が目標。</p>
+    <p>ジャンルとテーマの相性は作ってみるまでわからない。地域ごとに好きな音楽も違う。ライブをするとその土地の音楽を覚える。</p>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">${saved && !saved.over ? '<button class="go alt" id="cont">続きから</button>' : ''}<button class="go" id="start" style="flex:1">事務所を立ち上げる</button></div></div>`);
+  $('start').onclick = () => { G = newGame(); refreshCands(); news('事務所を立ち上げた。まずは1曲作ってみよう'); closeOv(); renderAll(); save(); };
+  if ($('cont')) $('cont').onclick = () => { G = saved; closeOv(); renderAll(); };
+}
+function end(kind) {
+  G.over = true; save();
+  if (window.FAST) return;
+  const gp = globalPeace();
+  let title, body;
+  if (kind === 'broke') { title = '事務所、解散'; body = 'お金が尽きた。メンバーはそれぞれの国に帰り、それぞれの町で歌っている。争いはまだ続いているが、少しだけ鼻歌が増えた。'; }
+  else if (kind === 'peace') { title = '世界が平和になった'; body = '最後の揉めごとが終わった日、世界中で同じ曲が流れた。カレーは辛口と甘口の両方が選べるようになり、ピザのパイナップルは「お好みで」になった。'; }
+  else if (gp >= 70) { title = 'だいたい平和'; body = 'まだ小さな揉めごとは残っているが、みんな一緒に歌えるくらいには仲良くなった。事務所は次の5年に向けて新曲を作りはじめた。'; }
+  else { title = '争いは続く'; body = '音楽だけでは足りなかった…。いや、まだ曲が足りなかっただけかもしれない。'; }
+  const best = G.songs.slice().sort((a, b) => b.q - a.q)[0];
+  overlay(`<div class="card"><div class="kicker">${dateStr(Math.min(G.week, WEEKS))}</div><h2>${title}</h2><p>${body}</p>
+    <div class="rows"><div><b>世界の平和度</b><span>${gp.toFixed(1)}%</span></div><div><b>ファン</b><span>${G.fans.toLocaleString()}人</span></div>
+    <div><b>作った曲</b><span>${G.songs.length}曲</span></div><div><b>代表曲</b><span>${best ? `「${best.title}」（${best.rank}）` : 'なし'}</span></div><div><b>大賞</b><span>${G.awards}回</span></div></div>
+    <button class="go" id="again">もう一度やる</button></div>`);
+  if (kind === 'peace') sfx('award');
+  $('again').onclick = () => { closeOv(); showIntro(); };
+}
+
+// ================= save / loop / input =================
+function save() { if (window.FAST) return; try { localStorage.setItem('heiwa-save', JSON.stringify(G)); } catch (e) {} }
+let acc = 0, last = performance.now();
+function loop(now) {
+  const dt = Math.min(250, now - last); last = now;
+  if (G && !G.over && G.speed > 0 && !pausedByCut && !$('ovl').innerHTML) {
+    acc += dt * G.speed;
+    if (acc >= 1500) { acc = 0; tick(); if (G.week % 4 === 0) save(); }
+  }
+  requestAnimationFrame(loop);
+}
+
+G = newGame(); refreshCands();
+buildMap(); renderAll(); showIntro();
+requestAnimationFrame(loop);
+
+$('speed').addEventListener('click', e => { const b = e.target.closest('[data-s]'); if (b) { G.speed = +b.dataset.s; syncSpeed(); } });
+$('regs').addEventListener('click', e => { const b = e.target.closest('[data-r]'); if (b) { G.sel = b.dataset.r; renderAll(); } });
+$('tabs').addEventListener('click', e => { const b = e.target.closest('[data-t]'); if (!b) return; const ids = TABS.map(t => t[0]); setTab(b.dataset.t, Math.sign(ids.indexOf(b.dataset.t) - ids.indexOf(G.tab))); });
+$('desk').addEventListener('click', e => {
+  const t = e.target.closest('button'); if (!t || t.disabled) return;
+  if (t.dataset.g) { G.pickG = t.dataset.g; renderDesk(); }
+  else if (t.dataset.th) { G.pickT = t.dataset.th; renderDesk(); }
+  else if (t.id === 'goMake') startSong();
+  else if (t.dataset.song) { G.pickSong = t.dataset.song; renderDesk(); }
+  else if (t.id === 'goTour') startTour();
+  else if (t.dataset.train) train(t.dataset.train);
+  else if (t.dataset.fire) fire(t.dataset.fire);
+  else if (t.dataset.hire) hire(+t.dataset.hire);
+  else if (t.dataset.fac) buildFac(t.dataset.fac);
+});
+let sw = null;
+$('desk').addEventListener('pointerdown', e => { sw = { x: e.clientX, y: e.clientY }; });
+$('desk').addEventListener('pointerup', e => {
+  if (!sw) return; const dx = e.clientX - sw.x, dy = e.clientY - sw.y; sw = null;
+  if (Math.abs(dx) < 50 || Math.abs(dy) > Math.abs(dx) * .7) return;
+  const ids = TABS.map(t => t[0]), i = ids.indexOf(G.tab), dir = dx < 0 ? 1 : -1;
+  setTab(ids[(i + dir + ids.length) % ids.length], dir);
+});
+document.addEventListener('keydown', e => {
+  if ($('ovl').innerHTML) return;
+  if (e.key === ' ' && e.target === document.body) { e.preventDefault(); G.speed = G.speed ? 0 : 1; syncSpeed(); }
+});
+</script>
