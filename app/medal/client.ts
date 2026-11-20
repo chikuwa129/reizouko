@@ -399,7 +399,7 @@ export function mountMedalGame(root: HTMLElement, opts: MountOptions = {}): () =
     </div>
     <div class="mg-stage" data-r="stage">
       <canvas class="mg-canvas" data-r="canvas" aria-label="メダル落としの盤面。タップした位置にメダルを投入"></canvas>
-      <div class="mg-hint" data-r="hint"><div class="a">タップでメダル投入</div><div class="b">長押しで連射／動く「IN」を通すとスロット<br>目標スコアに届けばラウンドクリア</div></div>
+      <div class="mg-hint" data-r="hint"><div class="a">タップでメダル投入</div><div class="b">長押しで連射<br>INに入るとスロット抽選（盤面には落ちない）<br>目標スコアでラウンドクリア</div></div>
     </div>
     <div class="mg-tray"><span class="mg-tray-label">特殊<br>コイン</span><div class="mg-slots" data-r="slots"></div></div>
   `;
@@ -1339,7 +1339,7 @@ function drawSlot(x: CanvasRenderingContext2D, g: Game) {
   x.fillText("保留", 10, 22);
   for (let i = 0; i < T.maxStock; i++) {
     x.beginPath();
-    x.arc(18, 36 + i * 12, 4.5, 0, Math.PI * 2);
+    x.arc(14 + Math.floor(i / 5) * 13, 36 + (i % 5) * 12, 4.5, 0, Math.PI * 2);
     x.fillStyle = i < g.stock ? "#7dfcff" : "#2a2f48";
     x.fill();
   }

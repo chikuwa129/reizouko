@@ -36,22 +36,22 @@ export const TUNING = {
   gateMax: 300,
 
   // スロット
-  maxStock: 5,
+  maxStock: 10,
   reelStops: [0.45, 0.65, 0.85],
   reachExtra: 0.7,
-  pJackpot: 0.04,
-  pBell: 0.12,
-  pCherry: 0.22,
-  payJackpot: 30,
-  payBell: 8,
-  payCherry: 3,
+  pJackpot: 0.02,
+  pBell: 0.10,
+  pCherry: 0.18,
+  payJackpot: 22,
+  payBell: 5,
+  payCherry: 2,
   pFakeReach: 0.35,
-  feverTime: 8,
+  feverTime: 5,
   feverPusherMul: 1.7,
 
   // ラウンド
   rounds: 12, // ここまでクリアで制覇（以降はエンドレス）
-  targets: [15, 30, 55, 95, 170, 300, 520, 900, 1500, 2500, 4200, 7000],
+  targets: [15, 25, 40, 55, 80, 120, 180, 270, 400, 600, 900, 1350],
   endlessGrowth: 1.6,
   handPerRound: 50,
   overflowMax: 30, // 目標超過ボーナス（目標の10%ごとに1チケット）の上限
@@ -615,10 +615,17 @@ export function step(g: Game, dt: number, ev: GameEvent[]) {
       m.x = m.sx;
       if (!m.checked && k >= T.gateCheckT) {
         m.checked = true;
-        if (Math.abs(m.x - g.gateX) < (T.gateW + part(g, "gate") * 8) / 2) {
+        // 通常メダルがINに入ると、そのメダルはスロットに吸い込まれて盤面には落ちない（押し出しとの二択）
+        // 特殊コインと、保留が満タンのときは素通りして盤面へ
+        if (m.kind === "normal" && Math.abs(m.x - g.gateX) < (T.gateW + part(g, "gate") * 8) / 2) {
           if (g.stock < T.maxStock) {
             g.stock++;
+            m.state = "fall";
+            m.t = 0;
+            m.paid = false;
+            m.y = -999;
             ev.push({ type: "checkin", x: m.x });
+            continue;
           } else ev.push({ type: "stockFull" });
         }
       }
