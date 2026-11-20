@@ -401,7 +401,7 @@ export function mountMedalGame(root: HTMLElement, opts: MountOptions = {}): () =
     </div>
     <div class="mg-stage" data-r="stage">
       <canvas class="mg-canvas" data-r="canvas" aria-label="メダル落としの盤面。タップした位置にメダルを投入"></canvas>
-      <div class="mg-hint" data-r="hint"><div class="a">タップでメダル投入</div><div class="b">投入口もINも左右に動く。釘で弾かれてどこに落ちるかは運次第<br>INを通るとスロット抽選（メダルはそのまま盤面へ）<br>目標スコアでラウンドクリア</div></div>
+      <div class="mg-hint" data-r="hint"><div class="a">タップでメダル投入</div><div class="b">投入口もINも動く。釘で行き先は運次第<br>INを通るとスロット抽選<br>目標スコアでラウンドクリア</div></div>
     </div>
     <div class="mg-tray"><span class="mg-tray-label">特殊<br>コイン</span><div class="mg-slots" data-r="slots"></div></div>
   `;
