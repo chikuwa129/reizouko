@@ -770,7 +770,7 @@ export function mountMedalGame(root: HTMLElement, opts: MountOptions = {}): () =
             fx.hitstop = 0.3;
             fx.flash = 0.6;
             fx.shake = 12;
-            fx.banner = { text: "JACKPOT!!", sub: `メダル${e.amount}枚 ＆ FEVER（没収なし）`, color: "#ff3355", t: 0, life: 2.2 };
+            fx.banner = { text: "JACKPOT!!", sub: `メダル${e.amount}枚 ＆ FEVER（得点2倍）`, color: "#ff3355", t: 0, life: 2.2 };
             confetti(fx, 90);
           } else if (e.kind === "bell") {
             s?.play("winBig");
@@ -1145,12 +1145,12 @@ function render(x: CanvasRenderingContext2D, g: Game, fx: Fx, scale: number, spr
 
   // 落とし口
   const fever = g.fever > 0;
-  const pr = payRange(g);
+  const pr = payRange();
   x.fillStyle = "#06070d";
   x.fillRect(0, T.edgeY, LW, T.height - T.edgeY);
   x.fillStyle = fever ? "#3a2a00" : "#14321f";
-  x.fillRect(fever ? T.wallL : pr.l, T.edgeY + 4, fever ? T.wallR - T.wallL : pr.r - pr.l, 46);
-  if (part(g, "center") && !fever) {
+  x.fillRect(pr.l, T.edgeY + 4, pr.r - pr.l, 46);
+  if (part(g, "center")) {
     const cw = (pr.r - pr.l) / 6;
     x.fillStyle = "#13434d";
     x.fillRect(LW / 2 - cw, T.edgeY + 4, cw * 2, 46);
@@ -1160,18 +1160,7 @@ function render(x: CanvasRenderingContext2D, g: Game, fx: Fx, scale: number, spr
   }
   x.fillStyle = fever ? "#ffd23a" : "#59ff8f";
   x.font = "900 16px system-ui, sans-serif";
-  x.fillText(fever ? "FEVER 没収なし" : "▼ GET ▼", LW / 2, T.edgeY + 62);
-  if (!fever) {
-    x.fillStyle = "#3a0d12";
-    x.fillRect(T.wallL, T.edgeY + 4, pr.l - T.wallL, 46);
-    x.fillRect(pr.r, T.edgeY + 4, T.wallR - pr.r, 46);
-    x.fillStyle = "#ff5a5a";
-    x.font = "700 11px system-ui, sans-serif";
-    if (pr.l - T.wallL > 22) {
-      x.fillText("没収", (T.wallL + pr.l) / 2, T.edgeY + 27);
-      x.fillText("没収", (pr.r + T.wallR) / 2, T.edgeY + 27);
-    }
-  }
+  x.fillText(fever ? "FEVER 得点2倍" : "▼ GET ▼", LW / 2, T.edgeY + 62);
   x.fillStyle = "#c9cde0";
   x.fillRect(T.wallL, T.edgeY - 2, T.wallR - T.wallL, 3);
 

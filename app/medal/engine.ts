@@ -13,8 +13,6 @@ export const TUNING = {
   pusherAmp: 34,
   pusherSpeed: 1.9, // rad/s
   edgeY: 520,
-  payL: 52, // ここから payR までがGET口。外側は没収
-  payR: 308,
 
   // メダル
   r: 13,
@@ -59,14 +57,14 @@ export const TUNING = {
   payBell: 4,
   payCherry: 2,
   pFakeReach: 0.35,
-  feverTime: 5,
+  feverTime: 8, // FEVER中は得点2倍＆プッシャー高速
   feverPusherMul: 1.7,
 
   // ラウンド
   rounds: 12, // ここまでクリアで制覇（以降はエンドレス）
-  targets: [15, 25, 40, 55, 80, 120, 180, 270, 400, 600, 900, 1350],
+  targets: [20, 40, 60, 90, 130, 200, 300, 450, 700, 1050, 1600, 2400],
   endlessGrowth: 1.6,
-  handPerRound: 50,
+  handPerRound: 70,
   overflowMax: 30, // 目標超過ボーナス（目標の10%ごとに1チケット）の上限
   clearBonus: 6, // クリア時のチケット（+ラウンド数、+残りメダル÷2）
   settleDelay: 2.5, // 手持ち0で盤面が落ち着くまでの猶予
@@ -156,7 +154,7 @@ export const PARTS: Part[] = [
   { id: "center", name: "センターポケット", desc: "GET口の中央でGETすると点数2倍", price: 14, max: 1 },
   { id: "combo", name: "連鎖カウンター", desc: "続けて10枚GETするごとに倍率+0.5（そのラウンド）", price: 16, max: 1 },
   { id: "slotlink", name: "スロット連動", desc: "スロットが当たるたびに倍率+0.5（そのラウンド）", price: 12, max: 2 },
-  { id: "guard", name: "サイドガード", desc: "左右の没収口が狭くなる", price: 10, max: 3 },
+  { id: "fever", name: "FEVER延長", desc: "FEVERの時間+4秒", price: 10, max: 3 },
   { id: "pusher", name: "ロングプッシャー", desc: "プッシャーの押し出しが深くなる", price: 10, max: 3 },
   { id: "gate", name: "ワイドゲート", desc: "INの命釘が開いて入りやすくなる", price: 8, max: 3 },
   { id: "lucky", name: "ラッキー7", desc: "スロットの777が出やすくなる", price: 12, max: 2 },
@@ -265,9 +263,9 @@ export function target(g: Game) {
   return Math.round(baseTarget(g.round) * (1 + TUNING.curseTarget * curses));
 }
 
-export function payRange(g: Game) {
-  const guard = part(g, "guard") * 13;
-  return { l: TUNING.payL - guard, r: TUNING.payR + guard };
+// GET口（没収ゾーンはなし。落ちたメダルはすべてGET）
+export function payRange() {
+  return { l: TUNING.wallL, r: TUNING.wallR };
 }
 
 export function caseSize(g: Game) {
@@ -646,7 +644,7 @@ export function step(g: Game, dt: number, ev: GameEvent[]) {
         let kind: "jackpot" | "bell" | "cherry";
         let n: number;
         if (a === "7") {
-          g.fever = T.feverTime;
+          g.fever = T.feverTime + part(g, "fever") * 4;
           kind = "jackpot";
           n = T.payJackpot;
         } else if (a === "BELL") {
@@ -833,33 +831,28 @@ export function step(g: Game, dt: number, ev: GameEvent[]) {
   }
 
   // 落下判定
-  const pr = payRange(g);
+  const pr = payRange();
   const cw = (pr.r - pr.l) / 6;
+  const feverMul = g.fever > 0 ? 2 : 1;
   for (const m of field) {
     if (m.y <= T.edgeY) continue;
     m.state = "fall";
     m.t = 0;
-    const get = g.fever > 0 || (m.x >= pr.l && m.x <= pr.r);
     if (isBad(m.kind)) {
-      // お邪魔コインはどこから落ちても消える。サビだけGETで減点
-      m.paid = get;
-      if (get && m.kind === "rust") {
+      // お邪魔コインは落ちると消える。サビだけ減点
+      m.paid = true;
+      if (m.kind === "rust") {
         g.score = Math.max(0, g.score - T.rustPenalty);
         ev.push({ type: "pay", x: m.x, kind: m.kind, pts: -T.rustPenalty, center: false });
       }
       ev.push({ type: "badGone", kind: m.kind });
       continue;
     }
-    if (!get) {
-      g.comboRun = 0;
-      ev.push({ type: "lost", x: m.x, kind: m.kind });
-      continue;
-    }
     m.paid = true;
     const center = part(g, "center") > 0 && Math.abs(m.x - T.width / 2) < cw;
     let base = COIN_INFO[m.kind].pts;
     if (m.kind === "normal") base += part(g, "polish");
-    const pts = Math.round(base * g.mult * (center ? 2 : 1));
+    const pts = Math.round(base * g.mult * (center ? 2 : 1) * feverMul);
     g.score += pts;
     ev.push({ type: "pay", x: m.x, kind: m.kind, pts, center });
     if (part(g, "bag")) {
