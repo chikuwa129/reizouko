@@ -54,6 +54,7 @@ export const TUNING = {
   targets: [15, 30, 55, 95, 170, 300, 520, 900, 1500, 2500, 4200, 7000],
   endlessGrowth: 1.6,
   handPerRound: 50,
+  overflowMax: 30, // 目標超過ボーナス（目標の10%ごとに1チケット）の上限
   clearBonus: 6, // クリア時のチケット（+ラウンド数、+残りメダル÷2）
   settleDelay: 2.5, // 手持ち0で盤面が落ち着くまでの猶予
   buyMedals: 10, // チケットで買えるメダル枚数
@@ -61,9 +62,9 @@ export const TUNING = {
   caseMax: 7,
 
   // 特殊コイン
-  bombFuse: 2.4,
-  bombRadius: 80,
-  bombPower: 9,
+  bombFuse: 1.8,
+  bombRadius: 115,
+  bombPower: 20,
   magnetPull: 0.006,
   bigScale: 1.55,
   leadMass: 6,
@@ -84,7 +85,7 @@ export const COIN_INFO: Record<CoinKind, { name: string; desc: string; pts: numb
   normal: { name: "メダル", desc: "1点", pts: 1, price: 0 },
   gold: { name: "金貨", desc: "GETで10点", pts: 10, price: 7 },
   mult: { name: "倍率コイン", desc: "GETでこのラウンドの倍率+1", pts: 1, price: 14 },
-  bomb: { name: "爆弾コイン", desc: "着地して少しすると爆発し、周りを前へ吹き飛ばす", pts: 0, price: 10 },
+  bomb: { name: "爆弾コイン", desc: "着地して少しすると大爆発。周りのメダルをGET口へ吹き飛ばす", pts: 0, price: 10 },
   split: { name: "分裂コイン", desc: "GETでメダル6枚が降ってくる", pts: 1, price: 9 },
   chance: { name: "チャンスコイン", desc: "GETでスロット2回", pts: 1, price: 8 },
   big: { name: "巨大コイン", desc: "大きくて重く、押す力が強い。GETで5点", pts: 5, price: 9 },
@@ -166,10 +167,11 @@ export type GameEvent =
   | { type: "explode"; x: number; y: number }
   | { type: "mult"; mult: number; x: number }
   | { type: "badGone"; kind: BadKind }
-  | { type: "roundClear"; round: number; tickets: number; leftover: number }
+  | { type: "roundClear"; round: number; tickets: number; leftover: number; over: number }
   | { type: "fail" }
   | { type: "gameOver"; round: number }
-  | { type: "allClear" };
+  | { type: "allClear" }
+  | { type: "clearHold" };
 
 export interface Game {
   medals: Medal[];
@@ -183,12 +185,13 @@ export interface Game {
   mult: number;
   coinCase: SpecialKind[];
   used: boolean[];
+  queue: number[]; // このラウンドに出すコインの順番（-1=通常、0以上=コインケースの番号）
   parts: Record<string, number>;
-  armed: number | null;
   offers: Offer[];
   rerollCost: number;
   best: number;
   comboRun: number;
+  clearHold: boolean; // 目標達成済みだが、FEVER・払い出し中なので続行中
   bagCount: number;
   // 台
   phase: number;
@@ -299,12 +302,13 @@ export function createGame(opts: { save?: Partial<SaveData>; seed?: number } = {
     mult: 1,
     coinCase: [...(s.coinCase ?? [])],
     used: [],
+    queue: [],
     parts: { ...(s.parts ?? {}) },
-    armed: null,
     offers: s.offers ?? [],
     rerollCost: s.rerollCost ?? 2,
     best: s.best ?? 0,
     comboRun: 0,
+    clearHold: false,
     bagCount: 0,
     phase: 0,
     pusherY: T.pusherMid,
@@ -354,10 +358,17 @@ function startRound(g: Game) {
   g.mode = "play";
   g.score = 0;
   g.mult = 1;
-  g.hand = handPerRound(g);
+  // 手持ちのメダルに特殊コインをランダムに混ぜる（終盤に偏りすぎないよう前85%の範囲に）
+  const q: number[] = Array(handPerRound(g)).fill(-1);
+  g.coinCase.forEach((_, i) => {
+    const pos = 1 + Math.floor(g.rng() * Math.max(1, q.length * 0.85));
+    q.splice(pos, 0, i);
+  });
+  g.queue = q;
+  g.hand = q.length;
   g.used = g.coinCase.map(() => false);
-  g.armed = null;
   g.comboRun = 0;
+  g.clearHold = false;
   g.bagCount = 0;
   g.idle = 0;
   g.stock = 0;
@@ -390,7 +401,7 @@ export function rollOffers(g: Game) {
   const coins: Offer[] = [];
   const pool = [...SPECIAL_KINDS];
   for (let i = 0; i < 3; i++) {
-    const k = pool[Math.floor(g.rng() * pool.length)];
+    const k = pool.splice(Math.floor(g.rng() * pool.length), 1)[0]; // 同じコインは並べない
     coins.push({ type: "coin", kind: k, price: COIN_INFO[k].price, sold: false });
   }
   const avail = PARTS.filter((p) => part(g, p.id) < p.max && !(p.id === "case" && caseSize(g) >= TUNING.caseMax));
@@ -438,7 +449,8 @@ export function reroll(g: Game) {
 export function buyMedals(g: Game) {
   if (g.mode !== "fail" || g.tickets < buyMedalsPrice(g)) return false;
   g.tickets -= buyMedalsPrice(g);
-  g.hand += TUNING.buyMedals;
+  for (let i = 0; i < TUNING.buyMedals; i++) g.queue.push(-1);
+  g.hand = g.queue.length;
   g.mode = "play";
   g.idle = 0;
   return true;
@@ -449,23 +461,23 @@ export function giveUp(g: Game, ev: GameEvent[]) {
   ev.push({ type: "gameOver", round: g.round });
 }
 
-export function arm(g: Game, i: number | null) {
-  if (i === null || g.used[i] || g.armed === i) g.armed = null;
-  else g.armed = i;
+// 次に出るコイン
+export function nextKind(g: Game): CoinKind | null {
+  if (!g.queue.length) return null;
+  const q = g.queue[0];
+  return q < 0 ? "normal" : g.coinCase[q];
 }
 
 export function dropMedal(g: Game, x: number, ev: GameEvent[]): boolean {
   const T = TUNING;
-  if (g.mode !== "play") return false;
+  if (g.mode !== "play" || !g.queue.length) return false;
+  const q = g.queue.shift()!;
+  g.hand = g.queue.length;
   let kinds: CoinKind[];
-  if (g.armed !== null && !g.used[g.armed]) {
-    // 特殊コインは手持ちを消費しない
-    kinds = [g.coinCase[g.armed]];
-    g.used[g.armed] = true;
-    g.armed = null;
+  if (q >= 0) {
+    kinds = [g.coinCase[q]];
+    g.used[q] = true;
   } else {
-    if (g.hand <= 0) return false;
-    g.hand--;
     kinds = g.rng() < part(g, "double") * 0.2 ? ["normal", "normal"] : ["normal"];
   }
   kinds.forEach((kind, i) => {
@@ -651,8 +663,9 @@ export function step(g: Game, dt: number, ev: GameEvent[]) {
       const d = Math.hypot(dx, dy);
       if (d > T.bombRadius || d < 0.01) continue;
       const f = ((1 - d / T.bombRadius) * T.bombPower) / Math.sqrt(massOf(m.kind));
-      m.px = m.x - (dx / d) * f * 0.7;
-      m.py = m.y - ((dy / d) * 0.6 + 0.5) * f;
+      // 横へ散らしつつ、主にGET口（前方）へ吹き飛ばす
+      m.px = m.x - (dx / d) * f * 0.55;
+      m.py = m.y - ((dy / d) * 0.35 + 0.95) * f;
     }
   }
 
@@ -763,27 +776,38 @@ export function step(g: Game, dt: number, ev: GameEvent[]) {
   g.medals = g.medals.filter((m) => !(m.state === "fall" && m.t > 0.35));
 
   // ラウンドクリア → ショップ
-  if (g.score >= target(g)) {
-    const leftover = g.hand;
-    const tickets = T.clearBonus + g.round + Math.floor(leftover / 2);
+  // FEVER中・払い出し中・スロット保留中は目標を超えても続行（出し切ってからクリア）
+  const tg = target(g);
+  if (g.score >= tg) {
+    const flowing = g.fever > 0 || g.showerQueue.length > 0 || g.reels.spinning || g.stock > 0;
+    if (flowing) {
+      if (!g.clearHold) {
+        g.clearHold = true;
+        ev.push({ type: "clearHold" });
+      }
+      return;
+    }
+    const leftover = g.queue.filter((q) => q < 0).length;
+    // 目標を超えた分はボーナスチケットに
+    const over = Math.min(T.overflowMax, Math.floor((g.score - tg) / Math.max(1, tg * 0.1)));
+    const tickets = T.clearBonus + g.round + Math.floor(leftover / 2) + over;
     g.tickets += tickets;
     if (g.round > g.best) g.best = g.round;
     g.mode = "shop";
     g.rerollCost = 2;
     rollOffers(g);
-    ev.push({ type: "roundClear", round: g.round, tickets, leftover });
+    ev.push({ type: "roundClear", round: g.round, tickets, leftover, over });
     if (g.round === T.rounds) ev.push({ type: "allClear" });
     return;
   }
 
   // 手持ち0で盤面が落ち着いたら → チケットで補充 or 終了
-  const unusedSpecial = g.used.some((u) => !u);
   const busy =
     g.reels.spinning ||
     g.stock > 0 ||
     g.showerQueue.length > 0 ||
     g.medals.some((m) => m.state === "drop" || m.kind === "bomb" || m.state === "fall");
-  if (g.hand === 0 && !unusedSpecial && !busy) {
+  if (g.hand === 0 && !busy) {
     g.idle += dt;
     if (g.idle >= T.settleDelay) {
       g.idle = 0;

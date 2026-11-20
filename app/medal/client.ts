@@ -2,7 +2,6 @@
 // React に依存しない。アプリのページとスタンドアロン版の両方から mountMedalGame を呼ぶ。
 
 import {
-  arm,
   buy,
   buyMedals,
   buyMedalsPrice,
@@ -15,6 +14,7 @@ import {
   handPerRound,
   isBad,
   newRun,
+  nextKind,
   nextRound,
   part,
   PARTS,
@@ -107,7 +107,7 @@ const CSS = `
 .mg-slots{display:flex;gap:6px;flex:1;overflow-x:auto}
 .mg-slot{flex:0 0 auto;width:52px;height:52px;border-radius:10px;border:1px solid var(--mg-line);background:var(--mg-panel);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;cursor:pointer;color:var(--mg-fg);font:inherit;font-size:9px;padding:2px}
 .mg-slot img{width:30px;height:30px}
-.mg-slot.armed{border:2px solid var(--mg-gold);box-shadow:0 0 10px var(--mg-gold);background:#3a3010}
+.mg-slot.info{cursor:default}
 .mg-slot.used{opacity:.3;cursor:default}
 .mg-slot.empty{border-style:dashed;opacity:.35;cursor:default}
 .mg-hint{position:absolute;left:0;right:0;top:44%;text-align:center;pointer-events:none;animation:mg-pulse 1.2s ease-in-out infinite alternate}
@@ -467,7 +467,7 @@ export function mountMedalGame(root: HTMLElement, opts: MountOptions = {}): () =
     if (g.score !== last.score || tg !== last.target) {
       last.score = g.score;
       last.target = tg;
-      el.scoreText.textContent = `スコア ${g.score} / ${tg}`;
+      el.scoreText.textContent = g.score >= tg ? `スコア ${g.score} / ${tg}　達成！` : `スコア ${g.score} / ${tg}`;
       el.fill.style.width = `${Math.min(1, g.score / tg) * 100}%`;
     }
     if (g.mult !== last.mult) {
@@ -484,7 +484,7 @@ export function mountMedalGame(root: HTMLElement, opts: MountOptions = {}): () =
       last.tickets = g.tickets;
       el.tickets.textContent = String(g.tickets);
     }
-    const sig = `${g.coinCase.join(",")}|${g.used.join(",")}|${g.armed}|${caseSize(g)}|${g.mode}`;
+    const sig = `${g.coinCase.join(",")}|${g.used.join(",")}|${caseSize(g)}|${g.mode}`;
     if (sig !== last.slots) {
       last.slots = sig;
       renderSlots();
@@ -494,33 +494,23 @@ export function mountMedalGame(root: HTMLElement, opts: MountOptions = {}): () =
   const renderSlots = () => {
     el.slots.innerHTML = "";
     if (!g.coinCase.length) {
-      el.slots.innerHTML = `<span class="mg-tray-empty">ラウンドをクリアするとショップで買えます。タップでセット→次の投入がそのコインに</span>`;
+      el.slots.innerHTML = `<span class="mg-tray-empty">ショップで買った特殊コインは、毎ラウンドの手持ちメダルにランダムで混ざります</span>`;
       return;
     }
     const size = caseSize(g);
     for (let i = 0; i < size; i++) {
       const kind = g.coinCase[i];
-      const b = document.createElement("button");
-      b.type = "button";
-      b.className = "mg-slot";
+      const b = document.createElement("div");
+      b.className = "mg-slot info";
       if (!kind) {
         b.classList.add("empty");
-        b.disabled = true;
         b.setAttribute("aria-label", "空きスロット");
       } else {
         const used = g.mode === "play" && g.used[i];
         if (used) b.classList.add("used");
-        if (g.armed === i) b.classList.add("armed");
         b.innerHTML = `<img alt="" src="${coinIcon(kind)}"><span>${COIN_INFO[kind].name.replace("コイン", "")}</span>`;
         b.title = `${COIN_INFO[kind].name}: ${COIN_INFO[kind].desc}`;
-        b.setAttribute("aria-label", `${COIN_INFO[kind].name}${used ? "（使用済み）" : g.armed === i ? "（セット中）" : ""}`);
-        b.disabled = g.mode !== "play" || !!used;
-        b.addEventListener("click", () => {
-          ensureSound();
-          arm(g, i);
-          sound?.play("checkin");
-          updateHud();
-        });
+        b.setAttribute("aria-label", `${COIN_INFO[kind].name}${used ? "（このラウンドは出た）" : "（まだ出ていない）"}`);
       }
       el.slots.appendChild(b);
     }
@@ -548,19 +538,19 @@ export function mountMedalGame(root: HTMLElement, opts: MountOptions = {}): () =
     fn();
   };
 
-  let clearInfo = { tickets: 0, leftover: 0 };
+  let clearInfo = { tickets: 0, leftover: 0, over: 0 };
   const showShop = () =>
     openOverlay("shop", (o) => {
       const next = g.round + 1;
       const badNext = next >= 9 ? 3 : next >= 6 ? 2 : next >= 3 ? 1 : 0;
       o.innerHTML = `
         <div class="mg-ov-title">ROUND ${g.round} クリア！</div>
-        <div class="mg-ov-sub">クリア報酬 +${clearInfo.tickets}チケット（残りメダル${clearInfo.leftover}枚分を含む）</div>
+        <div class="mg-ov-sub">クリア報酬 +${clearInfo.tickets}チケット（残りメダル${clearInfo.leftover}枚分${clearInfo.over ? `・目標超過ボーナス${clearInfo.over}` : ""}を含む）</div>
         <div class="mg-ov-tk">所持チケット ${g.tickets}</div>
         <div class="mg-sec">ショップ</div>
         <div class="mg-cards" data-r="offers"></div>
         <div class="mg-row"><button class="mg-btn" type="button" data-r="reroll">品ぞろえ更新（${g.rerollCost}チケット）</button></div>
-        <div class="mg-sec">コインケース ${g.coinCase.length}/${caseSize(g)}（タップで半額売却）</div>
+        <div class="mg-sec">コインケース ${g.coinCase.length}/${caseSize(g)}　毎ラウンド手持ちにランダムで混ざる（タップで半額売却）</div>
         <div class="mg-case" data-r="case"></div>
         <div class="mg-sec">台の改造</div>
         <div class="mg-row" data-r="parts"></div>
@@ -819,10 +809,14 @@ export function mountMedalGame(root: HTMLElement, opts: MountOptions = {}): () =
           fx.hitstop = 0.25;
           fx.flash = 0.35;
           confetti(fx, 60);
-          clearInfo = { tickets: e.tickets, leftover: e.leftover };
+          clearInfo = { tickets: e.tickets, leftover: e.leftover, over: e.over };
           fx.banner = { text: "CLEAR!", sub: `ROUND ${e.round}`, color: "#59ff8f", t: 0, life: 1.0 };
           persist();
           pendingOverlay = { mode: "shop", at: performance.now() + 900 };
+          break;
+        case "clearHold":
+          s?.play("goal");
+          fx.banner = { text: "ノルマ達成！", sub: "払い出し終了までボーナスタイム。超えた分はチケットに", color: "#59ff8f", t: 0, life: 1.8 };
           break;
         case "allClear":
           s?.play("jackpot");
@@ -843,6 +837,7 @@ export function mountMedalGame(root: HTMLElement, opts: MountOptions = {}): () =
     }
   };
   let pendingOverlay: { mode: string; at: number } | null = null;
+  let lastNext: CoinKind | null = null;
 
   const fire = () => {
     if (g.mode !== "play") return;
@@ -909,12 +904,6 @@ export function mountMedalGame(root: HTMLElement, opts: MountOptions = {}): () =
         firing = true;
         fireTimer = TUNING.autoFireInterval * 2;
       }
-    } else if (/^[1-7]$/.test(e.key) && g.mode === "play") {
-      const i = Number(e.key) - 1;
-      if (g.coinCase[i] && !g.used[i]) {
-        arm(g, i);
-        updateHud();
-      }
     } else keys.add(e.key);
   };
   const onKeyUp = (e: KeyboardEvent) => {
@@ -943,7 +932,7 @@ export function mountMedalGame(root: HTMLElement, opts: MountOptions = {}): () =
 
   // 前回ショップで閉じていたらショップから
   if (g.mode === "shop") {
-    clearInfo = { tickets: 0, leftover: 0 };
+    clearInfo = { tickets: 0, leftover: 0, over: 0 };
     showShop();
     el.hint.hidden = true;
   } else if (g.round > 1) {
@@ -990,6 +979,15 @@ export function mountMedalGame(root: HTMLElement, opts: MountOptions = {}): () =
     if (pendingOverlay && now >= pendingOverlay.at && overlayMode === "") {
       pendingOverlay = null;
       showShop();
+    }
+    // 次が特殊コインになったら知らせる（狙って落とせるように）
+    const nk = g.mode === "play" ? nextKind(g) : null;
+    if (nk !== lastNext) {
+      if (nk && nk !== "normal") {
+        sound?.play("special");
+        fx.floats.push({ x: LW / 2, y: TOP + 70, text: `次は${COIN_INFO[nk].name}！`, color: "#ffd23a", t: 0, life: 1.2, size: 18 });
+      }
+      lastNext = nk;
     }
     updateFx(fx, frame);
     updateHud();
@@ -1090,8 +1088,9 @@ function render(x: CanvasRenderingContext2D, g: Game, fx: Fx, scale: number, spr
   x.textAlign = "center";
   x.textBaseline = "middle";
   x.fillText("IN", gx, T.gateY + 1);
-  // 狙いマーカー（セット中の特殊コインを表示）
-  const armedKind = g.armed !== null ? g.coinCase[g.armed] : null;
+  // 狙いマーカー（次が特殊コインなら、それを見せて狙わせる）
+  const nk = nextKind(g);
+  const armedKind = nk && nk !== "normal" ? nk : null;
   const ax = Math.max(T.wallL + T.r, Math.min(T.wallR - T.r, aim));
   x.strokeStyle = armedKind ? "rgba(255,210,58,.8)" : "rgba(255,255,255,0.55)";
   x.setLineDash([4, 4]);
@@ -1102,8 +1101,15 @@ function render(x: CanvasRenderingContext2D, g: Game, fx: Fx, scale: number, spr
   x.setLineDash([]);
   if (armedKind) {
     const sp = sprites.get(armedKind)!;
-    const w = sp.width / scale;
-    x.drawImage(sp, ax - w / 2, 14 - w / 2 + 6, w, w);
+    const w = (sp.width / scale) * (1.15 + 0.08 * Math.sin(g.time * 10));
+    x.fillStyle = "rgba(255,210,58,.25)";
+    x.beginPath();
+    x.arc(ax, 20, w * 0.62, 0, Math.PI * 2);
+    x.fill();
+    x.drawImage(sp, ax - w / 2, 20 - w / 2, w, w);
+    x.font = "900 10px system-ui, sans-serif";
+    x.fillStyle = "#ffd23a";
+    x.fillText("NEXT", ax + (ax > LW - 60 ? -30 : 30), 20);
   } else {
     x.fillStyle = "#ffffff";
     x.beginPath();
