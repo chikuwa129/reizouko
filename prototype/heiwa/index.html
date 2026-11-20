@@ -77,6 +77,10 @@ button:focus-visible, [tabindex]:focus-visible { outline: 3px solid var(--neon);
 .bandmark { animation: bob .6s ease-in-out infinite alternate; }
 @keyframes bob { to { transform: translateY(-4px); } }
 
+.nextgoal { font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.nextgoal b { color: var(--ink); font-family: var(--f-dot); font-weight: normal; }
+.gbar { display: inline-block; width: 90px; height: 7px; background: #ead7b2; border-radius: 4px; overflow: hidden; vertical-align: middle; }
+.gbar i { display: block; height: 100%; background: var(--neon); }
 .rinfo { display: flex; flex-direction: column; gap: 5px; font-size: 12px; }
 .rinfo h3 { margin: 0; font-size: 16px; display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
 .rinfo h3 small { font-weight: 500; color: var(--rust); font-size: 12px; }
@@ -104,6 +108,10 @@ button:focus-visible, [tabindex]:focus-visible { outline: 3px solid var(--neon);
 .actbar { display: flex; gap: 6px; flex-wrap: wrap; }
 .actbar .go { flex: 1; padding: 7px 10px; font-size: 14px; }
 .actbar .go.wait { flex: 0 0 auto; background: var(--dust); color: var(--ink); }
+.hint { background: var(--ink); color: var(--dust); border-radius: 6px; padding: 5px 10px; font-size: 13px; font-weight: 800; }
+.glow { animation: glow 1s ease-in-out infinite; }
+@keyframes glow { 50% { box-shadow: 0 0 0 4px #ff3d8b88, 3px 3px 0 var(--ink); } }
+button.off { opacity: .45; filter: grayscale(.5); box-shadow: none !important; }
 .lab { font-size: 11px; color: var(--muted); letter-spacing: .06em; }
 .chipset { display: flex; flex-wrap: wrap; gap: 4px; }
 .pick { border: 2px solid var(--line); background: var(--dust); border-radius: 5px; padding: 3px 8px; font-size: 13px; display: flex; gap: 4px; align-items: center; }
@@ -164,9 +172,22 @@ button.item[disabled] { opacity: .4; cursor: default; }
 .hbar.danger i { background: #ff5a3a; }
 .hsub { font-size: 11px; opacity: .8; }
 .cutin.battle { position: fixed; left: 50%; top: 50%; right: auto; bottom: auto; transform: translate(-50%, -50%); width: min(1100px, 96vw); aspect-ratio: 720 / 330; max-height: 92vh; z-index: 18; border: 3px solid var(--ink); border-radius: 12px; overflow: hidden; box-shadow: 0 0 0 100vmax #000a; cursor: default; }
+.encore { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; background: #0008; color: #fff; text-align: center; padding: 16px; }
+.encore .nm { font-family: var(--f-display); font-size: clamp(20px, 5cqw, 40px); animation: capin .3s both; }
+.encore .rg { font-size: clamp(12px, 2cqw, 15px); max-width: 80%; }
+.encore .row { display: flex; gap: 10px; }
+.confetti { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.confetti i { position: absolute; top: -10px; width: 8px; height: 12px; animation: conf linear both; }
+@keyframes conf { from { transform: translateY(0) rotate(0); opacity: 1; } to { transform: translateY(60cqw) rotate(540deg); opacity: .9; } }
 .hypebtn { position: absolute; left: 14px; bottom: 12px; border: 3px solid #fff; background: var(--neon); color: #fff; font-family: var(--f-display); font-size: clamp(16px, 4cqw, 26px); padding: 8px 18px; border-radius: 999px; box-shadow: 0 4px 0 #8a1a4a; }
 .hypebtn[disabled] { opacity: .5; }
 .hypebtn:active:not([disabled]) { transform: translateY(3px); box-shadow: 0 1px 0 #8a1a4a; }
+.hitA { animation: hitA .32s cubic-bezier(.2,.8,.3,1); }
+@keyframes hitA { 0% { transform: translateX(26px); } 20% { transform: translateX(14px) translateY(-3px); } 40% { transform: translateX(20px); } 100% { transform: none; } }
+.hitB { animation: hitB .25s ease-out; }
+@keyframes hitB { 0% { transform: translateX(10px); } 100% { transform: none; } }
+.flash1 { animation: flash1 .18s; }
+@keyframes flash1 { 0% { opacity: .5; } 100% { opacity: 0; } }
 .scene * { transform-box: fill-box; }
 .fly { animation: fly 1.6s ease-out both; }
 @keyframes fly { from { transform: translate(0, 0); opacity: 0; } 15% { opacity: 1; } to { transform: translate(var(--dx, 20px), -110px); opacity: 0; } }
@@ -231,6 +252,7 @@ button.item[disabled] { opacity: .4; cursor: default; }
         <div><div class="lbl">警備スタッフ</div><div class="big" id="gguard" style="font-size:18px;color:#b08000">0</div></div>
         <div class="goal" id="goal"></div>
       </div>
+      <div class="nextgoal" id="nextgoal"></div>
       <div class="stage" id="stage">
         <svg id="map" viewBox="0 0 720 330" role="img" aria-label="荒野の地図。縄張りをタップして選ぶ"></svg>
         <div id="cut"></div>
@@ -333,6 +355,7 @@ const ri = (a, b) => Math.round(R(a, b));
 const pick = a => a[Math.floor(Math.random() * a.length)];
 const uid = () => Math.random().toString(36).slice(2, 8);
 const mkMember = o => ({ id: uid(), lv: 1, xp: 0, train: 0, trained: 0, ...o });
+function firstSong() { return { id: uid(), title: 'はじめてのロック', g: 'rock', t: '自由', q: 34, rank: 'C', out: 0 }; }
 function newGame() {
   const hero = mkMember({ name: 'あなた（モヒカン）', part: 'vo', comp: 10, play: 12, sing: 12, star: 10, look: { hair: 'mohawk', hc: '#ff3d8b', shirt: '#2a1f1a', pads: true }, hero: true });
   const buddy = mkMember({ name: '相棒のザコ', part: 'dr', comp: 6, play: 10, sing: 6, star: 5, look: { hair: 'mohawk', hc: '#3f8fc0', shirt: '#6a5040', pads: true } });
@@ -340,13 +363,13 @@ function newGame() {
     week: 1, goods: 40, fans: 0, band: [hero, buddy], staff: [], openers: [], songs: [], prod: null, tour: null, at: 'base', sel: 'junk',
     genres: Object.fromEntries(GENRES.filter(x => x.start).map(x => [x.id, 1])), made: {}, known: {}, fac: { studio: 0, gen: 0, tower: 0 }, venue: 0,
     t: Object.fromEntries(TERR.map(r => [r.id, { ten: r.home ? 0 : r.ten, free: !!r.home, played: {} }])),
-    tab: 'make', pickG: 'rock', pickT: '自由', pickSong: null, yearBest: null, awards: 0, over: false, news: [], speed: 1, nextBand: 250, guards: 6, alumni: [],
+    songs0: true, tab: 'tour', pickG: 'rock', pickT: '自由', pickSong: null, yearBest: null, awards: 0, over: false, news: [], speed: 1, nextBand: 250, guards: 6, alumni: [],
   };
 }
 const terrOf = id => TERR.find(r => r.id === id);
 const reach = id => terrOf(id).home || ROADS.some(([a, b]) => (a === id && G.t[b].free) || (b === id && G.t[a].free));
 const freeCount = () => TERR.filter(r => !r.home && G.t[r.id].free).length;
-const globalPeace = () => { let s = 0, w = 0; for (const r of TERR) { if (r.home) continue; s += (100 - G.t[r.id].ten) * TW[r.id]; w += TW[r.id]; } return s / w; };
+const globalPeace = () => { let s = 0, w = 0; for (const r of TERR) { if (r.home) continue; if (G.t[r.id].free) s += 100 * TW[r.id]; w += TW[r.id]; } return s / w; };
 const hasJob = j => G.staff.some(s => s.job === j);
 const dateStr = w => `${Math.floor((w - 1) / PER_YEAR) + 1}年目 ${Math.floor(((w - 1) % PER_YEAR) / 4) + 1}月 ${((w - 1) % 4) + 1}週`;
 const likeOf = (r, gid) => { if (r.final) return 1; if (GEN[gid].fusion) return 1.3; return r.likes.includes(gid) ? 1.5 : r.hates.includes(gid) ? .6 : 1; };
@@ -420,7 +443,7 @@ function startTour() {
   const song = G.songs.find(s => s.id === G.pickSong);
   if (!song || G.prod || G.tour || !canGo(G.sel) || G.goods < travelCost()) return;
   G.goods -= travelCost();
-  const weeks = travelWeeks();
+  const weeks = G.at === G.sel ? 1 : travelWeeks();
   G.tour = { reg: G.sel, song: song.id, left: weeks };
   sfx('pop');
   news(`${terrOf(G.sel).name}へ出発（${weeks}週）`);
@@ -487,10 +510,10 @@ function openBattle(b) {
     <rect x="10" y="200" width="240" height="40" fill="#4a3a3a"/><rect x="10" y="196" width="240" height="6" fill="#ff3d8b"/><line x1="250" y1="196" x2="250" y2="330" stroke="#ffd34d" stroke-width="3" stroke-dasharray="6 5"/>
     ${G.band.map((m, i) => `<g transform="translate(${40 + i * 54},200)"><g class="mem">${person(m, 1.05)}</g></g>`).join('')}
     
-    <g id="bfront"><g class="angry">${gx}</g><g class="angry" style="animation-delay:.05s">${thugs}</g></g>
+    <g id="bfront"><g id="bguards"><g class="angry">${gx}</g></g><g id="bthugs"><g class="angry" style="animation-delay:.05s">${thugs}</g></g></g><rect id="bflash" width="720" height="330" fill="#fff" opacity="0" pointer-events="none"/>
     <g transform="translate(676,236)"><g class="angry">${person({ look: b.r.boss.look }, 1.7, 'angry')}</g></g><text x="676" y="112" text-anchor="middle" fill="#fff" style="font-size:12px;font-weight:800;paint-order:stroke;stroke:#000;stroke-width:3px">${b.r.boss.name}</text>
     <g id="bnotes"></g></svg>
-    <div class="hud"><div class="hrow"><b>♪「${b.song.title}」</b><span id="bpct">0%</span></div><div class="hbar"><i id="bprog"></i></div>
+    <div class="hud"><div class="hrow"><b>${b.encore ? 'アンコール ' : ''}♪「${b.song.title}」</b><span id="bpct">0%</span></div><div class="hbar"><i id="bprog"></i></div>
       <div class="hrow"><span>ステージまで</span><span id="bdist"></span></div><div class="hbar danger"><i id="bpress"></i></div>
       <div class="hsub">警備スタッフ ${G.guards}人${b.opt.fes && op.length ? '・荒野のバンドたちも加勢' : ''}</div></div>
     <div class="say" style="animation-delay:.2s">${b.r.boss.name}「ステージをぶっ潰せ！」</div>
@@ -508,8 +531,9 @@ function guardFig() {
 }
 function hype(b) {
   if (b.cd > 0 || b.done) return;
-  b.hype = .1; b.cd = .22;
+  b.hype = .1; b.cd = .22; b.stop = 90;
   sfx('pop');
+  if (!window.FAST && $('bthugs')) { ['bthugs', 'bguards'].forEach((id, i) => { const el = $(id); el.classList.remove('hitA', 'hitB'); void el.getBBox(); el.classList.add(i ? 'hitB' : 'hitA'); }); const f = $('bflash'); f.classList.remove('flash1'); void f.getBBox(); f.classList.add('flash1'); }
   if (!window.FAST && $('bnotes')) { const fx = 560 - b.x * 300; $('bnotes').insertAdjacentHTML('beforeend', `<text class="fly" x="${fx - 40}" y="200" fill="#ffd34d" style="font-family:var(--f-display);font-size:24px;--dx:0px">ウォオオ！</text>`); }
 }
 function stepBattle(b, dt, auto) {
@@ -524,7 +548,9 @@ function stepBattle(b, dt, auto) {
 }
 function battleFrame(now) {
   const b = BT; if (!b || b.done) return;
-  const dt = Math.min(50, now - b.last) / SONG_MS; b.last = now;
+  const raw = Math.min(50, now - b.last); b.last = now;
+  if (b.stop > 0) { b.stop -= raw; requestAnimationFrame(battleFrame); return; }
+  const dt = raw / SONG_MS;
   if (stepBattle(b, dt, false)) return;
   const fx = 560 - b.x * 300;
   $('bfront').setAttribute('transform', `translate(${fx.toFixed(1)},0)`);
@@ -538,6 +564,11 @@ function endBattle(b, ok) {
   b.done = true; BT = null;
   const r = b.r, st = G.t[r.id], song = b.song, g = GEN[song.g];
   if (!window.FAST) { $('cut').innerHTML = ''; pausedByCut = false; }
+  if (!ok && b.encore) {
+    st.ten = clamp(st.ten + 4, 0, 100); G.guards = Math.max(1, G.guards - 1);
+    playCut('live', { kind: 'riot', boss: r.boss, name: 'アンコールで押し切られた！', where: `1曲目は効いた（殺気 -${b.prevD.toFixed(1)}）が、欲張りすぎた。警備スタッフが1人ケガ`, val: `殺気 -${(b.prevD - 4).toFixed(1)}`, bad: true, hot: g.hot, venue: G.venue, say: 'ヒャッハー！ 調子に乗るな！' });
+    news(`${r.name}でアンコール失敗…`); save(); return;
+  }
   if (!ok) {
     const d = b.our.d * b.t * .4;
     st.ten = clamp(st.ten - d + 3, 0, 100);
@@ -546,11 +577,32 @@ function endBattle(b, ok) {
     news(`${r.name}のライブ、ステージまで押し込まれて中断…。路上ライブで警備スタッフを増やそう`);
     save(); return;
   }
-  const d = b.our.d * (1.6 - .6 * b.x) * (b.opt.fes ? 1.4 : 1) + (b.opt.fes ? 0 : openerPower().d);
-  st.ten = clamp(st.ten - d, 0, 100);
+  let d = b.our.d * (1.6 - .6 * b.x) * (b.opt.fes ? 1.4 : 1) * (b.encore ? .8 : 1) + (b.opt.fes ? 0 : openerPower().d);
+  if (b.prevD) d += b.prevD;
+  st.ten = clamp(st.ten - (d - (b.prevD || 0)), 0, 100);
+  // encore? only while the boss still stands
+  if (!b.encore && st.ten > 0 && !window.FAST) { askEncore(b, d); return; }
+  if (!b.encore && st.ten > 0 && window.FAST && b.x < .3) { encore(b, d); return; }
   const held = b.x < .3 ? '（完全に守りきった！）' : b.x < .7 ? '' : '（ギリギリ…）';
   finishLive(r, st, song, d, b.opt.title, `「${song.title}」${g.name}を最後まで${held}`, b.opt.fes ? 3 : G.venue, !!b.opt.fes);
   save();
+}
+
+function askEncore(b, d) {
+  pausedByCut = true;
+  const ratio = b.x < .3 ? '余裕あり' : b.x < .7 ? 'そこそこ' : 'ギリギリ';
+  $('cut').innerHTML = `<div class="cutin battle" id="cutin"><svg class="scene" viewBox="0 0 720 330" preserveAspectRatio="xMidYMid slice"><rect width="720" height="330" fill="#1a1230"/>
+    ${Array.from({ length: 30 }, (_, i) => thug(60 + (i % 10) * 64, 250 + Math.floor(i / 10) * 34, i, 'dance')).join('')}</svg>
+    <div class="encore"><div class="nm">アンコール！ アンコール！</div><div class="rg">1曲目で殺気 -${d.toFixed(1)}。もう1曲いけば、さらに効く。でも手下はもっと熱くなる（守り：${ratio}）</div>
+    <div class="row"><button class="go" id="encYes">もう1曲やる！</button><button class="go alt" id="encNo">ここで締める</button></div></div></div>`;
+  sfx('live', 1);
+  $('encYes').onclick = () => { $('cut').innerHTML = ''; encore(b, d); };
+  $('encNo').onclick = () => { $('cut').innerHTML = ''; pausedByCut = false; const r = b.r, st = G.t[r.id], g = GEN[b.song.g]; finishLive(r, st, b.song, d, b.opt.title, `「${b.song.title}」${g.name}を最後まで`, b.opt.fes ? 3 : G.venue, !!b.opt.fes); save(); };
+}
+function encore(b, d) {
+  const nb = { ...b, t: 0, done: false, encore: true, prevD: d, boss: b.boss * 1.2, cd: 0, hype: 0, stop: 0 };
+  if (window.FAST) { while (!stepBattle(nb, .01, true)); return; }
+  openBattle(nb);
 }
 
 // street lives: small shows near home that slowly grow your fan security
@@ -868,7 +920,8 @@ function playCut(kind, o) {
   $('cutin').onclick = closeCut;
   if (kind === 'live') sfx(o.bad ? 'boo' : 'live', o.hot); else if (o.gold || kind === 'award') sfx('win'); else sfx('done');
   if (o.win) setTimeout(() => sfx('win'), 1300);
-  clearTimeout(cutTimer); cutTimer = setTimeout(closeCut, o.stamp || o.say ? 3300 : 2400);
+  if (o.win && $('cutin')) $('cutin').insertAdjacentHTML('beforeend', `<div class="confetti">${Array.from({ length: 40 }, (_, i) => `<i style="left:${R(0, 100).toFixed(0)}%;background:${pick(['#ff3d8b', '#ffd34d', '#9ff0b8', '#7ac8ff', '#fff'])};animation-delay:${(1.2 + R(0, .8)).toFixed(2)}s;animation-duration:${R(1.4, 2.4).toFixed(2)}s"></i>`).join('')}</div>`);
+  clearTimeout(cutTimer); cutTimer = setTimeout(closeCut, o.stamp || o.say ? 3000 : 2000);
   renderAll();
 }
 function closeCut() {
@@ -885,14 +938,16 @@ function buildMap() {
   for (const r of TERR) h += `<g class="terr" id="tr_${r.id}" data-r="${r.id}"></g>`;
   h += `<g id="bandmark"></g>`;
   $('map').innerHTML = h;
-  $('map').addEventListener('click', e => { const t = e.target.closest('[data-r]'); if (t) { G.sel = t.dataset.r; renderAll(); } });
+  $('map').addEventListener('click', e => { const t = e.target.closest('[data-r]'); if (t) { G.sel = t.dataset.r; renderAll(); const r = terrOf(G.sel); if (!r.home && !G.t[r.id].free && !reach(r.id)) toast('まだ道がない。となりの縄張りを先に解放しよう'); else if (r.final && !VENUES[G.venue].fes) toast('王都は荒野フェスでしか戦えない'); } });
 }
 function renderLive() {
   const gp = globalPeace();
   $('stats').innerHTML = `<div class="stat ${G.goods < 0 ? 'neg' : ''}"><b>物資</b>${G.goods}</div>`;
-  $('gpeace').textContent = gp.toFixed(1) + '%';
+  $('gpeace').textContent = Math.round(gp) + '%';
   $('gfans').textContent = G.fans.toLocaleString();
   $('gguard').textContent = G.guards + '人';
+  const nv = VENUES[G.venue + 1];
+  $('nextgoal').innerHTML = `解放 <b>${freeCount()}/${TERR.length - 1}</b>${nv ? `　次のステージ「${nv.name}」まで 物資 <b>${Math.min(G.goods, nv.cost)}/${nv.cost}</b><span class="gbar"><i style="width:${Math.min(100, G.goods / nv.cost * 100)}%"></i></span>` : '　荒野フェス開催可能'}`;
   $('goal').innerHTML = `${dateStr(G.week)}<br>${VENUES[G.venue].name}`;
   for (const r of TERR) {
     const st = G.t[r.id], el = $('tr_' + r.id), rad = r.final ? 34 : r.home ? 24 : 28;
@@ -936,6 +991,18 @@ function bubble(id, dm, dn) {
   });
 }
 const TABS = [['make', '曲づくり'], ['tour', 'ライブ'], ['crew', '仲間'], ['base', '拠点']];
+function nextHint() {
+  if (G.over) return null;
+  if (!G.songs.length) return { tab: 'make', btn: 'goMake', text: 'まずは曲を作ろう' };
+  if (freeCount() === 0) return { tab: 'tour', btn: 'goTour', sel: 'junk', text: '鉄くず谷に殴り込みライブ！ 1曲演りきるまで警備スタッフで持ちこたえろ' };
+  if (pendingJoin.length) return null;
+  if (G.songs.length < 3) return { tab: 'make', btn: 'goMake', text: '新しい曲を作ろう。相性◎を探せ' };
+  if (G.venue === 0 && G.goods >= VENUES[1].cost) return { tab: 'base', btn: 'venueBtn', text: 'ステージを大きくするとライブが効く' };
+  const near = TERR.filter(r => canGo(r.id)).sort((a, b) => G.t[a.id].ten - G.t[b.id].ten)[0];
+  if (near) return { tab: 'tour', btn: 'goTour', sel: near.id, text: `次は${near.name}（${near.boss.name}）` };
+  if (reach('castle') && !VENUES[G.venue].fes) return { tab: 'base', btn: 'venueBtn', text: `王都に挑むには荒野フェス（物資 ${VENUES[3].cost}）が必要` };
+  return null;
+}
 function renderDesk() {
   $('tabs').innerHTML = TABS.map(([id, n]) => `<button class="tab" role="tab" data-t="${id}" aria-selected="${G.tab === id}">${n}</button>`).join('');
   let h = '';
@@ -996,16 +1063,31 @@ function renderDesk() {
   }
   if (G.tab === 'base') {
     const nv = VENUES[G.venue + 1];
-    h = `<div class="grid2">${nv ? `<button class="item" data-venue="1" ${G.goods < nv.cost ? 'disabled' : ''} style="grid-column:1/-1;border-color:var(--neon)"><span class="nm"><span>ステージを「${nv.name}」に</span><span class="tag">物資 ${nv.cost}</span></span>
+    h = `<div class="grid2">${nv ? `<button class="item" id="venueBtn" data-venue="1" ${G.goods < nv.cost ? 'disabled' : ''} style="grid-column:1/-1;border-color:var(--neon)"><span class="nm"><span>ステージを「${nv.name}」に</span><span class="tag">物資 ${nv.cost}</span></span>
       <span class="sub">いま：${VENUES[G.venue].name} → ${nv.fes ? '2days フェス。荒野の王都に挑めるようになる' : `ライブの効果 +${Math.round(nv.bonus * 100)}%`}</span></button>` : `<div class="item" style="grid-column:1/-1"><span class="nm">ステージは最大（荒野フェス）</span></div>`}
       ${FAC.map(f => { const c = facCost(f); return `<button class="item" data-fac="${f.id}" ${G.goods < c ? 'disabled' : ''}><span class="nm"><span>${f.name}</span><span style="font-size:11px">Lv${G.fac[f.id]}</span></span>
       <span class="sub">${f.desc}</span><span class="sub">${f.eff(G.fac[f.id])} → ${f.eff(G.fac[f.id] + 1)}</span><span class="tag">物資 ${c}</span></button>`; }).join('')}</div>
       <div class="note">物資は、カセット・ライブ・解放した縄張りから入る。毎月、仲間ひとりにつき物資2を食べる。</div>`;
   }
+  const hint = nextHint();
+  if (hint) h = `<div class="hint">▶ ${hint.text}</div>` + h;
   $('desk').innerHTML = h;
   $('desk').classList.toggle('busy', running);
+  if (hint && hint.tab === G.tab && (!hint.sel || hint.sel === G.sel)) { const b = $(hint.btn); if (b) b.classList.add('glow'); }
+  // #104: no silent buttons. Disabled ones still answer with the reason.
+  document.querySelectorAll('#desk button[disabled], #actbar button[disabled]').forEach(b => { b.removeAttribute('disabled'); b.classList.add('off'); b.setAttribute('aria-disabled', 'true'); });
   const idle = !G.prod && !G.tour && !running && !G.over;
   $('actbar').innerHTML = `<button class="go street" id="goStreet" ${idle && G.goods >= 2 ? '' : 'disabled'}>${streetSpot().name}で路上ライブ<span style="font-weight:500;font-size:12px">（1週・物資2）警備スタッフ+</span></button><button class="go wait" id="goRest" ${idle ? '' : 'disabled'}>1週休む</button>`;
+}
+function whyOff(t) {
+  if (running) return '週が進んでいる最中';
+  if (G.prod && t.id !== 'goRest') return '曲づくりの最中';
+  if (G.tour) return 'ツアーの最中';
+  if (t.dataset.train) { const m = allMembers().find(x => x.id === t.dataset.train); return m && busy(m) ? '特訓中' : `物資が足りない（${trainCost(m)}必要）`; }
+  if (t.dataset.fac) return `物資が足りない（${facCost(FAC.find(f => f.id === t.dataset.fac))}必要）`;
+  if (t.dataset.venue) return `物資が足りない（${VENUES[G.venue + 1].cost}必要）`;
+  if (t.id === 'goMake') return '特訓中で誰も作曲できない';
+  return '物資が足りない';
 }
 function renderAll() { renderLive(); renderDesk(); renderTicker(); syncSpeed(); }
 function syncSpeed() { $('snd').textContent = soundOn ? '音 ON' : '音 OFF'; }
@@ -1021,7 +1103,7 @@ function showIntro() {
     <p>ある日、廃墟で拾った一本のカセットテープ。流れてきたのは<strong>ロック</strong>だった。</p>
     <p>ギターを片手に曲を作り、縄張りに殴り込んでライブをしよう。殺気を0にすればボスは仲間になる。仲間にするかは自分で決める。バンドは一度入れたら入れ替えない。最後は荒野の王都で2daysフェスだ。</p>
     <div style="display:flex;gap:8px;flex-wrap:wrap">${saved && !saved.over ? '<button class="go alt" id="cont">続きから</button>' : ''}<button class="go" id="start" style="flex:1">ギターを手に取る</button></div></div>`);
-  $('start').onclick = () => { G = newGame(); news('ガソスタ跡をねぐらにした。まずは1曲作ろう'); closeOv(); renderAll(); save(); };
+  $('start').onclick = () => { G = newGame(); G.songs.push(firstSong()); news('拾ったカセットを耳コピして「はじめてのロック」ができた。さっそく鉄くず谷に殴り込もう'); closeOv(); renderAll(); save(); };
   if ($('cont')) $('cont').onclick = () => { G = saved; G.alumni = G.alumni || []; pendingJoin = []; closeOv(); renderAll(); };
 }
 function end(kind) {
@@ -1056,7 +1138,7 @@ function runWeeks(n) {
     if (pausedByCut || $('ovl').innerHTML) { setTimeout(step, 200); return; }
     if (k >= n || (!G.prod && !G.tour && k > 0)) { running = false; save(); renderAll(); return; }
     tick(); k++;
-    setTimeout(step, 450);
+    setTimeout(step, 300);
   };
   step();
 }
@@ -1067,11 +1149,11 @@ buildMap(); renderAll(); showIntro();
 $('snd').onclick = () => { soundOn = !soundOn; try { localStorage.setItem('koya-sound', soundOn ? 'on' : 'off'); } catch (e) {} syncSpeed(); if (soundOn) sfx('coin'); };
 $('tabs').addEventListener('click', e => { const b = e.target.closest('[data-t]'); if (!b) return; const ids = TABS.map(t => t[0]); setTab(b.dataset.t, Math.sign(ids.indexOf(b.dataset.t) - ids.indexOf(G.tab))); });
 $('actbar').addEventListener('click', e => {
-  const t = e.target.closest('button'); if (!t || t.disabled || running) return;
+  const t = e.target.closest('button'); if (!t) return; if (t.classList.contains('off') || running) { toast(whyOff(t)); return; }
   if (t.id === 'goStreet') streetLive(); else if (t.id === 'goRest') { news('ねぐらでひと休みした'); runWeeks(1); }
 });
 $('desk').addEventListener('click', e => {
-  const t = e.target.closest('button'); if (!t || t.disabled || running) return;
+  const t = e.target.closest('button'); if (!t) return; if (t.classList.contains('off') || running) { toast(whyOff(t)); return; }
   if (t.dataset.g) { G.pickG = t.dataset.g; renderDesk(); }
   else if (t.dataset.th) { G.pickT = t.dataset.th; renderDesk(); }
   else if (t.id === 'goMake') startSong();
