@@ -401,7 +401,7 @@ export function mountMedalGame(root: HTMLElement, opts: MountOptions = {}): () =
     </div>
     <div class="mg-stage" data-r="stage">
       <canvas class="mg-canvas" data-r="canvas" aria-label="メダル落としの盤面。タップした位置にメダルを投入"></canvas>
-      <div class="mg-hint" data-r="hint"><div class="a">タップでメダル投入</div><div class="b">投入口は左右に動く。タイミングで落とそう<br>中央のINに入るとスロット抽選（盤面には落ちない）<br>目標スコアでラウンドクリア</div></div>
+      <div class="mg-hint" data-r="hint"><div class="a">タップでメダル投入</div><div class="b">投入口もINも左右に動く。釘で弾かれてどこに落ちるかは運次第<br>INを通るとスロット抽選（メダルはそのまま盤面へ）<br>目標スコアでラウンドクリア</div></div>
     </div>
     <div class="mg-tray"><span class="mg-tray-label">特殊<br>コイン</span><div class="mg-slots" data-r="slots"></div></div>
   `;
@@ -1087,7 +1087,7 @@ function render(x: CanvasRenderingContext2D, g: Game, fx: Fx, scale: number, spr
   x.font = "900 11px system-ui, sans-serif";
   x.fillText(full ? "MAX" : "IN", gx, T.gateY + 1);
   // 釘
-  for (const p of pins(gateWide(g))) {
+  for (const p of pins(g.gateX, gateWide(g))) {
     x.beginPath();
     x.arc(p.x, p.y, T.pinR + 0.5, 0, Math.PI * 2);
     x.fillStyle = "#e3e7f5";

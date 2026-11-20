@@ -40,6 +40,9 @@ export const TUNING = {
   pinJitter: 120, // 弾かれたときの横方向のばらつき（px/秒）
   launchThrow: 0.25, // 投入口の移動速度がメダルに乗る割合
   gateW: 40,
+  gateSpeed: 55, // px/秒
+  gateMin: 70,
+  gateMax: 290,
   // 投入口（左右に往復。INは中央に固定）
   launchSpeed: 150, // px/秒（等速で往復するのでタイミングを読みやすい）
   launchMin: 34,
@@ -212,7 +215,8 @@ export interface Game {
   // 台
   phase: number;
   pusherY: number;
-  gateX: number; // IN（中央固定）
+  gateX: number; // INの位置（左右に往復）
+  gateDir: number;
   launchX: number; // 投入口の位置
   launchDir: number;
   stock: number;
@@ -279,25 +283,23 @@ export function buyMedalsPrice(g: Game) {
 }
 
 let pinCache: { x: number; y: number }[] | null = null;
-let pinCacheWide = -1;
-// wide: ワイドゲートによる命釘の開き（片側px）
-export function pins(wide = 0) {
-  if (pinCache && pinCacheWide === wide) return pinCache;
+// 釘（固定）＋ INと一緒に動く左右の命釘
+// gateX: INの位置 / wide: ワイドゲートによる命釘の開き（片側px）
+export function pins(gateX: number, wide = 0) {
   const T = TUNING;
-  const out: { x: number; y: number }[] = [];
-  T.pinRows.forEach((y, row) => {
-    const off = row % 2 ? T.pinGap / 2 : 0;
-    for (let x = T.width / 2 - T.pinGap * 4 + off; x <= T.wallR - 10; x += T.pinGap) {
-      if (x < T.wallL + 10) continue;
-      out.push({ x, y });
-    }
-  });
-  // INの左右の「命釘」。ここを抜けたメダルだけがINに入る
+  if (!pinCache) {
+    const out: { x: number; y: number }[] = [];
+    T.pinRows.forEach((y, row) => {
+      const off = row % 2 ? T.pinGap / 2 : 0;
+      for (let x = T.width / 2 - T.pinGap * 4 + off; x <= T.wallR - 10; x += T.pinGap) {
+        if (x < T.wallL + 10) continue;
+        out.push({ x, y });
+      }
+    });
+    pinCache = out;
+  }
   const half = T.gateW / 2 - T.pinNail + wide;
-  out.push({ x: T.width / 2 - half, y: T.gateY - 10 }, { x: T.width / 2 + half, y: T.gateY - 10 });
-  pinCache = out;
-  pinCacheWide = wide;
-  return out;
+  return [...pinCache, { x: gateX - half, y: T.gateY - 10 }, { x: gateX + half, y: T.gateY - 10 }];
 }
 
 function radiusOf(kind: CoinKind) {
@@ -353,6 +355,7 @@ export function createGame(opts: { save?: Partial<SaveData>; seed?: number } = {
     phase: 0,
     pusherY: T.pusherMid,
     gateX: T.width / 2,
+    gateDir: -1,
     launchX: T.width / 2,
     launchDir: 1,
     stock: 0,
@@ -581,6 +584,15 @@ export function step(g: Game, dt: number, ev: GameEvent[]) {
   g.pusherY = T.pusherMid + Math.sin(g.phase) * (T.pusherAmp + part(g, "pusher") * 7);
 
   // ゲート
+  // INの往復（投入口とは別の速さ）
+  g.gateX += g.gateDir * T.gateSpeed * dt;
+  if (g.gateX > T.gateMax) {
+    g.gateX = T.gateMax;
+    g.gateDir = -1;
+  } else if (g.gateX < T.gateMin) {
+    g.gateX = T.gateMin;
+    g.gateDir = 1;
+  }
   // 投入口の往復
   g.launchX += g.launchDir * T.launchSpeed * dt;
   if (g.launchX > T.launchMax) {
@@ -665,7 +677,7 @@ export function step(g: Game, dt: number, ev: GameEvent[]) {
         m.x += m.vx * dt;
         m.y += m.vy * dt;
         const rr = T.deckR + T.pinR;
-        for (const p of pins(gateWide(g))) {
+        for (const p of pins(g.gateX, gateWide(g))) {
           const dx = m.x - p.x;
           const dy = m.y - p.y;
           const d2 = dx * dx + dy * dy;
@@ -694,18 +706,12 @@ export function step(g: Game, dt: number, ev: GameEvent[]) {
         // INの高さに到達
         m.pin = false;
         m.checked = true;
-        // 通常メダルがINに入ると、そのメダルはスロットに吸い込まれて盤面には落ちない（押し出しとの二択）
-        // 保留が満タンでも吸い込まれる（無駄になる）。特殊コインだけは素通りして盤面へ
-        if (m.kind === "normal" && Math.abs(m.x - g.gateX) < T.gateW / 2 + gateWide(g)) {
-          m.state = "fall";
-          m.t = 0;
-          m.paid = false;
-          m.y = -999;
+        // INを通過したら保留+1。メダルはそのまま盤面へ落ちる
+        if (Math.abs(m.x - g.gateX) < T.gateW / 2 + gateWide(g)) {
           if (g.stock < T.maxStock) {
             g.stock++;
             ev.push({ type: "checkin", x: m.x });
           } else ev.push({ type: "stockFull" });
-          continue;
         }
         m.x = Math.max(T.wallL + m.r, Math.min(T.wallR - m.r, m.x));
         m.sx = m.x;
