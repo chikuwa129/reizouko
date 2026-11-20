@@ -313,7 +313,7 @@ const JOBS = {
 const BAND_SLOTS = 4, STAFF_SLOTS = 3;
 // stages: how many opening acts you can put on, and the final 2days fes
 const VENUES = [
-  { name: '路上', open: 0, cost: 0 }, { name: '廃墟ステージ', open: 1, cost: 80 }, { name: '野外ライブ', open: 2, cost: 220 }, { name: '荒野フェス', open: 99, cost: 400, fes: true },
+  { name: '路上', bonus: 0, cost: 0 }, { name: '廃墟ステージ', bonus: .15, cost: 80 }, { name: '野外ライブ', bonus: .3, cost: 220 }, { name: '荒野フェス', bonus: .3, cost: 400, fes: true },
 ];
 const FAC = [
   { id: 'studio', name: 'ガレージスタジオ', base: 50, desc: '曲づくりが速くなる', eff: l => `制作 ${Math.round(100 + l * 30)}%` },
@@ -338,7 +338,7 @@ function newGame() {
     week: 1, goods: 40, fans: 0, band: [hero, buddy], staff: [], openers: [], songs: [], prod: null, tour: null, at: 'base', sel: 'junk',
     genres: Object.fromEntries(GENRES.filter(x => x.start).map(x => [x.id, 1])), made: {}, known: {}, fac: { studio: 0, gen: 0, tower: 0 }, venue: 0,
     t: Object.fromEntries(TERR.map(r => [r.id, { ten: r.home ? 0 : r.ten, free: !!r.home, played: {} }])),
-    tab: 'make', pickG: 'rock', pickT: '自由', pickSong: null, yearBest: null, awards: 0, over: false, news: [], speed: 1, nextBand: 250, guards: 6,
+    tab: 'make', pickG: 'rock', pickT: '自由', pickSong: null, yearBest: null, awards: 0, over: false, news: [], speed: 1, nextBand: 250, guards: 6, alumni: [],
   };
 }
 const terrOf = id => TERR.find(r => r.id === id);
@@ -355,7 +355,7 @@ const travelCost = () => 8;
 const rankOf = q => q >= 120 ? 'S' : q >= 85 ? 'A' : q >= 55 ? 'B' : q >= 30 ? 'C' : 'D';
 const allMembers = () => G.band.concat(G.staff);
 const busy = m => m.train > 0;
-const openSlots = () => VENUES[G.venue].open;
+const shownBands = () => G.openers.filter(b => b.revealed);
 
 // ================= helpers =================
 const $ = id => document.getElementById(id);
@@ -430,11 +430,11 @@ function ourPower(r, song) {
   const star = G.band.reduce((s, m) => s + m.star, 0);
   let d = 7 * (song.q / 40) ** .7 * like * tired * (1 + Math.max(0, g.hot) * .22) * (1 + star / 250);
   if (g.hot < 0 && st.ten > 60) d *= 1.4;
-  d *= (1 + G.fac.gen * .15) * (hasJob('light') ? 1.2 : 1);
+  d *= (1 + G.fac.gen * .15) * (hasJob('light') ? 1.2 : 1) * (1 + VENUES[G.venue].bonus);
   return { d, like, tired };
 }
 function openerPower() {
-  const acts = G.openers.slice().sort((a, b) => b.pow - a.pow).slice(0, openSlots());
+  const acts = VENUES[G.venue].fes ? shownBands() : [];
   return { acts, d: acts.reduce((s, b) => s + b.pow, 0) / 12 };
 }
 function concert() {
@@ -449,8 +449,8 @@ function concert() {
     // 2days: day 1 everyone plays together (automatic), day 2 is ours alone and the gang storms the stage
     const d1 = op.d * 1.6 + our.d * .4;
     st.ten = clamp(st.ten - d1, 0, 100);
-    if (st.ten <= 0) { finishLive(r, st, song, d1, `荒野フェス DAY1 ＠${r.name}`, '前座全員とみんなで。音が届いた', 3, true, true); return save(); }
-    playCut('live', { kind: 'fes1', boss: r.boss, name: `荒野フェス DAY1 ＠${r.name}`, where: `前座 ${G.openers.length}組とあなたたち、全員で`, val: `殺気 -${d1.toFixed(1)}`, venue: 3, hot: 2, say: 'こんなに大勢が…歌っておる…' });
+    if (st.ten <= 0) { finishLive(r, st, song, d1, `荒野フェス DAY1 ＠${r.name}`, '荒野のバンドたちとみんなで。音が届いた', 3, true, true); return save(); }
+    playCut('live', { kind: 'fes1', boss: r.boss, name: `荒野フェス DAY1 ＠${r.name}`, where: shownBands().length ? `荒野のバンド ${shownBands().length}組とあなたたち、全員で` : 'あなたたちと客席の全員で', val: `殺気 -${d1.toFixed(1)}`, venue: 3, hot: 2, say: 'こんなに大勢が…歌っておる…' });
     startBattle(r, song, { fes: true, title: `荒野フェス DAY2 ＠${r.name}` });
   } else startBattle(r, song, { title: `${r.name}でライブ` });
   save();
@@ -461,7 +461,7 @@ let BT = null;
 let SONG_MS = 9000;
 function guardPush(opt) {
   const op = openerPower();
-  return G.guards * .08 + op.acts.reduce((s, a) => s + a.pow, 0) / 90 + (opt.fes ? G.openers.reduce((s, a) => s + a.pow, 0) / 120 : 0);
+  return G.guards * .08 + (opt.fes ? op.acts.reduce((s, a) => s + a.pow, 0) / 120 : 0);
 }
 function startBattle(r, song, opt) {
   const st = G.t[r.id], g = GEN[song.g], our = ourPower(r, song), hot = Math.max(0, g.hot);
@@ -489,7 +489,7 @@ function openBattle(b) {
     <g id="bnotes"></g></svg>
     <div class="hud"><div class="hrow"><b>♪「${b.song.title}」</b><span id="bpct">0%</span></div><div class="hbar"><i id="bprog"></i></div>
       <div class="hrow"><span>ステージまで</span><span id="bdist"></span></div><div class="hbar danger"><i id="bpress"></i></div>
-      <div class="hsub">警備スタッフ ${G.guards}人${op.length ? '・前座 ' + op.map(a => a.name).join('、') : ''}${b.opt.fes ? '・前座全員' : ''}</div></div>
+      <div class="hsub">警備スタッフ ${G.guards}人${b.opt.fes && op.length ? '・荒野のバンドたちも加勢' : ''}</div></div>
     <div class="say" style="animation-delay:.2s">${b.r.boss.name}「ステージをぶっ潰せ！」</div>
     <button class="hypebtn" id="bhype">あおる！</button></div>`;
   $('bhype').onclick = e => { e.stopPropagation(); hype(b); };
@@ -603,24 +603,31 @@ function joinCrew(m) {
   (isBand ? G.band : G.staff).push(m);
   news(`${m.name}が${isBand ? 'バンド' : 'スタッフ'}に加わった！（${isBand ? PARTS[m.part] : JOBS[m.job].title}）`);
 }
-function formBand(m, why) {
+function formBand(m) {
   const name = m.boss ? `${m.name}と${pick(BAND_B)}` : `${pick(BAND_A)}${pick(BAND_B)}`;
-  G.openers.push({ id: uid(), name, pow: m.boss ? 30 + (m.lv || 1) * 4 : 12, boss: !!m.boss, look: m.look });
-  news(why || (m.boss ? `${m.name}は枠があふれたので、自分のバンド「${name}」を組んだ。前座をやってくれる` : `信者たちが勝手にバンド「${name}」を組んだ。前座をやってくれる`));
-  if (!m.boss && !window.FAST) toast(`新しい前座バンド「${name}」誕生！`);
+  const band = { id: uid(), name, pow: m.boss ? 30 + (m.lv || 1) * 4 : 12, boss: !!m.boss, look: m.look, who: m.boss ? m.name : '', revealed: VENUES[G.venue].fes };
+  G.openers.push(band);
+  if (band.revealed) news(`「${name}」がフェスに乱入！${m.boss ? m.name + 'のバンドだ' : ''}`);
+  else news(m.boss ? `噂：${m.name}が最近、楽器を手にしているらしい…` : pick(['噂：荒野のどこかで、新しいバンドが生まれたらしい', '噂：ドラム缶を叩くモヒカンの集団が目撃された', '噂：夜な夜な誰かのギターが聞こえるらしい']));
 }
 function showJoin() {
   if (!pendingJoin.length || $('ovl').innerHTML || $('cutin')) return;
   const m = pendingJoin[0], isBand = !!m.part, list = isBand ? G.band : G.staff, max = isBand ? BAND_SLOTS : STAFF_SLOTS, full = list.length >= max;
   const role = isBand ? PARTS[m.part] : `${JOBS[m.job].title}（${JOBS[m.job].eff}）`;
+  const opts = [];
+  if (!full) opts.push(`<button class="go" data-join="in">仲間にする（${isBand ? 'バンド' : 'スタッフ'} ${list.length + 1}/${max}）</button>`);
+  if (full && !isBand) list.forEach(x => opts.push(`<button class="go" data-join="swap:${x.id}">${x.name}（${JOBS[x.job].title}）と交代する</button>`));
+  opts.push(`<button class="go alt" data-join="">${full && isBand ? 'それぞれの道を行く' : '仲間にしない'}</button>`);
   overlay(`<div class="card"><div class="kicker">仲間になりたそうに こちらを見ている</div>
     <div style="display:flex;gap:14px;align-items:center"><svg viewBox="-30 -80 60 86" width="96" height="138" aria-hidden="true">${person(m, 1)}</svg><h2>${m.name}</h2></div>
     <p>${role}として加わりたがっている。${full ? `でも${isBand ? 'バンド' : 'スタッフ'}の枠（${max}人）はもういっぱいだ。` : ''}</p>
-    <p class="note">一度仲間にしたら入れ替えはしない。最後まで同じメンバーでやっていく。仲間にしなかった場合は、自分のバンドを組んで前座をやってくれる。</p>
-    <div class="choice">${full ? '' : `<button class="go" data-join="1">仲間にする（${isBand ? 'バンド' : 'スタッフ'} ${list.length + 1}/${max}）</button>`}
-    <button class="go alt" data-join="">${full ? 'わかった、前座を頼む' : '仲間にしない（前座を頼む）'}</button></div></div>`);
+    <p class="note">${isBand ? 'バンドは一度入れたら入れ替えない。最後まで同じメンバーでやっていく。' : 'スタッフは入れ替えられる。外れたスタッフは、ファンとして客席に見に来てくれる。'}</p>
+    <div class="choice">${opts.join('')}</div></div>`);
   $('ovl').querySelectorAll('[data-join]').forEach(b => b.onclick = () => {
-    if (b.dataset.join) joinCrew(m); else formBand(m);
+    const v = b.dataset.join;
+    if (v === 'in') joinCrew(m);
+    else if (v.startsWith('swap:')) { const i = list.findIndex(x => x.id === v.slice(5)), out = list.splice(i, 1)[0]; G.alumni.push(out); joinCrew(m); news(`${out.name}は${m.name}と交代した。これからは客席から応援してくれる`); }
+    else { formBand(m); news(`${m.name}は「また会おう」と言って荒野へ去っていった`); }
     pendingJoin.shift(); closeOv(); renderAll(); save(); setTimeout(showJoin, 100);
   });
 }
@@ -640,8 +647,20 @@ function buildFac(id) {
 function upVenue() {
   const v = VENUES[G.venue + 1]; if (!v || G.goods < v.cost) return;
   G.goods -= v.cost; G.venue++;
-  playCut('venue', { name: `ステージが「${v.name}」に！`, where: v.fes ? '2days フェス：1日目は前座全員とみんなで、2日目は自分たちだけ。王都に挑める' : `前座を ${v.open} 組まで出せる`, val: '', venue: G.venue, gold: true });
-  news(`ステージが「${v.name}」になった`); renderAll(); save();
+  playCut('venue', { name: v.fes ? '荒野フェス、開催決定！' : `ステージが「${v.name}」に！`, where: v.fes ? '2days フェス。これで荒野の王都に挑める' : `ライブの効果 +${Math.round(v.bonus * 100)}%`, val: '', venue: G.venue, gold: true });
+  news(v.fes ? '荒野フェスの開催を決めた' : `ステージが「${v.name}」になった`);
+  if (v.fes) {
+    const hidden = G.openers.filter(b => !b.revealed);
+    if (hidden.length) {
+      playCut('silhouette', { name: '「待ちな！」', where: '見覚えのあるシルエットが、ステージに上がってくる…', val: '', bands: hidden, say: 'フェスをやるなら、俺たちも混ぜてもらうぜ！' });
+      hidden.forEach(b => b.revealed = true);
+      const named = hidden.filter(b => b.who).map(b => b.who);
+      playCut('reveal', { name: `荒野のバンド ${hidden.length}組が集結！`, where: hidden.map(b => `「${b.name}」`).join(' '), val: '', bands: hidden, stamp: 'お前らは…！', gold: true,
+        say: named.length ? `${named[0]}「あんたらの音を聞いて、俺たちもやりたくなっちまったのさ」` : '「あんたらの音を聞いて、俺たちもバンドを組んだんだ！」' });
+      news(`フェスに荒野のバンドが ${hidden.length}組 集結した！ ${named.length ? named.join('、') + 'の姿も' : ''}`);
+    }
+  }
+  renderAll(); save();
 }
 
 // ================= the clock =================
@@ -755,14 +774,14 @@ function scene(kind, o) {
     else if (o.venue >= 2) sky = ['#1a1230', '#4a2a5a'];
     back = `<rect x="0" y="236" width="720" height="94" fill="#b08a5a"/>` + stageSvg(o.venue);
     if (k === 'fes1') {
-      const crew = G.openers.slice(0, 7).map(b => ({ look: b.look || { hair: 'mohawk', hc: pick(['#e0a020', '#3a9a62', '#3f8fc0']) }, part: pick(['ba', 'dr', 'kb']) })).concat(G.band);
+      const crew = shownBands().slice(0, 7).map(b => ({ look: b.look || { hair: 'mohawk', hc: pick(['#e0a020', '#3a9a62', '#3f8fc0']) }, part: pick(['ba', 'dr', 'kb']) })).concat(G.band);
       back += crew.map((m, i) => `<g transform="translate(${60 + i * (330 / Math.max(1, crew.length))},${200 - (i % 2) * 8})"><g class="mem">${person(m, .85)}</g></g>`).join('');
     } else {
       const x0 = o.venue === 0 ? 130 : 80;
       back += G.band.map((m, i) => `<g transform="translate(${x0 + i * (o.venue === 0 ? 34 : 62)},${o.venue === 0 ? 222 : 200})"><g class="mem">${person(m, o.venue === 0 ? .95 : 1.15)}</g></g>`).join('');
-      if (o.acts && o.acts.length) back += `<text x="40" y="${o.venue >= 2 ? 70 : 110}" fill="#fff" style="font-size:13px;font-weight:800;paint-order:stroke;stroke:#000;stroke-width:3px">前座：${o.acts.map(a => a.name).join('・')}</text>`;
     }
     front = Array.from({ length: 12 }, (_, i) => thug(400 + (i % 4) * 50 + (Math.floor(i / 4) % 2) * 24, 274 + Math.floor(i / 4) * 22, i, k === 'fes1' || k === 'fes2' ? 'dance' : k)).join('');
+    G.alumni.slice(0, 3).forEach((a, i) => { front += `<g transform="translate(${400 + i * 70},318)">${person(a, .9)}<text x="0" y="-62" text-anchor="middle" fill="#ff3d8b" style="font-size:16px">♥</text></g>`; });
     if (o.boss) {
       const cry = o.win;
       front += `<g transform="translate(660,262)"><g class="${k === 'riot' ? 'angry' : cry ? '' : 'shake'}">${person({ look: o.boss.look }, 2)}</g>`
@@ -771,6 +790,15 @@ function scene(kind, o) {
     if (k === 'riot') front += Array.from({ length: 8 }, () => `<rect class="fly" x="${R(420, 660)}" y="${R(220, 280)}" width="8" height="12" fill="#c0c0c0" style="--dx:${-R(80, 220)}px;animation-delay:${R(.2, .9).toFixed(2)}s"/>`).join('');
     else if (k === 'sleep') front += ['Z', 'z', 'Z', 'z'].map((z, i) => `<text class="fly" x="${430 + i * 50}" y="230" fill="#c9c3ff" style="font-family:var(--f-display);font-size:26px;--dx:10px;animation-delay:${.8 + i * .2}s">${z}</text>`).join('');
     else front += Array.from({ length: 12 }, () => `<text class="fly" x="${R(80, 640)}" y="${R(150, 240)}" fill="${pick(['#ffe27a', '#9ff0b8', '#ff9ad0', '#fff'])}" style="font-size:${R(18, 28).toFixed(0)}px;--dx:${R(-30, 30).toFixed(0)}px;animation-delay:${R(0, 1.2).toFixed(2)}s">${pick(['♪', '♫', '♪', 'ヒャッハー'])}</text>`).join('');
+  }
+  if (kind === 'silhouette' || kind === 'reveal') {
+    const sil = kind === 'silhouette';
+    sky = sil ? ['#05040c', '#1a1230'] : ['#1a1230', '#5a2a5a'];
+    back = `<rect x="0" y="236" width="720" height="94" fill="${sil ? '#3a2a1a' : '#b08a5a'}"/>${stageSvg(3)}`;
+    back += [180, 360, 540].map((x, i) => `<g transform="translate(${x},0)"><polygon class="light" points="0,0 -50,260 50,260" fill="${sil ? '#ffffff' : pick(['#ffe27a', '#9ff0b8', '#ff9ad0'])}" opacity="${sil ? .18 : .3}" style="animation-delay:${i * .3}s"/></g>`).join('');
+    const bs = o.bands.slice(0, 7);
+    front = bs.map((b, i) => { const x = 360 + (i - (bs.length - 1) / 2) * 80, look = b.look || { hair: 'mohawk', hc: pick(['#e0a020', '#3a9a62', '#3f8fc0']) };
+      return `<g transform="translate(${x},${sil ? 236 : 236})"><g class="${sil ? '' : 'pop'}" style="animation-delay:${(i * .15).toFixed(2)}s;${sil ? 'filter:brightness(0)' : ''}">${person({ look, part: pick(['ba', 'dr', 'kb', 'vo']) }, 1.6)}</g>${sil ? '' : `<text x="0" y="22" text-anchor="middle" fill="#fff" style="font-size:12px;font-weight:800;paint-order:stroke;stroke:#000;stroke-width:3px">${b.name}</text>`}</g>`; }).join('');
   }
   if (kind === 'street') {
     sky = ['#e8a85a', '#f4d39a'];
@@ -911,8 +939,8 @@ function renderDesk() {
         const op = openerPower(), fes = VENUES[G.venue].fes;
         const bossP = .4 + st.ten / 90, ourP = guardPush({ fes }) + .25, ratio = ourP / bossP;
         const odds = ratio > 1.05 ? ['有利', 'like'] : ratio > .75 ? ['互角（あおりで押し返せ）', ''] : ['不利（警備スタッフを増やそう）', 'hate'];
-        h = `<div class="lab">行き先：<b style="color:var(--ink)">${r.name}</b>　殺気 ${Math.round(st.ten)}　ステージ：${VENUES[G.venue].name}${op.acts.length && !fes ? `　前座：${op.acts.map(a => a.name).join('、')}` : ''}</div>
-          <div class="lab">押し合い：警備スタッフ ${G.guards}人${op.acts.length ? '＋前座' : ''} vs ${r.boss.name}の手下　<span class="tag ${odds[1]}">${odds[0]}</span></div>`;
+        h = `<div class="lab">行き先：<b style="color:var(--ink)">${r.name}</b>　殺気 ${Math.round(st.ten)}　ステージ：${VENUES[G.venue].name}</div>
+          <div class="lab">押し合い：警備スタッフ ${G.guards}人${fes && op.acts.length ? '＋荒野のバンドたち' : ''} vs ${r.boss.name}の手下　<span class="tag ${odds[1]}">${odds[0]}</span></div>`;
         if (!list.length) h += `<div class="note">まだ曲がない。まず「曲づくり」で1曲作ろう。</div>`;
         else {
           h += `<div class="grid2">${list.map(s => {
@@ -921,7 +949,7 @@ function renderDesk() {
               <span class="sub">${GEN[s.g].name}×${s.t}　最後まで演れば 殺気-${(sc(s) * (fes ? 1.4 : 1)).toFixed(1)}前後</span><span>${lk > 1.2 ? '<span class="tag like">好き</span>' : lk < 1 ? '<span class="tag hate">苦手</span>' : ''} ${GEN[s.g].hot >= 2 ? '<span class="tag hate">激しい</span>' : GEN[s.g].hot < 0 ? '<span class="tag like">癒し</span>' : ''} ${n ? `<span class="tag tired">${n}回目</span>` : ''}</span></button>`;
           }).join('')}</div>
           <button class="go alt" id="goTour" ${G.prod || G.goods < travelCost() ? 'disabled' : ''}>${r.name}へ殴り込みライブ（${travelWeeks()}週・物資${travelCost()}）</button>
-          <div class="note">${G.prod ? '曲の制作中は出発できない。' : `ライブ中、${r.boss.name}の手下がステージに押し寄せる。警備スタッフが押しとどめている間に1曲演りきれ。「あおる！」で押し返せる。${fes ? '荒野フェスは2days。1日目は前座全員とみんなで、2日目は自分たちだけ。' : '激しい曲は効くが、相手も熱くなる。子守唄は相手がだんだん眠くなる。'}`}</div>${street}`;
+          <div class="note">${G.prod ? '曲の制作中は出発できない。' : `ライブ中、${r.boss.name}の手下がステージに押し寄せる。警備スタッフが押しとどめている間に1曲演りきれ。「あおる！」で押し返せる。${fes ? '荒野フェスは2days。1日目はみんなで、2日目は自分たちだけ。' : '激しい曲は効くが、相手も熱くなる。子守唄は相手がだんだん眠くなる。'}`}</div>${street}`;
         }
       }
     }
@@ -932,13 +960,14 @@ function renderDesk() {
       ${m.part ? `<span class="sub" style="font-family:var(--f-dot);color:var(--ink)"><span style="color:#ff3d8b">作${m.comp}</span> <span style="color:#e07a1a">演${m.play}</span> <span style="color:#3f8fc0">歌${m.sing}</span> <span style="color:#b08000">華${m.star}</span></span>` + `<button class="small" data-train="${m.id}" ${busy(m) || G.goods < trainCost(m) ? 'disabled' : ''}>${busy(m) ? '特訓中' : `特訓（物資${trainCost(m)}）`}</button>` : ''}</div>`;
     h = `<div class="lab">バンド（${G.band.length}/${BAND_SLOTS}）</div><div class="grid2">${G.band.map(card).join('')}${Array.from({ length: BAND_SLOTS - G.band.length }, () => `<div class="item empty">空き：縄張りのボスを音楽で屈服させると加わる</div>`).join('')}</div>
       <div class="lab">スタッフ（${G.staff.length}/${STAFF_SLOTS}）</div><div class="grid2">${G.staff.map(card).join('')}${Array.from({ length: STAFF_SLOTS - G.staff.length }, () => `<div class="item empty">空き</div>`).join('')}</div>
-      <div class="lab">前座バンド（${G.openers.length}組）　信者が ${G.nextBand.toLocaleString()} 人になると、また新しいバンドができる</div>
-      <div class="note">${G.openers.length ? G.openers.map(b => `<b>${b.name}</b>（力${Math.round(b.pow)}）`).join('　') : 'まだいない。仲間にしなかったボスや、枠からあふれたやつ、増えた信者が勝手にバンドを組んで前座になる。前座は勝手に近くの縄張りを回って、殺気も下げてくれる。'}</div>`;
+      ${G.alumni.length ? `<div class="lab">客席から応援している元スタッフ</div><div class="note">${G.alumni.map(a => `<b>${a.name}</b>`).join('　')}</div>` : ''}
+      <div class="lab">荒野のバンド</div>
+      <div class="note">${shownBands().length ? shownBands().map(b => `<b>${b.name}</b>`).join('　') + (G.openers.length > shownBands().length ? '　ほか噂が少し' : '') : G.openers.length ? `噂だけが聞こえてくる…（${G.openers.length}件）` : 'まだ何も聞かない。'}</div>`;
   }
   if (G.tab === 'base') {
     const nv = VENUES[G.venue + 1];
     h = `<div class="grid2">${nv ? `<button class="item" data-venue="1" ${G.goods < nv.cost ? 'disabled' : ''} style="grid-column:1/-1;border-color:var(--neon)"><span class="nm"><span>ステージを「${nv.name}」に</span><span class="tag">物資 ${nv.cost}</span></span>
-      <span class="sub">いま：${VENUES[G.venue].name}（前座 ${VENUES[G.venue].open}組）→ ${nv.fes ? '2days フェス。1日目は前座全員とみんなで、2日目は自分たちだけ。王都に挑める' : `前座を ${nv.open} 組まで出せる`}</span></button>` : `<div class="item" style="grid-column:1/-1"><span class="nm">ステージは最大（荒野フェス）</span></div>`}
+      <span class="sub">いま：${VENUES[G.venue].name} → ${nv.fes ? '2days フェス。荒野の王都に挑めるようになる' : `ライブの効果 +${Math.round(nv.bonus * 100)}%`}</span></button>` : `<div class="item" style="grid-column:1/-1"><span class="nm">ステージは最大（荒野フェス）</span></div>`}
       ${FAC.map(f => { const c = facCost(f); return `<button class="item" data-fac="${f.id}" ${G.goods < c ? 'disabled' : ''}><span class="nm"><span>${f.name}</span><span style="font-size:11px">Lv${G.fac[f.id]}</span></span>
       <span class="sub">${f.desc}</span><span class="sub">${f.eff(G.fac[f.id])} → ${f.eff(G.fac[f.id] + 1)}</span><span class="tag">物資 ${c}</span></button>`; }).join('')}</div>
       <div class="note">物資は、カセット・ライブ・解放した縄張りから入る。毎月、仲間ひとりにつき物資2を食べる。</div>`;
@@ -957,10 +986,10 @@ function showIntro() {
   overlay(`<div class="card"><div class="kicker">文明が滅んで何十年</div><h2>ヒャッハー！ …いや、ロックだ。</h2>
     <p>荒れ果てた荒野。娯楽はなく、縄張り争いばかり。あなたはそんな世界の、ただのモヒカンのザコだった。</p>
     <p>ある日、廃墟で拾った一本のカセットテープ。流れてきたのは<strong>ロック</strong>だった。</p>
-    <p>ギターを片手に曲を作り、縄張りに殴り込んでライブをしよう。殺気を0にすればボスは仲間になる。仲間にするかは自分で決める（一度入れたら入れ替えない）。仲間にしなかったやつや枠からあふれたやつは、勝手にバンドを組んで前座になる。最後は荒野の王都で2daysフェスだ。</p>
+    <p>ギターを片手に曲を作り、縄張りに殴り込んでライブをしよう。殺気を0にすればボスは仲間になる。仲間にするかは自分で決める。バンドは一度入れたら入れ替えない。最後は荒野の王都で2daysフェスだ。</p>
     <div style="display:flex;gap:8px;flex-wrap:wrap">${saved && !saved.over ? '<button class="go alt" id="cont">続きから</button>' : ''}<button class="go" id="start" style="flex:1">ギターを手に取る</button></div></div>`);
   $('start').onclick = () => { G = newGame(); news('ガソスタ跡をねぐらにした。まずは1曲作ろう'); closeOv(); renderAll(); save(); };
-  if ($('cont')) $('cont').onclick = () => { G = saved; pendingJoin = []; closeOv(); renderAll(); };
+  if ($('cont')) $('cont').onclick = () => { G = saved; G.alumni = G.alumni || []; pendingJoin = []; closeOv(); renderAll(); };
 }
 function end(kind) {
   if (G.over) return;
@@ -975,7 +1004,7 @@ function end(kind) {
   const best = G.songs.slice().sort((a, b) => b.q - a.q)[0];
   overlay(`<div class="card"><div class="kicker">${dateStr(Math.min(G.week, WEEKS))}</div><h2>${title}</h2><p>${body}</p>
     <div class="rows"><div><b>平和度</b><span>${gp.toFixed(1)}%</span></div><div><b>解放した縄張り</b><span>${fc}/${TERR.length - 1}</span></div><div><b>信者</b><span>${G.fans.toLocaleString()}人</span></div>
-    <div><b>前座バンド</b><span>${G.openers.length}組</span></div><div><b>代表曲</b><span>${best ? `「${best.title}」（${best.rank}）` : 'なし'}</span></div></div>
+    <div><b>荒野のバンド</b><span>${G.openers.length}組</span></div><div><b>代表曲</b><span>${best ? `「${best.title}」（${best.rank}）` : 'なし'}</span></div></div>
     <button class="go" id="again">もう一度やる</button></div>`);
   if (kind === 'peace') sfx('win');
   $('again').onclick = () => { closeOv(); showIntro(); };
