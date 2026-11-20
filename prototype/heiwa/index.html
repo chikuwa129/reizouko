@@ -1,36 +1,37 @@
-<title>平和音楽事務所</title>
+<title>荒野ロック平和伝</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rampart+One&family=DotGothic16&family=M+PLUS+Rounded+1c:wght@500;800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=DotGothic16&family=M+PLUS+1p:wght@500;800&display=swap">
 <style>
-/* Layout: a small music agency's office on one screen. World map (tension → peace) on the left,
-   the studio room and tabbed desk on the right. Warm, poster-ish, deliberately one light look. */
+/* Layout: a mohawk's hideout in a ruined gas station. Wasteland map of gang turf on the left,
+   the garage studio and the tabbed workbench on the right. Dusty sand + rust + one neon pink. One look. */
 :root {
-  --paper: #fbf3e4;
-  --card: #fffaf0;
-  --ink: #2d2433;
-  --muted: #7b6f80;
-  --line: #e2d3bb;
-  --peace: #3fae6a;
-  --tense: #e0503a;
-  --mid: #f0b93a;
-  --melody: #e5568f;
-  --groove: #f08a24;
-  --sky: #5aa8d8;
-  --gold: #e8a400;
-  --sea: #cfe6f2;
-  --f-display: 'Rampart One', 'Hiragino Maru Gothic ProN', 'M PLUS Rounded 1c', sans-serif;
+  --sand: #e9d3a6;
+  --dust: #f4e6c8;
+  --card: #fbf2df;
+  --ink: #2a1f1a;
+  --muted: #7d6a58;
+  --line: #d5b98a;
+  --rust: #b5452a;
+  --neon: #ff3d8b;
+  --calm: #3a9a62;
+  --warn: #e0a020;
+  --melody: #ff3d8b;
+  --groove: #e07a1a;
+  --sky: #3f8fc0;
+  --f-display: 'Dela Gothic One', 'Hiragino Sans', 'Noto Sans JP', sans-serif;
   --f-dot: 'DotGothic16', 'Osaka-Mono', 'MS Gothic', monospace;
-  --f-body: 'M PLUS Rounded 1c', 'Hiragino Maru Gothic ProN', 'Hiragino Sans', 'Noto Sans JP', system-ui, sans-serif;
+  --f-body: 'M PLUS 1p', 'Hiragino Sans', 'Noto Sans JP', 'Yu Gothic', system-ui, sans-serif;
   color-scheme: light;
 }
 html, body { height: 100%; }
 body {
   margin: 0;
-  background: var(--paper);
-  background-image: radial-gradient(#e9dcc4 1px, transparent 1.2px);
-  background-size: 18px 18px;
+  background: var(--sand);
+  background-image: radial-gradient(#d9bd88 1px, transparent 1.3px), radial-gradient(#f3e2bd 1px, transparent 1.3px);
+  background-size: 22px 22px, 31px 31px;
+  background-position: 0 0, 11px 7px;
   color: var(--ink);
   font-family: var(--f-body);
   font-size: 14px;
@@ -43,55 +44,50 @@ body {
 }
 * { box-sizing: border-box; }
 button { font: inherit; color: inherit; cursor: pointer; }
-button:focus-visible, [tabindex]:focus-visible { outline: 3px solid var(--sky); outline-offset: 2px; }
+button:focus-visible, [tabindex]:focus-visible { outline: 3px solid var(--neon); outline-offset: 2px; }
 .app { max-width: 1280px; height: 100%; margin: 0 auto; display: grid; grid-template-rows: auto minmax(0, 1fr); gap: 10px; }
 
 .top { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; }
-.logo { font-family: var(--f-display); font-size: 24px; color: var(--ink); margin-right: auto; line-height: 1.05; letter-spacing: .02em; }
-.logo small { display: block; font-family: var(--f-body); font-size: 11px; color: var(--muted); letter-spacing: .08em; font-weight: 500; }
+.logo { font-family: var(--f-display); font-size: 25px; color: var(--ink); margin-right: auto; line-height: 1.05; letter-spacing: .02em; text-shadow: 2px 2px 0 var(--neon); }
+.logo small { display: block; font-family: var(--f-body); font-size: 11px; color: var(--muted); letter-spacing: .08em; font-weight: 500; text-shadow: none; }
 .stats { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; }
-.stat { background: var(--card); border: 2px solid var(--line); border-radius: 10px; padding: 3px 9px; font-family: var(--f-dot); font-variant-numeric: tabular-nums; font-size: 15px; display: flex; gap: 5px; align-items: baseline; }
+.stat { background: var(--card); border: 2px solid var(--ink); border-radius: 6px; padding: 2px 9px; font-family: var(--f-dot); font-variant-numeric: tabular-nums; font-size: 15px; display: flex; gap: 5px; align-items: baseline; box-shadow: 2px 2px 0 var(--ink); }
 .stat b { font-family: var(--f-body); font-weight: 500; font-size: 11px; color: var(--muted); }
-.stat.neg { color: var(--tense); }
-.speed { display: flex; gap: 3px; background: var(--card); border: 2px solid var(--line); border-radius: 10px; padding: 3px; }
-.speed button { border: 0; background: transparent; border-radius: 7px; padding: 3px 8px; font-size: 12px; font-weight: 800; }
-.speed button[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+.stat.neg { color: var(--rust); }
+.speed { display: flex; gap: 3px; background: var(--card); border: 2px solid var(--ink); border-radius: 6px; padding: 3px; box-shadow: 2px 2px 0 var(--ink); }
+.speed button { border: 0; background: transparent; border-radius: 4px; padding: 3px 8px; font-size: 12px; font-weight: 800; }
+.speed button[aria-pressed="true"] { background: var(--ink); color: var(--dust); }
+.snd { background: var(--card); border: 2px solid var(--ink); border-radius: 6px; padding: 3px 8px; font-size: 12px; font-weight: 800; box-shadow: 2px 2px 0 var(--ink); }
 
 .main { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 12px; min-height: 0; }
-.panel { background: var(--card); border: 2px solid var(--line); border-radius: 14px; padding: 10px; display: flex; flex-direction: column; gap: 8px; min-width: 0; min-height: 0; }
+.panel { background: var(--card); border: 2px solid var(--ink); border-radius: 10px; padding: 10px; display: flex; flex-direction: column; gap: 8px; min-width: 0; min-height: 0; box-shadow: 4px 4px 0 var(--ink); }
 
 .peace { display: flex; align-items: flex-end; gap: 14px; flex-wrap: wrap; }
-.peace .big { font-family: var(--f-display); font-size: 34px; color: var(--peace); line-height: 1; font-variant-numeric: tabular-nums; }
+.peace .big { font-family: var(--f-display); font-size: 30px; color: var(--calm); line-height: 1; font-variant-numeric: tabular-nums; }
 .peace .lbl { font-size: 11px; color: var(--muted); }
 .peace .goal { margin-left: auto; font-family: var(--f-dot); font-size: 12px; color: var(--muted); text-align: right; }
-.gauge { height: 10px; background: #efe4d0; border-radius: 5px; overflow: hidden; position: relative; flex: none; }
-.gauge i { position: absolute; inset: 0 auto 0 0; background: linear-gradient(90deg, var(--mid), var(--peace)); transition: width .6s; }
-.gauge::after { content: ""; position: absolute; left: 90%; top: 0; bottom: 0; width: 2px; background: var(--ink); }
-.stage { container-type: inline-size; position: relative; border-radius: 10px; overflow: hidden; background: var(--sea); aspect-ratio: 720 / 330; max-width: 100%; flex: none; border: 2px solid var(--line); }
+.stage { container-type: inline-size; position: relative; border-radius: 8px; overflow: hidden; background: #d9b779; aspect-ratio: 720 / 330; max-width: 100%; flex: none; border: 2px solid var(--ink); }
 .stage > svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
-.reg { cursor: pointer; stroke: #fff; stroke-width: 1.5; transition: fill .8s; }
-.reg.sel { stroke: var(--ink); stroke-width: 3; }
-.rlabel { font-family: var(--f-dot); font-size: 12px; fill: var(--ink); paint-order: stroke; stroke: #fffc; stroke-width: 3px; pointer-events: none; text-anchor: middle; }
+.terr { cursor: pointer; }
+.terr circle.body { stroke: var(--ink); stroke-width: 2.5; transition: fill .8s; }
+.terr.sel circle.ring { stroke: var(--neon); stroke-width: 4; fill: none; }
+.terr.locked { opacity: .45; }
+.tlabel { font-family: var(--f-body); font-weight: 800; font-size: 13px; fill: var(--ink); paint-order: stroke; stroke: #f4e6c8; stroke-width: 4px; text-anchor: middle; pointer-events: none; }
+.tval { font-family: var(--f-dot); font-size: 12px; text-anchor: middle; pointer-events: none; paint-order: stroke; stroke: #f4e6c8; stroke-width: 3px; }
 .bandmark { animation: bob .6s ease-in-out infinite alternate; }
 @keyframes bob { to { transform: translateY(-4px); } }
 
-.regs { display: flex; flex-wrap: wrap; gap: 4px; }
-.regs button { border: 2px solid var(--line); background: var(--paper); border-radius: 999px; padding: 2px 9px; font-size: 12px; display: flex; gap: 5px; align-items: baseline; }
-.regs button span { font-family: var(--f-dot); font-variant-numeric: tabular-nums; }
-.regs button[aria-pressed="true"] { border-color: var(--ink); background: #fff; font-weight: 800; }
-.rinfo { display: flex; flex-direction: column; gap: 4px; font-size: 12px; }
+.rinfo { display: flex; flex-direction: column; gap: 5px; font-size: 12px; }
 .rinfo h3 { margin: 0; font-size: 16px; display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
-.rinfo h3 small { font-weight: 500; color: var(--tense); font-size: 12px; }
-.rinfo .row { display: flex; flex-wrap: wrap; gap: 4px 10px; color: var(--muted); }
+.rinfo h3 small { font-weight: 500; color: var(--rust); font-size: 12px; }
+.rinfo .row { display: flex; flex-wrap: wrap; gap: 4px 12px; color: var(--muted); }
 .rinfo .row b { color: var(--ink); font-weight: 800; }
-.tbar { height: 8px; background: #efe4d0; border-radius: 4px; overflow: hidden; }
+.tbar { height: 9px; background: #ead7b2; border-radius: 4px; overflow: hidden; border: 1px solid var(--line); }
 .tbar i { display: block; height: 100%; transition: width .6s, background .6s; }
-
-.ticker { font-size: 12px; color: var(--muted); border-top: 2px dashed var(--line); padding-top: 6px; min-height: 2.6em; line-height: 1.45; }
+.ticker { font-size: 12px; color: var(--muted); border-top: 2px dashed var(--line); padding-top: 6px; line-height: 1.5; }
 .ticker b { color: var(--ink); }
 
-/* studio room */
-.room { position: relative; border-radius: 10px; overflow: hidden; border: 2px solid var(--line); aspect-ratio: 360 / 104; flex: none; max-width: 100%; }
+.room { position: relative; border-radius: 8px; overflow: hidden; border: 2px solid var(--ink); aspect-ratio: 360 / 104; flex: none; max-width: 100%; }
 .room svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
 .mem { animation: bob .45s ease-in-out infinite alternate; }
 .mem.idle { animation-duration: 1.4s; }
@@ -99,60 +95,72 @@ button:focus-visible, [tabindex]:focus-visible { outline: 3px solid var(--sky); 
 @keyframes bub { from { transform: translateY(0); opacity: 0; } 15% { opacity: 1; } to { transform: translateY(-26px); opacity: 0; } }
 
 .tabs { display: flex; flex-wrap: wrap; gap: 4px; }
-.tab { border: 2px solid var(--line); background: var(--paper); border-radius: 999px; padding: 3px 12px; font-size: 13px; font-weight: 800; }
-.tab[aria-selected="true"] { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.tab { border: 2px solid var(--ink); background: var(--dust); border-radius: 6px; padding: 3px 12px; font-size: 13px; font-weight: 800; }
+.tab[aria-selected="true"] { background: var(--ink); color: var(--dust); }
 .desk { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 8px; touch-action: pan-y; }
 .desk.slide-l { animation: slideL .2s ease-out; } .desk.slide-r { animation: slideR .2s ease-out; }
 @keyframes slideL { from { transform: translateX(26px); opacity: 0; } } @keyframes slideR { from { transform: translateX(-26px); opacity: 0; } }
-.lab { font-size: 11px; color: var(--muted); letter-spacing: .08em; }
+.lab { font-size: 11px; color: var(--muted); letter-spacing: .06em; }
 .chipset { display: flex; flex-wrap: wrap; gap: 4px; }
-.pick { border: 2px solid var(--line); background: var(--paper); border-radius: 8px; padding: 3px 8px; font-size: 13px; display: flex; gap: 4px; align-items: center; }
-.pick[aria-pressed="true"] { border-color: var(--ink); background: var(--ink); color: var(--paper); }
+.pick { border: 2px solid var(--line); background: var(--dust); border-radius: 5px; padding: 3px 8px; font-size: 13px; display: flex; gap: 4px; align-items: center; }
+.pick[aria-pressed="true"] { border-color: var(--ink); background: var(--ink); color: var(--dust); }
 .pick .mk { font-size: 12px; font-weight: 800; }
-.pick.fusion { border-style: dashed; }
-.pick[disabled] { opacity: .35; cursor: default; }
-.go { border: 0; background: var(--peace); color: #fff; border-radius: 10px; padding: 10px 14px; font-weight: 800; font-size: 15px; box-shadow: 0 3px 0 #2a7a4a; }
-.go:active:not([disabled]) { transform: translateY(2px); box-shadow: 0 1px 0 #2a7a4a; }
-.go[disabled] { background: #c9bfae; box-shadow: none; cursor: default; }
-.go.alt { background: var(--sky); box-shadow: 0 3px 0 #2f7aa8; }
-.prog { display: flex; flex-direction: column; gap: 6px; background: var(--paper); border-radius: 10px; padding: 8px 10px; border: 2px solid var(--line); }
+.pick.fusion { border-style: dashed; border-color: var(--neon); }
+.go { border: 2px solid var(--ink); background: var(--neon); color: #fff; border-radius: 8px; padding: 9px 14px; font-weight: 800; font-size: 15px; box-shadow: 3px 3px 0 var(--ink); }
+.go:active:not([disabled]) { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--ink); }
+.go[disabled] { background: #cdb894; color: #fff; box-shadow: none; cursor: default; }
+.go.alt { background: var(--rust); }
+.prog { display: flex; flex-direction: column; gap: 6px; background: var(--dust); border-radius: 8px; padding: 8px 10px; border: 2px solid var(--line); }
 .prog .t { font-weight: 800; font-size: 15px; }
-.pbar { height: 12px; background: #efe4d0; border-radius: 6px; overflow: hidden; }
-.pbar i { display: block; height: 100%; background: var(--sky); transition: width .4s; }
+.pbar { height: 12px; background: #ead7b2; border-radius: 6px; overflow: hidden; }
+.pbar i { display: block; height: 100%; background: var(--neon); transition: width .4s; }
 .mn { display: flex; gap: 12px; font-family: var(--f-dot); font-size: 14px; }
 .mn .m { color: var(--melody); } .mn .n { color: var(--groove); }
 .grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
-.item { border: 2px solid var(--line); background: var(--paper); border-radius: 10px; padding: 6px 8px; text-align: left; display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.item { border: 2px solid var(--line); background: var(--dust); border-radius: 8px; padding: 6px 8px; text-align: left; display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.item.empty { border-style: dashed; color: var(--muted); justify-content: center; align-items: center; min-height: 40px; font-size: 12px; text-align: center; }
 button.item[aria-pressed="true"] { border-color: var(--ink); background: #fff; }
 button.item[disabled] { opacity: .4; cursor: default; }
 .item .nm { font-weight: 800; font-size: 13px; display: flex; justify-content: space-between; gap: 6px; }
 .item .sub { font-size: 11px; color: var(--muted); }
 .rank { font-family: var(--f-display); font-size: 15px; line-height: 1; }
-.rank.S { color: var(--gold); } .rank.A { color: var(--melody); } .rank.B { color: var(--sky); } .rank.C, .rank.D { color: var(--muted); }
-.tag { font-size: 11px; padding: 0 5px; border-radius: 4px; background: #efe4d0; }
-.tag.like { background: #d6f0de; color: #1d6a3c; } .tag.hate { background: #fbdcd5; color: #a3301d; } .tag.tired { background: #eee; color: var(--muted); }
+.rank.S { color: var(--neon); } .rank.A { color: var(--rust); } .rank.B { color: var(--sky); } .rank.C, .rank.D { color: var(--muted); }
+.tag { font-size: 11px; padding: 0 5px; border-radius: 4px; background: #ead7b2; }
+.tag.like { background: #d3ecd9; color: #1d6a3c; } .tag.hate { background: #f6d2c8; color: #922f1a; } .tag.tired { background: #eee; color: var(--muted); }
 .sbar { display: grid; grid-template-columns: 2.6em minmax(0, 1fr) 2em; gap: 4px; align-items: center; font-size: 11px; color: var(--muted); }
 .sbar span:last-child { font-family: var(--f-dot); color: var(--ink); text-align: right; }
-.sbar .tb { height: 5px; background: #efe4d0; border-radius: 3px; overflow: hidden; }
+.sbar .tb { height: 5px; background: #ead7b2; border-radius: 3px; overflow: hidden; }
 .sbar .tb i { display: block; height: 100%; }
-.small { border: 2px solid var(--line); background: #fff; border-radius: 8px; padding: 3px 8px; font-size: 12px; font-weight: 800; }
+.small { border: 2px solid var(--ink); background: #fff; border-radius: 6px; padding: 2px 8px; font-size: 12px; font-weight: 800; }
 .small[disabled] { opacity: .4; cursor: default; }
 .note { font-size: 12px; color: var(--muted); line-height: 1.6; }
-.foot { display: flex; gap: 8px; align-items: center; font-size: 11px; color: var(--muted); justify-content: center; }
+.foot { font-size: 11px; color: var(--muted); text-align: center; }
 
-/* cut-in over the map */
-.cutin { position: absolute; inset: 0; z-index: 3; cursor: pointer; background: #000; }
+/* cut-in theatre */
+.cutin { position: absolute; inset: 0; z-index: 3; cursor: pointer; background: #000; container-type: inline-size; }
 .cutin svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
-.cap { position: absolute; left: 0; right: 0; bottom: 0; padding: 8px 14px 10px; background: linear-gradient(transparent, #000b 45%); display: flex; align-items: flex-end; gap: 10px; color: #fff; pointer-events: none; }
-.cap .nm { font-family: var(--f-display); font-size: clamp(18px, 3vw, 28px); line-height: 1.1; animation: capin .3s cubic-bezier(.2,1.6,.4,1) both; }
+.cap { position: absolute; left: 0; right: 0; bottom: 0; padding: 8px 14px 10px; background: linear-gradient(transparent, #000c 45%); display: flex; align-items: flex-end; gap: 10px; color: #fff; pointer-events: none; }
+.cap .nm { font-family: var(--f-display); font-size: clamp(15px, 4cqw, 30px); line-height: 1.1; animation: capin .3s cubic-bezier(.2,1.6,.4,1) both; }
 .cap .rg { font-size: 12px; opacity: .85; }
-.cap .val { margin-left: auto; font-family: var(--f-display); font-size: clamp(18px, 3.2vw, 30px); color: #9ff0b8; white-space: nowrap; animation: capin .3s .4s cubic-bezier(.2,1.6,.4,1) both; }
+.cap .val { margin-left: auto; font-family: var(--f-display); font-size: clamp(15px, 4cqw, 30px); color: #9ff0b8; white-space: nowrap; animation: capin .3s .4s cubic-bezier(.2,1.6,.4,1) both; }
 .cap .val.bad { color: #ff9a86; }
 @keyframes capin { from { transform: scale(1.8); opacity: 0; } }
-.stamp { position: absolute; left: 50%; top: 32%; transform: translate(-50%, -50%) rotate(-8deg); font-family: var(--f-display); font-size: var(--fs, 7cqw); color: #fff; border: 5px solid #fff; padding: 2px 16px; border-radius: 12px; background: #e5568fcc; white-space: nowrap; animation: stamp .35s .9s cubic-bezier(.3,1.8,.5,1) both; pointer-events: none; }
-.stamp.gold { background: #e8a400dd; }
+.say { position: absolute; right: 3%; top: 6%; max-width: 46%; background: #fff; color: var(--ink); border: 3px solid var(--ink); border-radius: 14px; padding: 5px 12px; font-weight: 800; font-size: clamp(11px, 2.4cqw, 18px); line-height: 1.35; animation: capin .3s 1s both; pointer-events: none; }
+.stamp { position: absolute; left: 44%; top: 40%; transform: translate(-50%, -50%) rotate(-8deg); font-family: var(--f-display); font-size: var(--fs, 7cqw); color: #fff; border: 5px solid #fff; padding: 2px 16px; border-radius: 10px; background: #ff3d8bdd; white-space: nowrap; animation: stamp .35s 1.3s cubic-bezier(.3,1.8,.5,1) both; pointer-events: none; }
+.stamp.gold { background: #e0a020ee; }
 @keyframes stamp { from { transform: translate(-50%, -50%) rotate(-8deg) scale(3); opacity: 0; } }
-.skip { position: absolute; right: 8px; top: 6px; font-size: 11px; color: #fffa; font-family: var(--f-dot); pointer-events: none; }
+.skip { position: absolute; left: 8px; top: 4px; font-size: 10px; color: #fff9; font-family: var(--f-dot); pointer-events: none; }
+.hud { position: absolute; left: 8px; top: 8px; width: min(46%, 300px); background: #000b; color: #fff; border-radius: 8px; padding: 6px 10px; display: flex; flex-direction: column; gap: 3px; font-size: 12px; pointer-events: none; }
+.hrow { display: flex; justify-content: space-between; gap: 6px; }
+.hrow b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hbar { height: 8px; background: #fff3; border-radius: 4px; overflow: hidden; }
+.hbar i { display: block; height: 100%; width: 0; background: #9ff0b8; }
+.hbar.danger i { background: #ff5a3a; }
+.hsub { font-size: 11px; opacity: .8; }
+.cutin.battle { position: fixed; left: 50%; top: 50%; right: auto; bottom: auto; transform: translate(-50%, -50%); width: min(1100px, 96vw); aspect-ratio: 720 / 330; max-height: 92vh; z-index: 18; border: 3px solid var(--ink); border-radius: 12px; overflow: hidden; box-shadow: 0 0 0 100vmax #000a; cursor: default; }
+.hypebtn { position: absolute; left: 14px; bottom: 12px; border: 3px solid #fff; background: var(--neon); color: #fff; font-family: var(--f-display); font-size: clamp(16px, 4cqw, 26px); padding: 8px 18px; border-radius: 999px; box-shadow: 0 4px 0 #8a1a4a; }
+.hypebtn[disabled] { opacity: .5; }
+.hypebtn:active:not([disabled]) { transform: translateY(3px); box-shadow: 0 1px 0 #8a1a4a; }
 .scene * { transform-box: fill-box; }
 .fly { animation: fly 1.6s ease-out both; }
 @keyframes fly { from { transform: translate(0, 0); opacity: 0; } 15% { opacity: 1; } to { transform: translate(var(--dx, 20px), -110px); opacity: 0; } }
@@ -172,57 +180,59 @@ button.item[disabled] { opacity: .4; cursor: default; }
 @keyframes spin { to { transform: rotate(360deg); } }
 .pop { transform-origin: center; animation: pop .5s cubic-bezier(.2,1.6,.4,1) both; }
 @keyframes pop { from { transform: scale(0); } }
-.appear { animation: appear .3s both; }
-@keyframes appear { from { opacity: 0; } }
 .light { transform-origin: 50% 0; animation: light 1.2s ease-in-out infinite alternate; }
 @keyframes light { from { transform: rotate(-14deg); } to { transform: rotate(14deg); } }
+.tear { animation: tear .6s ease-in infinite; }
+@keyframes tear { from { transform: translateY(0); opacity: 1; } to { transform: translateY(18px); opacity: 0; } }
+.shake { animation: angry .1s linear 8 alternate; }
 
 /* overlays */
-.ov { position: fixed; inset: 0; background: #2d2433cc; z-index: 20; display: flex; align-items: center; justify-content: center;
+.ov { position: fixed; inset: 0; background: #2a1f1acc; z-index: 20; display: flex; align-items: center; justify-content: center;
   padding: max(12px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) max(12px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); }
-.card { background: var(--card); border: 3px solid var(--ink); border-radius: 16px; padding: 20px; width: min(600px, 100%); max-height: 100%; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
+.card { background: var(--card); border: 3px solid var(--ink); border-radius: 12px; padding: 20px; width: min(600px, 100%); max-height: 100%; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; box-shadow: 6px 6px 0 var(--neon); }
 .card h2 { margin: 0; font-family: var(--f-display); font-weight: normal; font-size: 28px; text-wrap: balance; }
 .card p { margin: 0; line-height: 1.8; }
 .kicker { font-family: var(--f-dot); font-size: 12px; color: var(--muted); letter-spacing: .1em; }
 .rows { border-top: 2px dashed var(--line); padding-top: 8px; display: flex; flex-direction: column; gap: 4px; }
 .rows div { display: grid; grid-template-columns: 7em 1fr; gap: 8px; }
 .rows b { font-weight: 500; color: var(--muted); font-size: 12px; }
-.toast { position: fixed; left: 50%; bottom: calc(18px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--ink); color: var(--paper); padding: 8px 16px; border-radius: 999px; font-size: 14px; font-weight: 800; z-index: 30; animation: toast 1.6s ease-out both; pointer-events: none; white-space: nowrap; }
+.choice { display: flex; flex-direction: column; gap: 6px; }
+.choice button { text-align: left; }
+.toast { position: fixed; left: 50%; bottom: calc(18px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--ink); color: var(--dust); padding: 8px 16px; border-radius: 999px; font-size: 14px; font-weight: 800; z-index: 30; animation: toast 1.6s ease-out both; pointer-events: none; white-space: nowrap; }
 @keyframes toast { 0% { transform: translate(-50%, 20px); opacity: 0; } 12% { transform: translate(-50%, 0); opacity: 1; } 82% { opacity: 1; } 100% { opacity: 0; } }
 
 @media (max-width: 860px) {
   html, body { height: auto; }
   .app { height: auto; }
   .main { grid-template-columns: minmax(0, 1fr); }
-  .regs { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 2px; }
-  .regs button { flex: none; }
   .cutin { position: fixed; left: 0; right: 0; top: 0; bottom: auto; aspect-ratio: 720 / 330; max-height: 60vh; z-index: 15; box-shadow: 0 10px 30px #0008; }
   .logo small { display: none; }
 }
-@media (prefers-reduced-motion: reduce) { .scene *, .mem, .bandmark, .bub, .toast, .stamp, .cap * { animation-duration: .01s !important; animation-iteration-count: 1 !important; } }
+@media (prefers-reduced-motion: reduce) { .scene *, .mem, .bandmark, .bub, .toast, .stamp, .say, .cap * { animation-duration: .01s !important; animation-iteration-count: 1 !important; } }
 </style>
 
 <div class="app">
   <div class="top">
-    <div class="logo">平和音楽事務所<small>音楽の力で、世界の争いを止める</small></div>
+    <div class="logo">荒野ロック平和伝<small>モヒカンのザコ、ギター一本で世界を平和にする</small></div>
     <div class="stats" id="stats"></div>
     <div class="speed" id="speed" role="group" aria-label="時間の速さ">
       <button data-s="0">停止</button><button data-s="1">1倍</button><button data-s="2">2倍</button><button data-s="4">4倍</button>
     </div>
+    <button class="snd" id="snd">音 ON</button>
   </div>
   <div class="main">
     <section class="panel">
       <div class="peace">
-        <div><div class="lbl">世界の平和度</div><div class="big" id="gpeace">0%</div></div>
-        <div><div class="lbl">ファン</div><div class="big" id="gfans" style="font-size:22px;color:var(--melody)">0</div></div>
+        <div><div class="lbl">荒野の平和度</div><div class="big" id="gpeace">0%</div></div>
+        <div><div class="lbl">信者</div><div class="big" id="gfans" style="font-size:22px;color:var(--neon)">0</div></div>
+        <div><div class="lbl">ステージ</div><div class="big" id="gvenue" style="font-size:18px;color:var(--ink)">路上</div></div>
+        <div><div class="lbl">警備スタッフ</div><div class="big" id="gguard" style="font-size:18px;color:#b08000">0</div></div>
         <div class="goal" id="goal"></div>
       </div>
-      <div class="gauge"><i id="gg" style="width:0"></i></div>
       <div class="stage" id="stage">
-        <svg id="map" viewBox="0 0 720 330" role="img" aria-label="世界地図。地域をタップして選ぶ"></svg>
+        <svg id="map" viewBox="0 0 720 330" role="img" aria-label="荒野の地図。縄張りをタップして選ぶ"></svg>
         <div id="cut"></div>
       </div>
-      <div class="regs" id="regs" role="group" aria-label="地域を選ぶ"></div>
       <div class="rinfo" id="rinfo"></div>
       <div class="ticker" id="ticker" aria-live="polite"></div>
     </section>
@@ -230,7 +240,7 @@ button.item[disabled] { opacity: .4; cursor: default; }
       <div class="room" id="room"></div>
       <div class="tabs" id="tabs" role="tablist"></div>
       <div class="desk" id="desk" role="tabpanel"></div>
-      <div class="foot">左右にスワイプでもタブを切り替え</div>
+      <div class="foot">左右にスワイプでもタブを切り替え・スペースキーで停止</div>
     </section>
   </div>
 </div>
@@ -238,129 +248,126 @@ button.item[disabled] { opacity: .4; cursor: default; }
 
 <script>
 // ================= data =================
-const P = (lon, lat) => [(lon + 180) * 2, (90 - lat) * 2 - 20];
-const POLYS = {"na":[[[-165,65],[-140,70],[-95,72],[-75,62],[-60,50],[-80,32],[-82,25],[-97,20],[-105,22],[-117,32],[-125,48],[-140,60]],[[-55,60],[-45,60],[-20,70],[-25,82],[-60,80],[-70,76]]],"sa":[[[-97,20],[-80,10],[-60,8],[-50,0],[-35,-7],[-40,-22],[-58,-38],[-68,-55],[-75,-45],[-72,-20],[-81,-5],[-85,10]]],"eu":[[[-10,36],[-9,43],[-2,48],[-5,58],[5,62],[15,70],[30,70],[40,62],[40,46],[28,40],[20,38],[12,44],[3,42]]],"af":[[[-17,15],[-10,30],[0,36],[10,37],[32,31],[43,12],[51,11],[40,-5],[35,-25],[20,-35],[12,-18],[9,4],[-8,5]]],"ru":[[[40,46],[40,62],[30,70],[60,72],[100,78],[140,72],[180,68],[170,60],[140,55],[130,48],[90,50],[75,40],[60,50]]],"mi":[[[28,40],[40,46],[60,50],[75,40],[90,30],[92,22],[80,8],[72,20],[57,25],[52,13],[43,12],[35,30]]],"ea":[[[75,40],[90,50],[130,48],[135,42],[122,30],[120,22],[108,18],[105,10],[100,14],[92,22],[90,30]]],"jp":[[[130,31],[131,34],[136,35],[140,36],[142,40],[141,45],[145,44],[140,41],[140,35],[135,33]]],"oc":[[[114,-22],[122,-18],[132,-12],[142,-11],[153,-25],[150,-37],[140,-38],[130,-32],[116,-34]],[[95,5],[105,-6],[120,-9],[140,-5],[125,5],[110,2]]]};
-// each region: what it likes, what it hates, the genre you learn by playing there, and the silly conflict
-const REG = [
-  { id: 'jp', name: '日本', w: 1, likes: ['enka', 'pop'], hates: ['metal'], local: 'enka', war: 'きのこ派とたけのこ派の冷戦', ten: 45 },
-  { id: 'ea', name: '東アジア', w: 4, likes: ['pop', 'edm'], hates: ['enka'], local: 'edm', war: '国境の餃子の皮の厚さ論争', ten: 60 },
-  { id: 'mi', name: '中東・インド', w: 4, likes: ['kayo', 'folk'], hates: ['classic'], local: 'kayo', war: 'カレーの辛さをめぐる百年戦争', ten: 75 },
-  { id: 'ru', name: 'ロシア・北アジア', w: 5, likes: ['metal', 'classic'], hates: ['reggae'], local: 'metal', war: '寒すぎて全員が機嫌が悪い', ten: 70 },
-  { id: 'eu', name: 'ヨーロッパ', w: 3, likes: ['classic', 'edm'], hates: ['enka'], local: 'classic', war: 'サッカーの判定をめぐる大論争', ten: 55 },
-  { id: 'af', name: 'アフリカ', w: 5, likes: ['folk', 'reggae'], hates: ['classic'], local: 'folk', war: '太鼓の音量をめぐるご近所トラブル', ten: 65 },
-  { id: 'na', name: '北米', w: 5, likes: ['rock', 'hiphop'], hates: ['enka'], local: 'hiphop', war: 'ピザにパイナップルを乗せるかの内戦', ten: 70 },
-  { id: 'sa', name: '南米', w: 4, likes: ['latin', 'reggae'], hates: ['classic'], local: 'latin', war: 'お祭りの日程が決まらない', ten: 60 },
-  { id: 'oc', name: 'オセアニア', w: 3, likes: ['reggae', 'rock'], hates: ['metal'], local: 'reggae', war: 'カンガルーと人間の縄張り争い', ten: 50 },
+// turf on the wasteland map. A boss runs each one; liberate it with music and the boss joins you.
+const TERR = [
+  { id: 'base', name: 'ガソスタ跡', x: 80, y: 255, home: true },
+  { id: 'junk', name: '鉄くず谷', x: 205, y: 165, ten: 20, likes: ['metal', 'rock'], hates: ['ballad'], tape: 'metal', war: '鉄くずを奪い合っている',
+    boss: { name: 'ガラクタ王', role: 'staff', job: 'craft', line: 'こんな音が…鉄くずから出せるのか…！', look: { hair: 'bald', hc: '#8a8a8a', shirt: '#6a6a6a', pads: true, beard: true } } },
+  { id: 'buggy', name: '爆走荒野', x: 225, y: 285, ten: 25, likes: ['punk', 'rock'], hates: ['lullaby'], tape: 'punk', war: 'バギーで走り回って何でも轢く',
+    boss: { name: '爆走のジン', role: 'band', part: 'dr', line: '俺の太鼓より…熱いじゃねえか', look: { hair: 'mohawk', hc: '#d0452f', shirt: '#2a1f1a', pads: true } } },
+  { id: 'water', name: '水の砦', x: 345, y: 95, ten: 45, likes: ['ballad', 'enka'], hates: ['punk'], tape: 'enka', war: '水を独り占めして高値で売る',
+    boss: { name: 'オアシス婆', role: 'staff', job: 'manager', line: '水より…しみるねぇ', look: { hair: 'bun', hc: '#eeeeee', shirt: '#3f8fc0' } } },
+  { id: 'fire', name: '火炎峡谷', x: 370, y: 230, ten: 50, likes: ['metal', 'punk'], hates: ['enka'], tape: 'gospel', war: '気に入らないものは全部燃やす',
+    boss: { name: '火炎のボンバ', role: 'staff', job: 'light', line: '俺の炎より…まぶしいぜ', look: { hair: 'helmet', hc: '#e07a1a', shirt: '#7a3a1a', pads: true } } },
+  { id: 'swamp', name: '毒沼の村', x: 490, y: 160, ten: 55, likes: ['folk', 'gospel'], hates: ['metal'], tape: 'folk', war: '毒沼の呪いで村人が疑い合う',
+    boss: { name: '祈祷師ヌマ', role: 'band', part: 'kb', line: '呪いが…解けていく…', look: { hair: 'hood', hc: '#3a6a3a', shirt: '#2f4a2f' } } },
+  { id: 'hosp', name: '廃病院', x: 500, y: 285, ten: 55, likes: ['lullaby', 'ballad'], hates: ['punk'], tape: 'lullaby', war: '鬼看護長が誰も退院させない',
+    boss: { name: '鬼看護長', role: 'staff', job: 'medic', line: '…今日は、安静にしてあげる', look: { hair: 'cap', hc: '#ffffff', shirt: '#e8e8f0' } } },
+  { id: 'arena', name: '地下闘技場', x: 610, y: 80, ten: 65, likes: ['hiphop', 'metal'], hates: ['lullaby'], tape: 'hiphop', war: '毎晩、殴り合いの見世物',
+    boss: { name: '王者ゴウ', role: 'band', part: 'ba', line: '拳より…響いたぜ', look: { hair: 'afro', hc: '#2a1f1a', shirt: '#b5452a', pads: true } } },
+  { id: 'castle', name: '荒野の王都', x: 640, y: 220, ten: 100, likes: [], hates: [], tape: null, war: '王が音楽を禁止している', final: true,
+    boss: { name: '荒野の王', role: 'king', line: '…実は、ずっと歌いたかったのだ', look: { hair: 'crown', hc: '#e0a020', shirt: '#4a1a5a', pads: true, beard: true } } },
 ];
-REG.forEach(r => r.polys = POLYS[r.id]);
-const RW = REG.reduce((s, r) => s + r.w, 0);
+const ROADS = [['base', 'junk'], ['base', 'buggy'], ['junk', 'water'], ['junk', 'fire'], ['buggy', 'fire'], ['water', 'swamp'], ['fire', 'swamp'], ['fire', 'hosp'],
+  ['swamp', 'arena'], ['swamp', 'castle'], ['hosp', 'castle'], ['arena', 'castle']];
+const TW = { junk: 1, buggy: 1, water: 1, fire: 1, swamp: 1, hosp: 1, arena: 1, castle: 2 };
 
-// m/n = how much the genre weighs melody vs groove; hot = how fired-up it gets a crowd
+// genres are lost in this world; you dig them back up from old cassette tapes
 const GENRES = [
-  { id: 'pop', name: 'ポップ', m: .5, n: .5, hot: 1, c: '#e5568f', start: true },
-  { id: 'rock', name: 'ロック', m: .4, n: .6, hot: 2, c: '#d0452f', start: true },
-  { id: 'enka', name: '演歌', m: .7, n: .3, hot: 0, c: '#8a5a2c' },
-  { id: 'edm', name: 'EDM', m: .25, n: .75, hot: 2, c: '#6a4fd8' },
-  { id: 'kayo', name: 'ダンス歌謡', m: .45, n: .55, hot: 1, c: '#e88a1a' },
+  { id: 'rock', name: 'ロック', m: .4, n: .6, hot: 2, c: '#ff3d8b', start: true },
+  { id: 'ballad', name: 'バラード', m: .75, n: .25, hot: 0, c: '#3f8fc0', start: true },
   { id: 'metal', name: 'メタル', m: .2, n: .8, hot: 3, c: '#3a3540' },
-  { id: 'classic', name: 'クラシック', m: .8, n: .2, hot: 0, c: '#3a6fb0' },
-  { id: 'folk', name: '民族音楽', m: .5, n: .5, hot: 1, c: '#2f8a5a' },
-  { id: 'hiphop', name: 'ヒップホップ', m: .3, n: .7, hot: 2, c: '#c4762a' },
-  { id: 'latin', name: 'ラテン', m: .4, n: .6, hot: 1, c: '#e0503a' },
-  { id: 'reggae', name: 'レゲエ', m: .45, n: .55, hot: 0, c: '#3fae6a' },
+  { id: 'punk', name: 'パンク', m: .25, n: .75, hot: 3, c: '#d0452f' },
+  { id: 'enka', name: '演歌', m: .7, n: .3, hot: 0, c: '#8a5a2c' },
+  { id: 'gospel', name: 'ゴスペル', m: .6, n: .4, hot: 1, c: '#e0a020' },
+  { id: 'folk', name: '民謡', m: .5, n: .5, hot: 1, c: '#3a9a62' },
   { id: 'lullaby', name: '子守唄', m: .85, n: .15, hot: -1, c: '#8fa6d8' },
-  // fusions: discovered by making songs in both parents
+  { id: 'hiphop', name: 'ヒップホップ', m: .3, n: .7, hot: 2, c: '#c4762a' },
+  // fusions: make two songs in each parent
   { id: 'enkametal', name: '演歌メタル', m: .5, n: .5, hot: 2, c: '#5a3a3a', fusion: ['enka', 'metal'] },
-  { id: 'symedm', name: '交響EDM', m: .55, n: .45, hot: 1, c: '#4a5fc8', fusion: ['classic', 'edm'] },
-  { id: 'tribalrap', name: '民族ラップ', m: .4, n: .6, hot: 1, c: '#6a7a2a', fusion: ['folk', 'hiphop'] },
+  { id: 'punkfolk', name: 'パンク民謡', m: .4, n: .6, hot: 2, c: '#9a4a2a', fusion: ['punk', 'folk'] },
   { id: 'lullmetal', name: '子守唄メタル', m: .55, n: .45, hot: -1, c: '#5a5a8a', fusion: ['lullaby', 'metal'] },
-  { id: 'latinenka', name: 'ラテン演歌', m: .55, n: .45, hot: 1, c: '#b04a3a', fusion: ['latin', 'enka'] },
+  { id: 'gospelrock', name: 'ゴスペルロック', m: .5, n: .5, hot: 1, c: '#c08a2a', fusion: ['gospel', 'rock'] },
+  { id: 'enkarap', name: '演歌ラップ', m: .5, n: .5, hot: 1, c: '#8a6a2c', fusion: ['enka', 'hiphop'] },
 ];
 const GEN = Object.fromEntries(GENRES.map(g => [g.id, g]));
-const THEMES = ['愛', '友情', 'ふるさと', '平和', 'ごはん', '宇宙', 'お祭り', '雨', '自由', '家族', '仕事', '動物'];
-// the one best theme per genre (◎). The rest is hashed so it stays the same every game.
-const BEST = { pop: '愛', rock: '友情', enka: 'ふるさと', edm: 'お祭り', kayo: 'ごはん', metal: '平和', classic: '宇宙', folk: '動物',
-  hiphop: '仕事', latin: 'お祭り', reggae: '自由', lullaby: '家族', enkametal: 'ふるさと', symedm: '宇宙', tribalrap: '動物', lullmetal: '平和', latinenka: '愛' };
+const THEMES = ['水', '肉', 'バイク', '自由', '友情', '母ちゃん', 'ふるさと', '明日', '星空', '鉄', '平和', '愛'];
+const BEST = { rock: '自由', ballad: '母ちゃん', metal: '鉄', punk: 'バイク', enka: 'ふるさと', gospel: '明日', folk: '水', lullaby: '星空', hiphop: '肉',
+  enkametal: 'ふるさと', punkfolk: 'バイク', lullmetal: '平和', gospelrock: '明日', enkarap: '友情' };
 const CMUL = [0.6, 1.0, 1.3, 1.8], CMARK = ['×', '△', '○', '◎'];
 function compat(g, t) {
   if (BEST[g] === t) return 3;
-  let h = 7; for (const ch of g + t) h = (h * 31 + ch.charCodeAt(0)) % 1000;
+  let h = 11; for (const ch of g + t) h = (h * 31 + ch.charCodeAt(0)) % 1000;
   return h % 10 < 2 ? 0 : h % 10 < 6 ? 1 : 2;
 }
+const TITLE_TAIL = { rock: ['ロックンロール', 'の叫び', '魂'], ballad: ['のバラード', 'のうた', 'よ永遠に'], metal: ['の咆哮', '鋼鉄', 'ヘルファイア'], punk: ['をぶっ壊せ', 'パンク', 'なんかいらねえ'],
+  enka: ['の港', '恋しぐれ', '酒場'], gospel: ['ハレルヤ', 'の祈り', 'アーメン'], folk: ['音頭', '節', 'の大地'], lullaby: ['ねんね', 'のゆりかご', 'おやすみ'], hiphop: ['フリースタイル', 'ライム', 'ビーツ'],
+  enkametal: ['の鋼鉄港', '地獄しぐれ'], punkfolk: ['ぶっ壊し音頭', '暴走節'], lullmetal: ['ねんね鋼鉄', 'おやすみヘル'], gospelrock: ['ハレルヤ魂', '祈りのロック'], enkarap: ['港ライム', 'しぐれビーツ'] };
 
-const PARTS = {
-  vo: { name: 'ボーカル', bias: { sing: 9, star: 6 } },
-  gt: { name: 'ギター', bias: { play: 8, comp: 4 } },
-  ba: { name: 'ベース', bias: { play: 7, star: 2 } },
-  dr: { name: 'ドラム', bias: { play: 10 } },
-  kb: { name: 'キーボード', bias: { comp: 10 } },
-  dj: { name: 'DJ', bias: { comp: 5, play: 5 } },
+const PARTS = { vo: 'ボーカル＆ギター', dr: 'ドラム', kb: 'キーボード', ba: 'ベース' };
+
+const JOBS = {
+  craft: { title: '楽器職人', eff: '曲の力 +15%' }, manager: { title: 'マネージャー', eff: '物資の収入 +40%' },
+  light: { title: '照明', eff: 'ライブの効果 +20%' }, medic: { title: 'トレーナー', eff: '特訓の伸び 2倍' }, driver: { title: '運転手', eff: '移動 2週→1週' },
 };
-const FIRST = ['ジョニー', 'ミドリ', 'ケン', 'サチコ', 'ボブ', 'ハナ', 'タロウ', 'リンダ', 'ゴロー', 'マリア', 'テツ', 'ユキ', 'ポール', 'カオル', 'ジロー', 'エミ', 'ラジ', 'アミナ'];
-const LAST = ['山田', 'ゴンザレス', '鈴木', 'スミス', '田中', 'ペトロフ', '佐藤', 'オコンクォ', '高橋', 'シン', '中村', 'リー', 'ロッシ'];
-const HAIR = ['#2d2433', '#8a5a2c', '#e8a400', '#d0452f', '#6a4fd8', '#3fae6a', '#f2f2f2'];
-const SHIRT = ['#e5568f', '#5aa8d8', '#f08a24', '#3fae6a', '#6a4fd8', '#e0503a'];
-const SKIN = ['#f6d7b8', '#e8b98e', '#c98d5e', '#8a5a3a'];
-
-const FAC = [
-  { id: 'studio', name: 'スタジオ', base: 120, desc: '曲づくりが速くなる', eff: l => `制作 ${Math.round(100 + l * 30)}%` },
-  { id: 'pr', name: '宣伝部', base: 150, desc: '新曲の売上とファンが増える', eff: l => `売上 ${Math.round(100 + l * 30)}%` },
-  { id: 'bus', name: 'ツアーバス', base: 100, desc: '移動が速く、安くなる', eff: l => `移動 ${Math.max(1, 3 - l)}週・${travelCostAt(l)}万` },
-  { id: 'gym', name: '練習室', base: 90, desc: '特訓の伸びが大きくなる', eff: l => `特訓 ${Math.round(100 + l * 25)}%` },
+const BAND_SLOTS = 4, STAFF_SLOTS = 3;
+// stages: how many opening acts you can put on, and the final 2days fes
+const VENUES = [
+  { name: '路上', open: 0, cost: 0 }, { name: '廃墟ステージ', open: 1, cost: 80 }, { name: '野外ライブ', open: 2, cost: 220 }, { name: '荒野フェス', open: 99, cost: 400, fes: true },
 ];
-const travelCostAt = l => Math.max(10, 40 - l * 10);
-
-const TITLE_TAIL = { pop: ['ラブソング', 'のうた', 'キラキラ'], rock: ['ロックンロール', 'ブルース', '魂'], enka: ['の港', '酒場', '恋しぐれ'], edm: ['フィーバー', 'ドロップ', 'ナイト'],
-  kayo: ['音頭', 'ダンス', 'マサラ'], metal: ['の咆哮', 'ヘルファイア', '鋼鉄'], classic: ['交響曲', '組曲', 'ソナタ'], folk: ['の太鼓', 'の大地', 'の祈り'],
-  hiphop: ['フリースタイル', 'ライム', 'ビーツ'], latin: ['のサンバ', 'カーニバル', 'マンボ'], reggae: ['の風', 'ジャー', 'ゆるり'], lullaby: ['ねんね', 'のゆりかご', 'おやすみ'],
-  enkametal: ['の鋼鉄港', '地獄しぐれ'], symedm: ['第九ドロップ', '銀河組曲'], tribalrap: ['大地ライム', '太鼓ビーツ'], lullmetal: ['ねんね鋼鉄', 'おやすみヘル'], latinenka: ['恋しぐれマンボ', 'の港サンバ'] };
+const FAC = [
+  { id: 'studio', name: 'ガレージスタジオ', base: 50, desc: '曲づくりが速くなる', eff: l => `制作 ${Math.round(100 + l * 30)}%` },
+  { id: 'gen', name: '発電機', base: 60, desc: 'ライブの音がでかくなる', eff: l => `ライブ ${Math.round(100 + l * 15)}%` },
+  { id: 'tower', name: '給水塔', base: 50, desc: '毎週の物資が増える', eff: l => `物資 +${l * 3}/週` },
+];
+const BAND_A = ['モヒカン', 'ドラム缶', '荒野', 'トゲトゲ', '鉄パイプ', '世紀末', '砂嵐', 'ガソリン', '鋲ジャン', 'ヒャッハー'];
+const BAND_B = ['ブラザーズ', 'ボーイズ', '楽団', 'ガールズ', '連合', 'ユニオン', '一家', '軍団', 'オーケストラ', 'ズ'];
 
 // ================= state =================
-const WEEKS = 240, PER_YEAR = 48;
+const WEEKS = 192, PER_YEAR = 48;
 let G;
-function mkMember(part) {
-  const bias = PARTS[part].bias, r = (a, b) => Math.round(a + Math.random() * (b - a));
-  const m = { id: Math.random().toString(36).slice(2, 8), name: pick(FIRST) + '・' + pick(LAST), part, lv: 1, xp: 0,
-    comp: r(6, 14) + (bias.comp || 0), play: r(6, 14) + (bias.play || 0), sing: r(6, 14) + (bias.sing || 0), star: r(4, 12) + (bias.star || 0),
-    hair: pick(HAIR), shirt: pick(SHIRT), skin: pick(SKIN), train: 0 };
-  m.salary = Math.round((m.comp + m.play + m.sing + m.star) / 5);
-  return m;
-}
+const R = (a, b) => a + Math.random() * (b - a);
+const ri = (a, b) => Math.round(R(a, b));
+const pick = a => a[Math.floor(Math.random() * a.length)];
+const uid = () => Math.random().toString(36).slice(2, 8);
+const mkMember = o => ({ id: uid(), lv: 1, xp: 0, train: 0, trained: 0, ...o });
 function newGame() {
-  const g = {
-    week: 1, money: 300, fans: 0, members: [mkMember('vo'), mkMember('gt')], cands: [], songs: [], prod: null, tour: null, at: 'jp', sel: 'jp',
-    genres: Object.fromEntries(GENRES.filter(x => x.start).map(x => [x.id, 1])), made: {}, known: {}, fac: { studio: 0, pr: 0, bus: 0, gym: 0 },
-    regs: Object.fromEntries(REG.map(r => [r.id, { ten: r.ten, fans: 0, played: {} }])), tab: 'make', pickG: 'pop', pickT: '愛', pickSong: null,
-    yearBest: null, awards: 0, over: false, news: [], speed: 1, lastHire: 0,
+  const hero = mkMember({ name: 'あなた（モヒカン）', part: 'vo', comp: 10, play: 12, sing: 12, star: 10, look: { hair: 'mohawk', hc: '#ff3d8b', shirt: '#2a1f1a', pads: true }, hero: true });
+  const buddy = mkMember({ name: '相棒のザコ', part: 'dr', comp: 6, play: 10, sing: 6, star: 5, look: { hair: 'mohawk', hc: '#3f8fc0', shirt: '#6a5040', pads: true } });
+  return {
+    week: 1, goods: 40, fans: 0, band: [hero, buddy], staff: [], openers: [], songs: [], prod: null, tour: null, at: 'base', sel: 'junk',
+    genres: Object.fromEntries(GENRES.filter(x => x.start).map(x => [x.id, 1])), made: {}, known: {}, fac: { studio: 0, gen: 0, tower: 0 }, venue: 0,
+    t: Object.fromEntries(TERR.map(r => [r.id, { ten: r.home ? 0 : r.ten, free: !!r.home, played: {} }])),
+    tab: 'make', pickG: 'rock', pickT: '自由', pickSong: null, yearBest: null, awards: 0, over: false, news: [], speed: 1, nextBand: 250, guards: 6,
   };
-  g.members[0].name = 'あなた（' + g.members[0].name.split('・')[0] + '）';
-  return g;
 }
-const genreOk = id => !!G.genres[id];
-const busy = m => m.train > 0;
-const peaceOf = r => 100 - G.regs[r.id].ten;
-const globalPeace = () => REG.reduce((s, r) => s + peaceOf(r) * r.w, 0) / RW;
+const terrOf = id => TERR.find(r => r.id === id);
+const reach = id => terrOf(id).home || ROADS.some(([a, b]) => (a === id && G.t[b].free) || (b === id && G.t[a].free));
+const freeCount = () => TERR.filter(r => !r.home && G.t[r.id].free).length;
+const globalPeace = () => { let s = 0, w = 0; for (const r of TERR) { if (r.home) continue; s += (100 - G.t[r.id].ten) * TW[r.id]; w += TW[r.id]; } return s / w; };
+const hasJob = j => G.staff.some(s => s.job === j);
 const dateStr = w => `${Math.floor((w - 1) / PER_YEAR) + 1}年目 ${Math.floor(((w - 1) % PER_YEAR) / 4) + 1}月 ${((w - 1) % 4) + 1}週`;
-const regOf = id => REG.find(r => r.id === id);
-const likeOf = (r, gid) => { const g = GEN[gid]; if (g.fusion) return 1.25; return r.likes.includes(gid) ? 1.5 : r.hates.includes(gid) ? .6 : 1; };
-const trainCost = m => 30 + m.lv * 10 + (m.trained || 0) * 15;
-const facCost = f => Math.round(f.base * 1.8 ** G.fac[f.id]);
-const prodNeed = () => 4;
+const likeOf = (r, gid) => { if (r.final) return 1; if (GEN[gid].fusion) return 1.3; return r.likes.includes(gid) ? 1.5 : r.hates.includes(gid) ? .6 : 1; };
+const facCost = f => Math.round(f.base * 1.7 ** G.fac[f.id]);
+const trainCost = m => 10 + m.lv * 5 + m.trained * 6;
+const travelWeeks = () => Math.max(1, 2 - (hasJob('driver') ? 1 : 0));
+const travelCost = () => 8;
 const rankOf = q => q >= 120 ? 'S' : q >= 85 ? 'A' : q >= 55 ? 'B' : q >= 30 ? 'C' : 'D';
+const allMembers = () => G.band.concat(G.staff);
+const busy = m => m.train > 0;
+const openSlots = () => VENUES[G.venue].open;
 
 // ================= helpers =================
 const $ = id => document.getElementById(id);
-const pick = a => a[Math.floor(Math.random() * a.length)];
-const R = (a, b) => a + Math.random() * (b - a);
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const mix = (a, b, t) => { const p = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16)); const A = p(a), B = p(b); return '#' + A.map((x, i) => Math.round(x + (B[i] - x) * t).toString(16).padStart(2, '0')).join(''); };
-const tenColor = t => t > 50 ? mix('#f0b93a', '#e0503a', (t - 50) / 50) : mix('#3fae6a', '#f0b93a', t / 50);
-function news(text, kind = '') { G.news.unshift({ w: G.week, text, kind }); G.news = G.news.slice(0, 8); renderTicker(); }
+const tenColor = t => t > 50 ? mix('#e0a020', '#b5452a', (t - 50) / 50) : mix('#3a9a62', '#e0a020', t / 50);
+function news(text) { G.news.unshift({ w: G.week, text }); G.news = G.news.slice(0, 8); renderTicker(); }
 function toast(t) { if (window.FAST) return; const el = document.createElement('div'); el.className = 'toast'; el.textContent = t; document.body.appendChild(el); setTimeout(() => el.remove(), 1700); }
 
 // ================= sound =================
 let AC = null, soundOn = true;
-try { soundOn = localStorage.getItem('heiwa-sound') !== 'off'; } catch (e) {}
+try { soundOn = localStorage.getItem('koya-sound') !== 'off'; } catch (e) {}
 function ac() { if (!AC) { try { AC = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { AC = null; } } return AC; }
 function note(f, t, dur, type = 'triangle', vol = .14) {
   const c = ac(); if (!c) return;
@@ -369,19 +376,13 @@ function note(f, t, dur, type = 'triangle', vol = .14) {
   o.connect(g); g.connect(c.destination); o.start(s); o.stop(s + dur + .05);
 }
 const hz = n => 440 * 2 ** ((n - 69) / 12);
-// short phrases per genre feel
-const PHRASE = {
-  0: [[67, 0], [64, .3], [60, .6], [64, .9], [62, 1.2]],             // calm
-  1: [[60, 0], [64, .15], [67, .3], [72, .45], [67, .6], [72, .9]],   // bright
-  2: [[52, 0], [52, .12], [55, .24], [57, .36], [52, .6], [59, .75]], // driving
-  3: [[40, 0], [40, .1], [43, .2], [40, .3], [46, .4], [45, .55]],    // heavy
-  '-1': [[72, 0], [69, .5], [67, 1], [64, 1.5]],                       // lullaby
-};
+const PHRASE = { 0: [[67, 0], [64, .3], [60, .6], [64, .9], [62, 1.2]], 1: [[60, 0], [64, .15], [67, .3], [72, .45], [67, .6], [72, .9]],
+  2: [[52, 0], [52, .12], [55, .24], [57, .36], [52, .6], [59, .75]], 3: [[40, 0], [40, .1], [43, .2], [40, .3], [46, .4], [45, .55]], '-1': [[72, 0], [69, .5], [67, 1], [64, 1.5]] };
 function sfx(name, arg) {
   if (!soundOn || window.FAST) return; const c = ac(); if (!c) return; if (c.state === 'suspended') c.resume();
-  if (name === 'concert') { const hot = arg; (PHRASE[hot] || PHRASE[1]).forEach(([n, t]) => { note(hz(n), t, .35, hot >= 2 ? 'sawtooth' : 'triangle', hot >= 2 ? .07 : .14); note(hz(n - 12), t, .3, 'sine', .1); }); }
+  if (name === 'live') (PHRASE[arg] || PHRASE[2]).forEach(([n, t]) => { note(hz(n), t, .35, arg >= 2 ? 'sawtooth' : 'triangle', arg >= 2 ? .07 : .14); note(hz(n - 12), t, .3, 'square', .05); });
   if (name === 'done') [60, 64, 67, 72, 76].forEach((n, i) => note(hz(n), i * .08, .4, 'square', .06));
-  if (name === 'award') [72, 76, 79, 84, 79, 84].forEach((n, i) => note(hz(n), i * .12, .5, 'triangle', .14));
+  if (name === 'win') [64, 67, 71, 76, 79, 83, 88].forEach((n, i) => note(hz(n), i * .1, .5, 'sawtooth', .06));
   if (name === 'boo') { note(110, 0, .5, 'sawtooth', .1); note(98, .3, .6, 'sawtooth', .1); }
   if (name === 'coin') { note(988, 0, .1, 'square', .07); note(1319, .08, .25, 'square', .07); }
   if (name === 'pop') note(880, 0, .08, 'sine', .08);
@@ -389,216 +390,404 @@ function sfx(name, arg) {
 
 // ================= actions =================
 function startSong() {
-  if (G.prod || G.tour) return;
-  const avail = G.members.filter(m => !busy(m));
-  if (!avail.length) return;
+  if (G.prod || G.tour || !G.band.some(m => !busy(m))) return;
   G.prod = { g: G.pickG, t: G.pickT, prog: 0, m: 0, n: 0 };
-  sfx('pop');
-  renderAll();
+  sfx('pop'); renderAll();
 }
 function finishSong() {
   const p = G.prod, g = GEN[p.g], c = compat(p.g, p.t);
-  const raw = (p.m * g.m + p.n * g.n) * 2 / 8;
-  const q = Math.round(raw * CMUL[c] * (g.fusion ? 1.2 : 1));
+  const q = Math.round((p.m * g.m + p.n * g.n) * 2 / 5 * CMUL[c] * (g.fusion ? 1.2 : 1) * (hasJob('craft') ? 1.15 : 1));
   const key = p.g + '|' + p.t, newKnow = !G.known[key];
   G.known[key] = 1;
-  const title = (p.t === '平和' && Math.random() < .5 ? 'ピース' : p.t) + pick(TITLE_TAIL[p.g]);
-  const song = { id: Math.random().toString(36).slice(2, 8), title, g: p.g, t: p.t, q, rank: rankOf(q), out: 0, sold: 0, week: G.week };
+  const song = { id: uid(), title: p.t + pick(TITLE_TAIL[p.g]), g: p.g, t: p.t, q, rank: rankOf(q), out: 0 };
   G.songs.unshift(song);
   G.made[p.g] = (G.made[p.g] || 0) + 1;
   G.prod = null;
-  G.fans += Math.round(q * 3 * (1 + G.fac.pr * .3));
-  for (const m of G.members) gainXp(m, 6);
+  G.fans += Math.round(q * 2);
+  for (const m of G.band) gainXp(m, 6);
   if (!G.yearBest || q > G.yearBest.q) G.yearBest = song;
-  news(`新曲「${song.title}」（${g.name}×${p.t}）をリリース。曲の力 ${q}・${song.rank}ランク`, 'good');
-  // fusions
+  news(`新曲「${song.title}」のテープを荒野にばらまいた。曲の力 ${q}・${song.rank}`);
   const fused = [];
   for (const f of GENRES) if (f.fusion && !G.genres[f.id] && f.fusion.every(x => (G.made[x] || 0) >= 2)) { G.genres[f.id] = 1; fused.push(f); }
-  playCut('record', { name: `「${song.title}」完成`, where: `${g.name} × ${p.t}`, val: `曲の力 ${q}`, rank: song.rank, color: g.c,
-    stamp: newKnow ? `相性 ${CMARK[c]} 発見！` : '', gold: c === 3 });
-  for (const f of fused) setTimeout(() => { playCut('fusion', { name: `新ジャンル「${f.name}」誕生！`, where: f.fusion.map(x => GEN[x].name).join(' × '), val: 'どの地域でも好かれる', color: f.c }); news(`新ジャンル「${f.name}」が生まれた！`, 'good'); }, window.FAST ? 0 : 2600);
+  playCut('record', { name: `「${song.title}」完成`, where: `${g.name} × ${p.t}`, val: `曲の力 ${q}`, rank: song.rank, color: g.c, stamp: newKnow ? `相性 ${CMARK[c]} 発見！` : '', gold: c === 3 });
+  for (const f of fused) { playCut('fusion', { name: `新ジャンル「${f.name}」誕生！`, where: f.fusion.map(x => GEN[x].name).join(' × '), val: 'どの縄張りでも好かれる', color: f.c }); news(`新ジャンル「${f.name}」が生まれた！`); }
   save();
 }
+function canGo(id) { const r = terrOf(id); if (r.home || G.t[id].free || !reach(id)) return false; if (r.final && !VENUES[G.venue].fes) return false; return true; }
 function startTour() {
   const song = G.songs.find(s => s.id === G.pickSong);
-  if (!song || G.prod || G.tour) return;
-  const cost = travelCostAt(G.fac.bus);
-  if (G.money < cost) return;
-  G.money -= cost;
-  const weeks = G.sel === G.at ? 1 : Math.max(1, 3 - G.fac.bus);
+  if (!song || G.prod || G.tour || !canGo(G.sel) || G.goods < travelCost()) return;
+  G.goods -= travelCost();
+  const weeks = travelWeeks();
   G.tour = { reg: G.sel, song: song.id, left: weeks };
   sfx('pop');
-  news(`バンドが${regOf(G.sel).name}へ出発（${weeks}週）。曲は「${song.title}」`);
+  news(`バンドが${terrOf(G.sel).name}へ出発（${weeks}週）。曲は「${song.title}」`);
   renderAll();
 }
+function ourPower(r, song) {
+  const st = G.t[r.id], g = GEN[song.g];
+  const like = likeOf(r, song.g), tired = .6 ** (st.played[song.id] || 0);
+  const star = G.band.reduce((s, m) => s + m.star, 0);
+  let d = 7 * (song.q / 40) ** .7 * like * tired * (1 + Math.max(0, g.hot) * .22) * (1 + star / 250);
+  if (g.hot < 0 && st.ten > 60) d *= 1.4;
+  d *= (1 + G.fac.gen * .15) * (hasJob('light') ? 1.2 : 1);
+  return { d, like, tired };
+}
+function openerPower() {
+  const acts = G.openers.slice().sort((a, b) => b.pow - a.pow).slice(0, openSlots());
+  return { acts, d: acts.reduce((s, b) => s + b.pow, 0) / 12 };
+}
 function concert() {
-  const t = G.tour, r = regOf(t.reg), st = G.regs[r.id], song = G.songs.find(s => s.id === t.song), g = GEN[song.g];
+  const tr = G.tour, r = terrOf(tr.reg), st = G.t[r.id], song = G.songs.find(s => s.id === tr.song), g = GEN[song.g];
   G.at = r.id; G.tour = null;
-  const like = likeOf(r, song.g);
-  const tired = .6 ** (st.played[song.id] || 0);
-  const star = G.members.reduce((s, m) => s + m.star, 0);
-  const local = !G.genres[r.local];
-  // risk: hot music in a tense place can turn into a riot; lullabies work best where it is tense
-  const riot = st.ten > 60 && g.hot >= 2 && Math.random() < (g.hot - 1) * .14 * (st.ten - 50) / 50;
-  let d;
-  if (riot) d = -6;
-  else {
-    d = 4.5 * (song.q / 50) ** .7 * like * tired * (1 + Math.max(0, g.hot) * .22) * (1 + star / 250);
-    if (g.hot < 0 && st.ten > 60) d *= 1.4;
-  }
-  st.ten = clamp(st.ten - d, 0, 100);
+  const fes = VENUES[G.venue].fes;
+  const our = ourPower(r, song), op = openerPower();
   st.played[song.id] = (st.played[song.id] || 0) + 1;
-  const fansGain = riot ? 0 : Math.round(song.q * like * tired * 2);
-  st.fans += fansGain; G.fans += fansGain;
-  const ticket = riot ? 0 : Math.round(20 + song.q * .5 * like + st.fans / 200);
-  G.money += ticket;
-  for (const m of G.members) gainXp(m, 5);
-  if (local) { G.genres[r.local] = 1; }
-  const peaceNow = st.ten <= 0;
-  const kind = riot ? 'riot' : g.hot < 0 ? 'sleep' : g.hot >= 3 ? 'metal' : 'dance';
-  playCut('concert', { kind, name: riot ? '暴動！ ライブ中止' : `${r.name}ライブ`, where: `「${song.title}」${g.name}${like > 1.2 ? '（大好き）' : like < 1 ? '（苦手）' : ''}${tired < 1 ? '・聞き飽き' : ''}`,
-    val: riot ? '緊張 +6' : `緊張 -${d.toFixed(1)}`, bad: riot, hot: g.hot, color: g.c, stamp: peaceNow ? `${r.name} 平和達成！` : local ? `「${GEN[r.local].name}」を覚えた！` : '', gold: peaceNow });
-  news(riot ? `${r.name}のライブで暴動。激しすぎた…` : `${r.name}でライブ。緊張 -${d.toFixed(1)}、チケット ${ticket}万、ファン +${fansGain}`, riot ? 'bad' : 'good');
-  if (local) news(`${r.name}の音楽「${GEN[r.local].name}」を覚えた`, 'good');
+  for (const m of G.band) gainXp(m, 5);
+  G.fans += Math.round(song.q * our.like * our.tired * (fes ? 3 : 1.5));
+  if (fes) {
+    // 2days: day 1 everyone plays together (automatic), day 2 is ours alone and the gang storms the stage
+    const d1 = op.d * 1.6 + our.d * .4;
+    st.ten = clamp(st.ten - d1, 0, 100);
+    if (st.ten <= 0) { finishLive(r, st, song, d1, `荒野フェス DAY1 ＠${r.name}`, '前座全員とみんなで。音が届いた', 3, true, true); return save(); }
+    playCut('live', { kind: 'fes1', boss: r.boss, name: `荒野フェス DAY1 ＠${r.name}`, where: `前座 ${G.openers.length}組とあなたたち、全員で`, val: `殺気 -${d1.toFixed(1)}`, venue: 3, hot: 2, say: 'こんなに大勢が…歌っておる…' });
+    startBattle(r, song, { fes: true, title: `荒野フェス DAY2 ＠${r.name}` });
+  } else startBattle(r, song, { title: `${r.name}でライブ` });
   save();
+}
+
+// ===== boss battle: the gang storms the stage, your fan security holds them back until the song ends =====
+let BT = null;
+let SONG_MS = 9000;
+function guardPush(opt) {
+  const op = openerPower();
+  return G.guards * .08 + op.acts.reduce((s, a) => s + a.pow, 0) / 90 + (opt.fes ? G.openers.reduce((s, a) => s + a.pow, 0) / 120 : 0);
+}
+function startBattle(r, song, opt) {
+  const st = G.t[r.id], g = GEN[song.g], our = ourPower(r, song), hot = Math.max(0, g.hot);
+  const b = { r, song, our, opt, t: 0, x: 0, cd: 0, hype: 0, done: false,
+    boss: (.4 + st.ten / 90) * (st.ten > 50 ? 1 + .12 * hot : 1),      // hot songs make an angry crowd angrier
+    calm: g.hot < 0,                                                    // lullabies wear the gang out
+    guard: guardPush(opt), base: .25 * (1 + .2 * hot), growth: .45 * our.d / 8 * (1 + .2 * hot) };
+  if (window.FAST) { while (!stepBattle(b, .01, true)); return; }
+  if ($('cutin')) { cutQueue.push(['__battle', b]); return; }
+  openBattle(b);
+}
+function openBattle(b) {
+  BT = b; pausedByCut = true; renderAll();
+  const guards = Math.min(9, Math.max(1, G.guards));
+  const gx = Array.from({ length: guards }, (_, i) => `<g transform="translate(${-16 - (i % 3) * 26},${272 + Math.floor(i / 3) * 20 - 20}) scale(1.2)">${guardFig()}</g>`).join('');
+  const thugs = Array.from({ length: 9 }, (_, i) => `<g transform="translate(${18 + (i % 3) * 30 + Math.floor(i / 3) * 34},${272 + (i % 3) * 18 - 18}) scale(1.2)">${thug(0, 0, i, 'riot')}</g>`).join('');
+  const op = openerPower().acts;
+  $('cut').innerHTML = `<div class="cutin battle" id="cutin"><svg class="scene" viewBox="0 0 720 330" preserveAspectRatio="xMidYMid slice">
+    <defs><linearGradient id="bsky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1a1230"/><stop offset="1" stop-color="#5a2a3a"/></linearGradient></defs>
+    <rect width="720" height="330" fill="url(#bsky)"/><rect y="236" width="720" height="94" fill="#b08a5a"/>
+    <rect x="10" y="200" width="240" height="40" fill="#4a3a3a"/><rect x="10" y="196" width="240" height="6" fill="#ff3d8b"/><line x1="250" y1="196" x2="250" y2="330" stroke="#ffd34d" stroke-width="3" stroke-dasharray="6 5"/>
+    ${G.band.map((m, i) => `<g transform="translate(${40 + i * 54},200)"><g class="mem">${person(m, 1.05)}</g></g>`).join('')}
+    <g transform="translate(676,236)"><g class="angry">${person({ look: b.r.boss.look }, 1.7)}</g></g><text x="676" y="112" text-anchor="middle" fill="#fff" style="font-size:12px;font-weight:800;paint-order:stroke;stroke:#000;stroke-width:3px">${b.r.boss.name}</text>
+    <g id="bfront"><g class="angry">${gx}</g><g class="angry" style="animation-delay:.05s">${thugs}</g></g>
+    <g id="bnotes"></g></svg>
+    <div class="hud"><div class="hrow"><b>♪「${b.song.title}」</b><span id="bpct">0%</span></div><div class="hbar"><i id="bprog"></i></div>
+      <div class="hrow"><span>ステージまで</span><span id="bdist"></span></div><div class="hbar danger"><i id="bpress"></i></div>
+      <div class="hsub">警備スタッフ ${G.guards}人${op.length ? '・前座 ' + op.map(a => a.name).join('、') : ''}${b.opt.fes ? '・前座全員' : ''}</div></div>
+    <div class="say" style="animation-delay:.2s">${b.r.boss.name}「ステージをぶっ潰せ！」</div>
+    <button class="hypebtn" id="bhype">あおる！</button></div>`;
+  $('bhype').onclick = e => { e.stopPropagation(); hype(b); };
+  sfx('live', b.song && GEN[b.song.g].hot);
+  b.last = performance.now(); b.noteT = 0;
+  requestAnimationFrame(battleFrame);
+}
+function guardFig() {
+  return `<rect x="-10" y="-36" width="20" height="30" rx="5" fill="#ffd34d"/><text x="0" y="-18" text-anchor="middle" style="font-size:7px;font-weight:800;fill:#2a1f1a">STAFF</text>
+    <rect x="-8" y="-6" width="6" height="8" fill="#2a1f1a"/><rect x="2" y="-6" width="6" height="8" fill="#2a1f1a"/><circle cy="-44" r="9" fill="#e8b98e"/><path d="M-2 -52 L0 -62 L2 -52 Z" fill="#ff3d8b"/>
+    <line x1="8" y1="-30" x2="24" y2="-28" stroke="#ffd34d" stroke-width="5" stroke-linecap="round"/><line x1="8" y1="-22" x2="24" y2="-20" stroke="#ffd34d" stroke-width="5" stroke-linecap="round"/>`;
+}
+function hype(b) {
+  if (b.cd > 0 || b.done) return;
+  b.hype = .1; b.cd = .22;
+  sfx('pop');
+  if (!window.FAST && $('bnotes')) { const fx = 560 - b.x * 300; $('bnotes').insertAdjacentHTML('beforeend', `<text class="fly" x="${fx - 40}" y="200" fill="#ffd34d" style="font-family:var(--f-display);font-size:24px;--dx:0px">ウォオオ！</text>`); }
+}
+function stepBattle(b, dt, auto) {
+  b.t += dt; b.cd = Math.max(0, b.cd - dt); b.hype = Math.max(0, b.hype - dt);
+  if (auto && b.cd <= 0 && b.x > .12) hype(b);
+  const boss = b.boss * (b.calm ? 1 - .5 * b.t : 1 + .35 * b.t);
+  const ours = b.guard + b.base + b.growth * b.t + (b.hype > 0 ? .9 : 0);
+  b.x = Math.max(0, b.x + (boss - ours) * 3.2 * dt);
+  if (b.x >= 1) { b.x = 1; endBattle(b, false); return true; }
+  if (b.t >= 1) { endBattle(b, true); return true; }
+  return false;
+}
+function battleFrame(now) {
+  const b = BT; if (!b || b.done) return;
+  const dt = Math.min(50, now - b.last) / SONG_MS; b.last = now;
+  if (stepBattle(b, dt, false)) return;
+  const fx = 560 - b.x * 300;
+  $('bfront').setAttribute('transform', `translate(${fx.toFixed(1)},0)`);
+  $('bprog').style.width = (b.t * 100) + '%'; $('bpct').textContent = Math.round(b.t * 100) + '%';
+  $('bpress').style.width = (b.x * 100) + '%'; $('bdist').textContent = b.x > .75 ? 'やばい！' : b.x > .4 ? '押されてる' : '持ちこたえてる';
+  $('bhype').disabled = b.cd > 0;
+  b.noteT += dt; if (b.noteT > .06) { b.noteT = 0; $('bnotes').insertAdjacentHTML('beforeend', `<text class="fly" x="${R(40, 240).toFixed(0)}" y="190" fill="${pick(['#ffe27a', '#9ff0b8', '#ff9ad0'])}" style="font-size:22px;--dx:${R(20, 120).toFixed(0)}px">♪</text>`); const ns = $('bnotes'); while (ns.childNodes.length > 14) ns.firstChild.remove(); }
+  requestAnimationFrame(battleFrame);
+}
+function endBattle(b, ok) {
+  b.done = true; BT = null;
+  const r = b.r, st = G.t[r.id], song = b.song, g = GEN[song.g];
+  if (!window.FAST) { $('cut').innerHTML = ''; pausedByCut = false; }
+  if (!ok) {
+    const d = b.our.d * b.t * .4;
+    st.ten = clamp(st.ten - d + 3, 0, 100);
+    G.guards = Math.max(1, G.guards - 1);
+    playCut('live', { kind: 'riot', boss: r.boss, name: 'ステージ崩壊！ ライブ中断', where: `「${song.title}」${Math.round(b.t * 100)}%で押し切られた。警備スタッフが1人ケガで離脱`, val: `殺気 ${(3 - d) >= 0 ? '+' : ''}${(3 - d).toFixed(1)}`, bad: true, hot: g.hot, venue: G.venue, say: 'ヒャッハー！ 帰れ帰れ！' });
+    news(`${r.name}のライブ、ステージまで押し込まれて中断…。路上ライブで警備スタッフを増やそう`);
+    save(); return;
+  }
+  const d = b.our.d * (1.6 - .6 * b.x) * (b.opt.fes ? 1.4 : 1) + (b.opt.fes ? 0 : openerPower().d);
+  st.ten = clamp(st.ten - d, 0, 100);
+  const held = b.x < .3 ? '（完全に守りきった！）' : b.x < .7 ? '' : '（ギリギリ…）';
+  finishLive(r, st, song, d, b.opt.title, `「${song.title}」${g.name}を最後まで${held}`, b.opt.fes ? 3 : G.venue, !!b.opt.fes);
+  save();
+}
+
+// street lives: small shows near home that slowly grow your fan security
+function streetLive() {
+  if (G.prod || G.tour) return;
+  const r = terrOf(G.sel);
+  if (!(r.home || G.t[r.id].free || reach(r.id)) || r.final) return;
+  if (G.goods < 2) return;
+  G.goods -= 2;
+  G.tour = { reg: r.id, street: true, left: 1 };
+  sfx('pop'); renderAll();
+}
+function streetResult() {
+  const r = terrOf(G.tour.reg), st = G.t[r.id]; G.tour = null; G.at = r.id;
+  const star = G.band.reduce((s, m) => s + m.star, 0);
+  const add = 2 + Math.floor(star / 25) + (Math.random() < .5 ? 1 : 0);
+  G.guards += add; G.fans += 20 + star;
+  if (!st.free && !r.home) st.ten = clamp(st.ten - 1.5, 0, 100);
+  for (const m of G.band) gainXp(m, 2);
+  playCut('street', { name: `${r.name}で路上ライブ`, where: '集まった連中が「STAFF」の腕章をつけてくれた', val: `警備スタッフ +${add}`, add });
+  news(`${r.name}で路上ライブ。警備スタッフ +${add}（全${G.guards}人）`);
+  save();
+}
+function finishLive(r, st, song, d, name, where, venue, fes, already) {
+  const g = GEN[song.g], win = st.ten <= 0;
+  const kind = fes && !already ? 'fes2' : g.hot < 0 ? 'sleep' : g.hot >= 3 ? 'metal' : 'dance';
+  const goods = Math.round(10 + song.q * .25);
+  G.goods += goods;
+  playCut('live', { kind: already ? 'fes1' : kind, boss: r.boss, win, acts: fes ? [] : openerPower().acts, name, where, val: `殺気 -${d.toFixed(1)}`, hot: g.hot, venue,
+    say: win ? r.boss.line : st.ten < 30 ? 'ぐ…ぐぬぬ…悪くねえ…' : 'なんだこの音は…！', stamp: win ? `${r.name} 解放！` : '', gold: win });
+  news(`${r.name}でライブ。殺気 -${d.toFixed(1)}、物資 +${goods}`);
+  if (win) liberate(r);
+}
+function liberate(r) {
+  const st = G.t[r.id];
+  st.free = true; st.ten = 0; if (!G.firstFree) G.firstFree = G.week;
+  G.fans += 200;
+  if (r.final) { G.won = true; G.winWeek = G.week; setTimeout(() => end('peace'), window.FAST ? 0 : 3400); return; }
+  if (r.tape && !G.genres[r.tape]) { G.genres[r.tape] = 1; news(`${r.name}でカセットテープを見つけた。「${GEN[r.tape].name}」を思い出した！`); }
+  // a moved minion wants to drive the tour bus
+  if (r.id === 'buggy') addCrew(mkMember({ name: 'バギーの舎弟', job: 'driver', comp: 4, play: 6, sing: 4, star: 4, look: { hair: 'mohawk', hc: '#e0a020', shirt: '#4a3a2a' } }));
+  const b = r.boss;
+  const m = mkMember({ name: b.name, part: b.part, job: b.job, comp: ri(10, 18), play: ri(10, 18), sing: ri(8, 16), star: ri(12, 20), look: b.look, boss: true });
+  if (b.part === 'dr') m.play += 8; if (b.part === 'kb') m.comp += 8; if (b.part === 'ba') { m.play += 5; m.star += 5; }
+  addCrew(m);
+}
+let pendingJoin = [];
+function addCrew(m) {
+  const isBand = !!m.part, list = isBand ? G.band : G.staff, max = isBand ? BAND_SLOTS : STAFF_SLOTS;
+  if (list.length < max) { list.push(m); news(`${m.name}が${isBand ? 'バンド' : 'スタッフ'}に加わった！（${isBand ? PARTS[m.part] : JOBS[m.job].title}）`); return; }
+  if (window.FAST) { formBand(m); return; }
+  pendingJoin.push(m);
+}
+function formBand(m, why) {
+  const name = m.boss ? `${m.name}と${pick(BAND_B)}` : `${pick(BAND_A)}${pick(BAND_B)}`;
+  G.openers.push({ id: uid(), name, pow: m.boss ? 30 + (m.lv || 1) * 4 : 12, boss: !!m.boss, look: m.look });
+  news(why || (m.boss ? `${m.name}は枠があふれたので、自分のバンド「${name}」を組んだ。前座をやってくれる` : `信者たちが勝手にバンド「${name}」を組んだ。前座をやってくれる`));
+  if (!m.boss && !window.FAST) toast(`新しい前座バンド「${name}」誕生！`);
+}
+function showJoin() {
+  if (!pendingJoin.length || $('ovl').innerHTML || $('cutin')) return;
+  const m = pendingJoin[0], isBand = !!m.part, list = isBand ? G.band : G.staff;
+  overlay(`<div class="card"><div class="kicker">仲間になりたそうに こちらを見ている</div><h2>${m.name}</h2>
+    <p>${isBand ? `${PARTS[m.part]}として加わりたいが、バンドの枠（${BAND_SLOTS}人）がいっぱいだ。` : `${JOBS[m.job].title}（${JOBS[m.job].eff}）として加わりたいが、スタッフの枠（${STAFF_SLOTS}人）がいっぱいだ。`}
+    外れた方は、自分のバンドを組んで前座になってくれる。</p>
+    <div class="choice">${list.filter(x => !x.hero).map(x => `<button class="go alt" data-swap="${x.id}">${x.name}（${x.part ? PARTS[x.part] : JOBS[x.job].title}）と入れかえる</button>`).join('')}
+    <button class="go" data-swap="">${m.name}には自分のバンドを組んでもらう</button></div></div>`);
+  $('ovl').querySelectorAll('[data-swap]').forEach(b => b.onclick = () => {
+    const id = b.dataset.swap;
+    if (id) { const i = list.findIndex(x => x.id === id), out = list.splice(i, 1)[0]; list.push(m); formBand(out, `${out.name}は${m.name}と交代して、自分のバンドを組んだ。前座をやってくれる`); news(`${m.name}が加わった！`); }
+    else formBand(m);
+    pendingJoin.shift(); closeOv(); renderAll(); save(); setTimeout(showJoin, 100);
+  });
 }
 function gainXp(m, x) {
   m.xp += x;
-  while (m.xp >= 20 + m.lv * 10) { m.xp -= 20 + m.lv * 10; m.lv++; m.comp += 2; m.play += 2; m.sing += 2; m.star += 1; m.salary += 1; if (!window.FAST) toast(`${m.name.split('（')[0]} が Lv${m.lv} に！`); }
-}
-function hire(i) {
-  const c = G.cands[i]; if (!c || G.members.length >= 4) return;
-  const fee = c.salary * 3; if (G.money < fee) return;
-  G.money -= fee; G.members.push(c); G.cands.splice(i, 1);
-  news(`${c.name}（${PARTS[c.part].name}）が加入！`, 'good'); sfx('coin'); renderAll(); save();
-}
-function fire(id) {
-  const i = G.members.findIndex(m => m.id === id); if (i <= 0) return;
-  const m = G.members.splice(i, 1)[0]; news(`${m.name} が事務所を去った`); renderAll(); save();
+  while (m.xp >= 20 + m.lv * 10) { m.xp -= 20 + m.lv * 10; m.lv++; m.comp += 2; m.play += 2; m.sing += 2; m.star += 1; if (!window.FAST) toast(`${m.name} が Lv${m.lv} に！`); }
 }
 function train(id) {
-  const m = G.members.find(x => x.id === id); if (!m || busy(m)) return;
-  const cost = trainCost(m); if (G.money < cost) return;
-  G.money -= cost; m.train = 2; sfx('pop'); renderAll(); save();
+  const m = allMembers().find(x => x.id === id); if (!m || busy(m)) return;
+  const c = trainCost(m); if (G.goods < c) return;
+  G.goods -= c; m.train = 2; sfx('pop'); renderAll(); save();
 }
 function buildFac(id) {
-  const f = FAC.find(x => x.id === id), c = facCost(f); if (G.money < c) return;
-  G.money -= c; G.fac[id]++; sfx('coin'); toast(`${f.name} が Lv${G.fac[id]} に！`); news(`${f.name}を強化（Lv${G.fac[id]}）`); renderAll(); save();
+  const f = FAC.find(x => x.id === id), c = facCost(f); if (G.goods < c) return;
+  G.goods -= c; G.fac[id]++; sfx('coin'); toast(`${f.name} が Lv${G.fac[id]} に！`); news(`${f.name}を強化（Lv${G.fac[id]}）`); renderAll(); save();
 }
-function refreshCands() {
-  const parts = Object.keys(PARTS);
-  G.cands = Array.from({ length: 3 }, () => { const m = mkMember(pick(parts)); const boost = Math.floor(G.week / 40); m.comp += boost * 2; m.play += boost * 2; m.sing += boost * 2; m.salary = Math.round((m.comp + m.play + m.sing + m.star) / 5); return m; });
+function upVenue() {
+  const v = VENUES[G.venue + 1]; if (!v || G.goods < v.cost) return;
+  G.goods -= v.cost; G.venue++;
+  playCut('venue', { name: `ステージが「${v.name}」に！`, where: v.fes ? '2days フェス：1日目は前座全員とみんなで、2日目は自分たちだけ。王都に挑める' : `前座を ${v.open} 組まで出せる`, val: '', venue: G.venue, gold: true });
+  news(`ステージが「${v.name}」になった`); renderAll(); save();
 }
 
 // ================= the clock =================
 function tick() {
   if (G.over) return;
   G.week++;
-  // making a song: everyone in the studio pushes melody (pink) and groove (orange)
   if (G.prod && !G.tour) {
-    const g = GEN[G.prod.g];
-    const team = G.members.filter(m => !busy(m));
-    for (const m of team) {
+    for (const m of G.band.filter(x => !busy(x))) {
       const dm = Math.round((m.comp * .6 + m.sing * .3) * R(.6, 1.4)), dn = Math.round((m.play * .6 + m.sing * .3 + m.star * .1) * R(.6, 1.4));
-      G.prod.m += dm; G.prod.n += dn;
-      bubble(m.id, dm, dn);
+      G.prod.m += dm; G.prod.n += dn; bubble(m.id, dm, dn);
     }
     G.prod.prog += 1 + G.fac.studio * .3;
-    if (G.prod.prog >= prodNeed()) finishSong();
+    if (G.prod.prog >= 4) finishSong();
   }
-  if (G.tour) { G.tour.left--; if (G.tour.left <= 0) concert(); }
-  for (const m of G.members) if (m.train > 0) {
+  if (G.tour) { G.tour.left--; if (G.tour.left <= 0) (G.tour.street ? streetResult() : concert()); }
+  if (G.won) return;
+  for (const m of allMembers()) if (m.train > 0) {
     m.train--;
-    if (m.train === 0) { const k = 1 + G.fac.gym * .25; m.comp += Math.round(R(1, 3) * k); m.play += Math.round(R(1, 3) * k); m.sing += Math.round(R(1, 3) * k); m.star += Math.round(R(0, 2) * k); m.trained = (m.trained || 0) + 1; news(`${m.name} の特訓が終わった。能力アップ！`, 'good'); }
+    if (m.train === 0) { m.trained++; const k = hasJob('medic') ? 2 : 1; m.comp += Math.round(R(1, 3) * k); m.play += Math.round(R(1, 3) * k); m.sing += Math.round(R(1, 3) * k); m.star += Math.round(R(0, 2) * k); news(`${m.name} の特訓が終わった。能力アップ！`); }
   }
-  // released songs keep selling and keep playing on radios around the world
+  // tapes keep spreading: goods and believers come in, turf you can reach cools down a little
   for (const s of G.songs) {
-    if (s.out >= 24) continue;
+    if (s.out >= 20) continue;
     const decay = .85 ** s.out;
-    const sale = Math.round(s.q * .5 * decay * (1 + G.fac.pr * .3) * (1 + G.fans / 20000));
-    G.money += sale; s.sold += sale; s.out++;
-    for (const r of REG) G.regs[r.id].ten = clamp(G.regs[r.id].ten - Math.sqrt(s.q) / 150 * likeOf(r, s.g) * decay, 0, 100);
+    G.goods += Math.round(s.q * .12 * decay * (hasJob('manager') ? 1.4 : 1)); G.fans += Math.round(s.q * .4 * decay); s.out++;
+    for (const r of TERR) if (!G.t[r.id].free && !r.final && reach(r.id)) G.t[r.id].ten = clamp(G.t[r.id].ten - Math.sqrt(s.q) / 160 * likeOf(r, s.g) * decay, 0, 100);
   }
-  // tension creeps back
-  for (const r of REG) { const st = G.regs[r.id]; if (st.ten > 0) st.ten = clamp(st.ten + .2, 0, 100); }
+  // liberated turf pays tribute; opening bands tour on their own
+  G.goods += Math.round((freeCount() * 2 + G.fac.tower * 3) * (hasJob('manager') ? 1.4 : 1));
+  const opPow = G.openers.reduce((s, b) => s + b.pow, 0);
+  for (const r of TERR) {
+    const st = G.t[r.id]; if (st.free) continue;
+    if (r.final) { st.ten = clamp(st.ten + .3, 0, 100); continue; }
+    st.ten = clamp(st.ten + (reach(r.id) ? .1 : 0) - (reach(r.id) ? opPow / 1500 : 0), 0, 100);
+  }
+  for (const b of G.openers) b.pow += .05;
+  // believers form their own bands
+  while (G.fans >= G.nextBand) { G.nextBand = Math.round(G.nextBand * 1.7); formBand({ name: '信者たち' }); }
   if (G.week % 4 === 1) {
-    const pay = G.members.reduce((s, m) => s + m.salary, 0);
-    G.money -= pay;
-    if (G.week % 8 === 1) refreshCands();
-    if (Math.random() < .6) {
-      const r = pick(REG.filter(x => G.regs[x.id].ten > 0) .concat(REG));
-      G.regs[r.id].ten = clamp(G.regs[r.id].ten + R(3, 7), 0, 100);
-      news(`${r.name}でまた揉めごと：${r.war}`, 'bad');
-    }
+    G.goods -= allMembers().length * 2;
+    if (G.week > 12 && Math.random() < .5) { const cand = TERR.filter(r => !r.home && !G.t[r.id].free && !r.final && reach(r.id)); if (cand.length) { const r = pick(cand); G.t[r.id].ten = clamp(G.t[r.id].ten + R(2, 5), 0, 100); news(`${r.name}でまた騒ぎ：${r.war}`); } }
   }
   if (G.week % PER_YEAR === 1 && G.week > 1) award();
-  if (G.money < -300) return end('broke');
-  if (globalPeace() >= 90) return end('peace');
+  if (G.goods < -60) return end('broke');
   if (G.week > WEEKS) return end('time');
   renderLive();
   if (G.tab === 'make' || G.week % 4 === 1) renderDesk();
+  showJoin();
 }
 function award() {
   const s = G.yearBest; G.yearBest = null;
   if (s && s.q >= 85) {
-    const prize = 100 + s.q; G.money += prize; G.fans += s.q * 10; G.awards++;
-    for (const r of REG) G.regs[r.id].ten = clamp(G.regs[r.id].ten - 3, 0, 100);
-    playCut('award', { name: '世界平和音楽大賞！', where: `「${s.title}」`, val: `賞金 ${prize}万・全世界の緊張 -3`, color: GEN[s.g].c, stamp: '大賞', gold: true });
-    news(`「${s.title}」が世界平和音楽大賞を受賞！`, 'good');
-  } else news(`今年の世界平和音楽大賞は、ほかの事務所の曲だった…（Aランク以上が必要）`, 'bad');
+    const prize = 40 + Math.round(s.q / 2); G.goods += prize; G.fans += s.q * 6; G.awards++;
+    playCut('award', { name: '荒野の伝説 認定！', where: `「${s.title}」が今年いちばん荒野で歌われた`, val: `物資 +${prize}`, stamp: '伝説', gold: true });
+    news(`「${s.title}」が荒野の伝説に認定された！`);
+  } else news(`今年は荒野の伝説に選ばれなかった…（Aランク以上の曲が必要）`);
+}
+
+// ================= drawing people =================
+function person(m, s = 1) {
+  const L = m.look || {}, hc = L.hc || '#2a1f1a', skin = L.skin || '#e8b98e', shirt = L.shirt || '#4a3a2a';
+  const hair = {
+    mohawk: `<path d="M-3 -50 L-5 -64 L-1 -56 L0 -68 L1 -56 L5 -64 L3 -50 Z" fill="${hc}"/>`,
+    bald: `<path d="M-6 -50 A6 3 0 0 1 6 -50" stroke="#fff8" stroke-width="2" fill="none"/>`,
+    bun: `<circle cy="-53" r="6" fill="${hc}"/><path d="M-12 -42 A12 12 0 0 1 12 -42 L12 -45 A12 9 0 0 0 -12 -45 Z" fill="${hc}"/>`,
+    helmet: `<path d="M-13 -40 A13 13 0 0 1 13 -40 Z" fill="${hc}"/><rect x="-14" y="-42" width="28" height="4" fill="#333"/>`,
+    hood: `<path d="M-15 -30 L-14 -46 A14 14 0 0 1 14 -46 L15 -30 L10 -32 L10 -44 A10 9 0 0 0 -10 -44 L-10 -32 Z" fill="${hc}"/>`,
+    cap: `<rect x="-11" y="-55" width="22" height="9" rx="2" fill="${hc}" stroke="#bbb"/><rect x="-1.5" y="-54" width="3" height="7" fill="#e0503a"/><rect x="-4" y="-52" width="8" height="3" fill="#e0503a"/>`,
+    afro: `<circle cy="-46" r="16" fill="${hc}"/>`,
+    crown: `<path d="M-11 -50 L-11 -60 L-5 -54 L0 -62 L5 -54 L11 -60 L11 -50 Z" fill="${hc}" stroke="#7a5a00"/>`,
+  }[L.hair || 'mohawk'];
+  const pads = L.pads ? `<path d="M-15 -30 L-9 -30 L-9 -24 L-17 -24 Z M15 -30 L9 -30 L9 -24 L17 -24 Z" fill="#555"/><path d="M-16 -30 L-14 -36 L-12 -30 Z M16 -30 L14 -36 L12 -30 Z" fill="#bbb"/>` : '';
+  const beard = L.beard ? `<path d="M-8 -35 Q0 -25 8 -35 Z" fill="${L.hair === 'crown' ? '#8a6a3a' : hc}"/>` : '';
+  const inst = m.part ? {
+    vo: `<path d="M-6 -16 L20 -30" stroke="#5a3a2a" stroke-width="3"/><path d="M-14 -20 L-2 -12 L-6 -6 L-16 -10 Z" fill="#ff3d8b"/>`,
+    dr: `<rect x="-18" y="-10" width="36" height="16" fill="#8a8a8a"/><rect x="-18" y="-6" width="36" height="2" fill="#555"/><rect x="-18" y="0" width="36" height="2" fill="#555"/>`,
+    kb: `<rect x="-22" y="-14" width="44" height="8" fill="#2a1f1a"/><rect x="-20" y="-13" width="40" height="3" fill="#fff"/>`,
+    ba: `<path d="M-6 -14 L24 -34" stroke="#2a1f1a" stroke-width="3"/><path d="M-14 -18 L0 -10 L-4 -4 L-16 -8 Z" fill="#3f8fc0"/>`,
+  }[m.part] : '';
+  return `<g transform="scale(${s})"><rect x="-9" y="-30" width="18" height="24" rx="5" fill="${shirt}"/><rect x="-8" y="-7" width="6" height="8" fill="#2a1f1a"/><rect x="2" y="-7" width="6" height="8" fill="#2a1f1a"/>${pads}
+    <circle cy="-40" r="11" fill="${skin}"/>${hair}<circle cx="-4" cy="-40" r="1.6" fill="#2a1f1a"/><circle cx="4" cy="-40" r="1.6" fill="#2a1f1a"/>${beard}${inst}</g>`;
 }
 
 // ================= cut-ins =================
 let cutTimer = 0, pausedByCut = false;
-function soldier(x, y, i, kind) {
-  const delay = (.55 + (i % 5) * .05).toFixed(2), body = pick(['#5a6a3a', '#4a5a34', '#66744a']);
-  const gun = `<line x1="10" y1="-30" x2="22" y2="-52" stroke="#222" stroke-width="4" stroke-linecap="round" class="${kind === 'riot' ? '' : 'drop'}" style="animation-delay:${delay}s"/>`;
-  const arms = kind === 'riot' ? `<line x1="-8" y1="-34" x2="-16" y2="-50" stroke="${body}" stroke-width="5"/><line x1="8" y1="-34" x2="16" y2="-50" stroke="${body}" stroke-width="5"/>`
-    : kind === 'sleep' ? '' : `<g class="armsup" style="animation-delay:${delay}s"><line x1="-8" y1="-34" x2="-18" y2="-56" stroke="${body}" stroke-width="5" stroke-linecap="round"/><line x1="8" y1="-34" x2="18" y2="-56" stroke="${body}" stroke-width="5" stroke-linecap="round"/></g>`;
-  const head = `<g class="${kind === 'metal' ? 'head' : ''}" style="animation-delay:${delay}s"><circle cy="-44" r="9" fill="#e8c9a0"/><path d="M-11 -46 A11 10 0 0 1 11 -46 Z" fill="${body}"/></g>`;
+function thug(x, y, i, kind) {
+  const d = (.55 + (i % 5) * .05).toFixed(2), body = pick(['#4a3a2a', '#5a4a3a', '#3a2f2a']), hc = pick(['#ff3d8b', '#e0a020', '#3f8fc0', '#d0452f', '#3a9a62']);
+  const bat = `<g class="${kind === 'riot' ? '' : 'drop'}" style="animation-delay:${d}s"><line x1="10" y1="-30" x2="20" y2="-58" stroke="#7a5a3a" stroke-width="5" stroke-linecap="round"/><path d="M17 -56 l-4 -3 M21 -52 l4 -2 M19 -60 l1 -4" stroke="#ccc" stroke-width="2"/></g>`;
+  const arms = kind === 'riot' ? `<line x1="-8" y1="-34" x2="-16" y2="-50" stroke="${body}" stroke-width="5"/>`
+    : kind === 'sleep' ? '' : `<g class="armsup" style="animation-delay:${d}s"><line x1="-8" y1="-34" x2="-18" y2="-56" stroke="${body}" stroke-width="5" stroke-linecap="round"/><line x1="8" y1="-34" x2="18" y2="-56" stroke="${body}" stroke-width="5" stroke-linecap="round"/></g>`;
+  const head = `<g class="${kind === 'metal' ? 'head' : ''}" style="animation-delay:${d}s"><circle cy="-44" r="9" fill="#e8b98e"/><path d="M-2 -52 L0 -63 L2 -52 Z" fill="${hc}"/></g>`;
   const cls = kind === 'riot' ? 'angry' : kind === 'sleep' ? 'sleepy' : 'dance';
-  return `<g transform="translate(${x},${y})"><g class="${cls}" style="animation-delay:${kind === 'sleep' ? delay : (i % 4) * .08}s"><rect x="-10" y="-36" width="20" height="30" rx="5" fill="${body}"/><rect x="-9" y="-6" width="7" height="8" fill="#333"/><rect x="2" y="-6" width="7" height="8" fill="#333"/>${arms}${head}</g>${gun}</g>`;
+  return `<g transform="translate(${x},${y})"><g class="${cls}" style="animation-delay:${kind === 'sleep' ? d : (i % 4) * .08}s"><rect x="-10" y="-36" width="20" height="30" rx="5" fill="${body}"/><path d="M-12 -36 l4 -4 l4 4 M4 -36 l4 -4 l4 4" stroke="#aaa" stroke-width="2" fill="none"/>${arms}${head}</g>${bat}</g>`;
 }
-function bandOnStage(color) {
-  return G.members.map((m, i) => {
-    const x = 110 + i * 64;
-    return `<g transform="translate(${x},222)"><g class="mem">${person(m, 1.15)}</g></g>`;
-  }).join('');
-}
-function person(m, s = 1) {
-  const inst = {
-    vo: `<line x1="16" y1="0" x2="16" y2="-40" stroke="#555" stroke-width="2"/><circle cx="16" cy="-42" r="4" fill="#333"/>`,
-    gt: `<path d="M-6 -16 L20 -30" stroke="#8a5a2c" stroke-width="3"/><ellipse cx="-6" cy="-14" rx="10" ry="7" fill="#c4762a"/>`,
-    ba: `<path d="M-6 -14 L24 -34" stroke="#3a3540" stroke-width="3"/><ellipse cx="-6" cy="-12" rx="10" ry="7" fill="#3a6fb0"/>`,
-    dr: `<ellipse cx="0" cy="-2" rx="20" ry="7" fill="#e0503a"/><rect x="-20" y="-2" width="40" height="10" fill="#c43a2a"/><ellipse cx="22" cy="-18" rx="8" ry="2" fill="#e8a400"/>`,
-    kb: `<rect x="-22" y="-14" width="44" height="8" fill="#2d2433"/><rect x="-20" y="-13" width="40" height="3" fill="#fff"/>`,
-    dj: `<rect x="-24" y="-12" width="48" height="12" fill="#2d2433"/><circle cx="-11" cy="-12" r="6" fill="#444"/><circle cx="11" cy="-12" r="6" fill="#444"/>`,
-  }[m.part];
-  return `<g transform="scale(${s})"><rect x="-9" y="-30" width="18" height="24" rx="6" fill="${m.shirt}"/><rect x="-8" y="-7" width="6" height="8" fill="#2d2433"/><rect x="2" y="-7" width="6" height="8" fill="#2d2433"/>
-    <circle cy="-40" r="11" fill="${m.skin}"/><path d="M-12 -42 A12 12 0 0 1 12 -42 L12 -46 A12 9 0 0 0 -12 -46 Z" fill="${m.hair}"/><circle cx="-4" cy="-40" r="1.6" fill="#2d2433"/><circle cx="4" cy="-40" r="1.6" fill="#2d2433"/>${inst}</g>`;
+function stageSvg(venue) {
+  if (venue === 0) return `<rect x="110" y="222" width="140" height="16" fill="#8a6a4a"/><rect x="110" y="222" width="140" height="4" fill="#6a4a2a"/>`;
+  const w = venue >= 3 ? 370 : 300;
+  let h = `<rect x="30" y="200" width="${w}" height="40" fill="#4a3a3a"/><rect x="30" y="196" width="${w}" height="6" fill="#ff3d8b"/>`;
+  if (venue >= 2) h += `<rect x="30" y="40" width="8" height="160" fill="#666"/><rect x="${30 + w - 8}" y="40" width="8" height="160" fill="#666"/><rect x="30" y="40" width="${w}" height="8" fill="#666"/>`
+    + [100, 200, 300].map((x, i) => `<g transform="translate(${x},48)"><polygon class="light" points="0,0 -40,150 40,150" fill="${pick(['#ffe27a', '#9ff0b8', '#ff9ad0'])}" opacity=".28" style="animation-delay:${i * .3}s"/></g>`).join('');
+  if (venue >= 3) h += `<rect x="110" y="12" width="210" height="28" fill="#2a1f1a"/><text x="215" y="32" text-anchor="middle" fill="#ff3d8b" style="font-family:var(--f-display);font-size:17px">荒野フェス</text>`;
+  return h;
 }
 function scene(kind, o) {
-  let back = '', front = '', sky = ['#2a1f4a', '#5a3a7a'];
-  if (kind === 'concert') {
+  let back = '', front = '', sky = ['#e8a85a', '#f4d39a'];
+  if (kind === 'live') {
     const k = o.kind;
-    if (k === 'riot') sky = ['#5a1a1a', '#a03a2a'];
-    if (k === 'sleep') sky = ['#0e1030', '#2a2a5a'];
-    back = `<rect x="0" y="236" width="720" height="94" fill="#3a2f2a"/><rect x="70" y="200" width="300" height="36" fill="#5a4a6a"/>`;
-    back += [140, 260, 360].map((x, i) => `<g transform="translate(${x},0)"><polygon class="light" points="0,0 -40,220 40,220" fill="${pick(['#ffe27a', '#9ff0b8', '#ff9ad0'])}" opacity=".25" style="animation-delay:${i * .3}s"/></g>`).join('');
-    back += bandOnStage(o.color);
-    front = Array.from({ length: 14 }, (_, i) => soldier(420 + (i % 5) * 56 + (Math.floor(i / 5) % 2) * 26, 270 + Math.floor(i / 5) * 26, i, k)).join('');
-    if (k === 'riot') front += Array.from({ length: 8 }, () => `<rect class="fly" x="${R(420, 680)}" y="${R(220, 280)}" width="8" height="12" fill="#c0c0c0" style="--dx:${-R(80, 220)}px;animation-delay:${R(.2, .9).toFixed(2)}s"/>`).join('') + `<text class="fly" x="560" y="200" fill="#fff" style="font-family:var(--f-display);font-size:30px;--dx:0px;animation-delay:.3s">ブーッ！</text>`;
-    else if (k === 'sleep') front += ['Z', 'z', 'Z', 'z'].map((z, i) => `<text class="fly" x="${470 + i * 50}" y="230" fill="#c9c3ff" style="font-family:var(--f-display);font-size:26px;--dx:10px;animation-delay:${.8 + i * .2}s">${z}</text>`).join('');
-    else front += Array.from({ length: 12 }, (_, i) => `<text class="fly" x="${R(120, 680)}" y="${R(150, 240)}" fill="${pick(['#ffe27a', '#9ff0b8', '#ff9ad0', '#fff'])}" style="font-size:${R(18, 30).toFixed(0)}px;--dx:${R(-30, 30).toFixed(0)}px;animation-delay:${R(0, 1.2).toFixed(2)}s">${pick(['♪', '♫', '♪', '♥'])}</text>`).join('')
-      + `<g class="fly" style="--dx:120px;animation-delay:.9s"><path d="M560 120 q20 -20 40 0 q-10 -4 -20 6 q-10 -10 -20 -6z" fill="#fff"/></g>`;
+    if (k === 'riot') sky = ['#7a1a1a', '#c04a2a'];
+    else if (k === 'sleep') sky = ['#141838', '#3a3a6a'];
+    else if (o.venue >= 2) sky = ['#1a1230', '#4a2a5a'];
+    back = `<rect x="0" y="236" width="720" height="94" fill="#b08a5a"/>` + stageSvg(o.venue);
+    if (k === 'fes1') {
+      const crew = G.openers.slice(0, 7).map(b => ({ look: b.look || { hair: 'mohawk', hc: pick(['#e0a020', '#3a9a62', '#3f8fc0']) }, part: pick(['ba', 'dr', 'kb']) })).concat(G.band);
+      back += crew.map((m, i) => `<g transform="translate(${60 + i * (330 / Math.max(1, crew.length))},${200 - (i % 2) * 8})"><g class="mem">${person(m, .85)}</g></g>`).join('');
+    } else {
+      const x0 = o.venue === 0 ? 130 : 80;
+      back += G.band.map((m, i) => `<g transform="translate(${x0 + i * (o.venue === 0 ? 34 : 62)},${o.venue === 0 ? 222 : 200})"><g class="mem">${person(m, o.venue === 0 ? .95 : 1.15)}</g></g>`).join('');
+      if (o.acts && o.acts.length) back += `<text x="40" y="${o.venue >= 2 ? 70 : 110}" fill="#fff" style="font-size:13px;font-weight:800;paint-order:stroke;stroke:#000;stroke-width:3px">前座：${o.acts.map(a => a.name).join('・')}</text>`;
+    }
+    front = Array.from({ length: 12 }, (_, i) => thug(400 + (i % 4) * 50 + (Math.floor(i / 4) % 2) * 24, 274 + Math.floor(i / 4) * 22, i, k === 'fes1' || k === 'fes2' ? 'dance' : k)).join('');
+    if (o.boss) {
+      const cry = o.win;
+      front += `<g transform="translate(660,262)"><g class="${k === 'riot' ? 'angry' : cry ? '' : 'shake'}">${person({ look: o.boss.look }, 2)}</g>`
+        + (cry ? `<circle class="tear" cx="-9" cy="-80" r="3.5" fill="#7ac8ff"/><circle class="tear" cx="9" cy="-80" r="3.5" fill="#7ac8ff" style="animation-delay:.3s"/><g class="armsup" style="animation-delay:1s"><line x1="16" y1="-50" x2="30" y2="-104" stroke="${o.boss.look.shirt}" stroke-width="10" stroke-linecap="round"/><circle cx="30" cy="-108" r="8" fill="#e8b98e"/></g>` : '') + `</g>`;
+    }
+    if (k === 'riot') front += Array.from({ length: 8 }, () => `<rect class="fly" x="${R(420, 660)}" y="${R(220, 280)}" width="8" height="12" fill="#c0c0c0" style="--dx:${-R(80, 220)}px;animation-delay:${R(.2, .9).toFixed(2)}s"/>`).join('');
+    else if (k === 'sleep') front += ['Z', 'z', 'Z', 'z'].map((z, i) => `<text class="fly" x="${430 + i * 50}" y="230" fill="#c9c3ff" style="font-family:var(--f-display);font-size:26px;--dx:10px;animation-delay:${.8 + i * .2}s">${z}</text>`).join('');
+    else front += Array.from({ length: 12 }, () => `<text class="fly" x="${R(80, 640)}" y="${R(150, 240)}" fill="${pick(['#ffe27a', '#9ff0b8', '#ff9ad0', '#fff'])}" style="font-size:${R(18, 28).toFixed(0)}px;--dx:${R(-30, 30).toFixed(0)}px;animation-delay:${R(0, 1.2).toFixed(2)}s">${pick(['♪', '♫', '♪', 'ヒャッハー'])}</text>`).join('');
+  }
+  if (kind === 'street') {
+    sky = ['#e8a85a', '#f4d39a'];
+    back = `<rect x="0" y="236" width="720" height="94" fill="#b08a5a"/><rect x="120" y="226" width="60" height="14" fill="#8a6a4a"/><g transform="translate(150,226)"><g class="mem">${person(G.band[0], 1.3)}</g></g>`;
+    front = Array.from({ length: 7 }, (_, i) => { const st = i < o.add; return `<g transform="translate(${300 + i * 55},${270 + (i % 2) * 10})"><g class="dance" style="animation-delay:${i * .07}s">${st ? guardFig() : thug(0, 0, i, 'dance').replace('translate(0,0)', 'translate(0,0)')}</g></g>`; }).join('')
+      + Array.from({ length: 8 }, () => `<text class="fly" x="${R(120, 680)}" y="${R(160, 230)}" fill="#fff" style="font-size:20px;--dx:${R(-20, 20).toFixed(0)}px;animation-delay:${R(0, 1).toFixed(2)}s">${pick(['♪', '♫'])}</text>`).join('');
+  }
+  if (kind === 'venue') {
+    sky = ['#1a1230', '#4a2a5a'];
+    back = `<rect x="0" y="236" width="720" height="94" fill="#b08a5a"/><g class="pop">${stageSvg(o.venue)}</g>` + G.band.map((m, i) => `<g transform="translate(${80 + i * 62},200)"><g class="mem">${person(m, 1.15)}</g></g>`).join('');
+    front = Array.from({ length: 16 }, () => `<text class="fly" x="${R(80, 680)}" y="${R(180, 300)}" fill="#ffe27a" style="font-size:22px;--dx:${R(-20, 20).toFixed(0)}px;animation-delay:${R(0, .9).toFixed(2)}s">★</text>`).join('');
   }
   if (kind === 'record' || kind === 'fusion' || kind === 'award') {
-    sky = kind === 'award' ? ['#5a3a00', '#c08a10'] : ['#1e2a4a', '#3a5a8a'];
-    back = Array.from({ length: 16 }, () => `<circle cx="${R(0, 720)}" cy="${R(0, 330)}" r="${R(1, 3)}" fill="#fff" opacity=".6"/>`).join('');
+    sky = kind === 'award' ? ['#5a3a00', '#c08a10'] : ['#3a2a20', '#7a5a3a'];
+    back = Array.from({ length: 12 }, () => `<circle cx="${R(0, 720)}" cy="${R(0, 330)}" r="${R(1, 3)}" fill="#fff" opacity=".5"/>`).join('');
     if (kind === 'award') front = `<g class="pop" style="animation-delay:.1s"><path d="M310 70 h100 v40 a50 50 0 0 1 -100 0z" fill="#ffd34d" stroke="#a87a10" stroke-width="4"/><path d="M310 80 h-26 a20 20 0 0 0 26 34 M410 80 h26 a20 20 0 0 1 -26 34" fill="none" stroke="#ffd34d" stroke-width="7"/><rect x="348" y="158" width="24" height="30" fill="#ffd34d"/><rect x="320" y="188" width="80" height="18" fill="#a87a10"/></g>`;
-    else front = `<g transform="translate(360,140)"><g class="spin"><circle r="96" fill="#1a1a1a"/>${[80, 64, 50].map(r => `<circle r="${r}" fill="none" stroke="#333" stroke-width="2"/>`).join('')}<circle r="34" fill="${o.color}"/><circle r="5" fill="#fff"/><rect x="-3" y="-34" width="6" height="12" fill="#fff8"/></g></g>`
-      + (kind === 'fusion' ? `<g class="pop" style="animation-delay:.4s"><circle cx="250" cy="100" r="30" fill="#ffe27a"/><circle cx="470" cy="100" r="30" fill="#9ff0b8"/><text x="360" y="60" text-anchor="middle" fill="#fff" style="font-family:var(--f-display);font-size:26px">＋</text></g>` : '')
-      + (o.rank ? `<text class="pop" x="560" y="120" text-anchor="middle" style="animation-delay:.5s;font-family:var(--f-display);font-size:90px;fill:${o.rank === 'S' ? '#ffd34d' : o.rank === 'A' ? '#ff9ad0' : '#9fd0ff'};paint-order:stroke;stroke:#000;stroke-width:6px">${o.rank}</text>` : '');
+    else {
+      const reel = x => `<g transform="translate(${x},30)"><g class="spin"><circle r="22" fill="#eee"/>${[0, 60, 120, 180, 240, 300].map(a => `<rect x="-3" y="-20" width="6" height="10" fill="#2a2a2a" transform="rotate(${a})"/>`).join('')}</g></g>`;
+      front = `<g transform="translate(330,140)"><g class="pop"><rect x="-120" y="-70" width="240" height="140" rx="12" fill="#2a2a2a"/><rect x="-104" y="-56" width="208" height="56" rx="4" fill="${o.color}"/><text x="0" y="-22" text-anchor="middle" fill="#fff" style="font-family:var(--f-display);font-size:18px">${kind === 'fusion' ? 'NEW GENRE' : 'CASSETTE'}</text>${reel(-50)}${reel(50)}</g></g>`
+        + (o.rank ? `<text class="pop" x="580" y="130" text-anchor="middle" style="animation-delay:.5s;font-family:var(--f-display);font-size:90px;fill:${o.rank === 'S' ? '#ff3d8b' : o.rank === 'A' ? '#ffd34d' : '#9fd0ff'};paint-order:stroke;stroke:#000;stroke-width:6px">${o.rank}</text>` : '');
+    }
     front += Array.from({ length: 10 }, () => `<text class="fly" x="${R(80, 640)}" y="${R(200, 300)}" fill="#fff" style="font-size:22px;--dx:${R(-20, 20).toFixed(0)}px;animation-delay:${R(0, .8).toFixed(2)}s">${pick(['♪', '♫', '★'])}</text>`).join('');
   }
   return `<svg class="scene" viewBox="0 0 720 330" preserveAspectRatio="xMidYMid slice"><defs><linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${sky[0]}"/><stop offset="1" stop-color="${sky[1]}"/></linearGradient></defs><rect width="720" height="330" fill="url(#sky)"/>${back}${front}</svg>`;
@@ -606,189 +795,205 @@ function scene(kind, o) {
 const cutQueue = [];
 function playCut(kind, o) {
   if (window.FAST) return;
-  if ($('cutin')) { cutQueue.push([kind, o]); return; }
+  if ($('cutin') || BT) { cutQueue.push([kind, o]); return; }
   pausedByCut = true;
   $('cut').innerHTML = `<div class="cutin" id="cutin" role="status" aria-live="polite">${scene(kind, o)}
     <div class="cap"><div><div class="nm">${o.name}</div><div class="rg">${o.where || ''}</div></div>${o.val ? `<div class="val ${o.bad ? 'bad' : ''}">${o.val}</div>` : ''}</div>
-    ${o.stamp ? `<div class="stamp ${o.gold ? 'gold' : ''}" style="--fs:${Math.min(8, 72 / o.stamp.length).toFixed(1)}cqw">${o.stamp}</div>` : ''}<div class="skip">タップで閉じる</div></div>`;
+    ${o.say ? `<div class="say">${o.boss ? o.boss.name : ''}「${o.say}」</div>` : ''}
+    ${o.stamp ? `<div class="stamp ${o.gold ? 'gold' : ''}" style="--fs:${Math.min(8, 66 / o.stamp.length).toFixed(1)}cqw">${o.stamp}</div>` : ''}<div class="skip">タップで閉じる</div></div>`;
   $('cutin').onclick = closeCut;
-  if (kind === 'concert') sfx(o.bad ? 'boo' : 'concert', o.hot); else if (kind === 'award') sfx('award'); else sfx('done');
-  clearTimeout(cutTimer); cutTimer = setTimeout(closeCut, o.stamp ? 3000 : 2400);
+  if (kind === 'live') sfx(o.bad ? 'boo' : 'live', o.hot); else if (o.gold || kind === 'award') sfx('win'); else sfx('done');
+  if (o.win) setTimeout(() => sfx('win'), 1300);
+  clearTimeout(cutTimer); cutTimer = setTimeout(closeCut, o.stamp || o.say ? 3300 : 2400);
   renderAll();
 }
 function closeCut() {
   clearTimeout(cutTimer); $('cut').innerHTML = ''; pausedByCut = false;
-  const nx = cutQueue.shift(); if (nx) setTimeout(() => playCut(...nx), 120);
+  const nx = cutQueue.shift(); if (nx) setTimeout(() => nx[0] === '__battle' ? openBattle(nx[1]) : playCut(...nx), 120); else setTimeout(showJoin, 100);
 }
 
 // ================= rendering =================
 function buildMap() {
-  let h = '';
-  for (const r of REG) {
-    const pts = r.polys.map(poly => poly.map(([lo, la]) => P(lo, la)));
-    const main = pts[0];
-    r.cx = main.reduce((s, p) => s + p[0], 0) / main.length;
-    r.cy = main.reduce((s, p) => s + p[1], 0) / main.length;
-    if (r.id === 'jp') { r.cx += 22; r.cy += 4; }
-    h += pts.map(p => `<polygon class="reg" data-r="${r.id}" points="${p.map(q => q.join(',')).join(' ')}"/>`).join('');
-  }
-  for (const r of REG) h += `<text class="rlabel" id="lb_${r.id}" x="${r.cx.toFixed(0)}" y="${r.cy.toFixed(0)}"></text>`;
+  let h = `<defs><radialGradient id="dune" cx=".5" cy=".5" r=".75"><stop offset="0" stop-color="#ecd3a0"/><stop offset="1" stop-color="#c99c5c"/></radialGradient></defs><rect width="720" height="330" fill="url(#dune)"/>`;
+  for (let i = 0; i < 14; i++) { const x = R(20, 700), y = R(20, 310); h += `<path d="M${x.toFixed(0)} ${y.toFixed(0)} l${R(-20, 20).toFixed(0)} ${R(5, 20).toFixed(0)} l${R(-15, 15).toFixed(0)} ${R(5, 15).toFixed(0)}" stroke="#a87a48" stroke-width="2" fill="none" opacity=".6"/>`; }
+  [[30, 60], [130, 60], [290, 310], [440, 40], [700, 310], [570, 230], [30, 160]].forEach(([x, y]) => { h += `<g transform="translate(${x},${y})" opacity=".75"><rect x="-3" y="-18" width="6" height="18" rx="3" fill="#6a8a4a"/><rect x="-10" y="-14" width="5" height="9" rx="2.5" fill="#6a8a4a"/><rect x="5" y="-12" width="5" height="8" rx="2.5" fill="#6a8a4a"/></g>`; });
+  for (const [a, b] of ROADS) { const A = terrOf(a), B = terrOf(b); h += `<line id="road_${a}_${b}" x1="${A.x}" y1="${A.y}" x2="${B.x}" y2="${B.y}" stroke="#7a5a3a" stroke-width="5" stroke-dasharray="10 7" stroke-linecap="round" opacity=".75"/>`; }
+  for (const r of TERR) h += `<g class="terr" id="tr_${r.id}" data-r="${r.id}"></g>`;
   h += `<g id="bandmark"></g>`;
   $('map').innerHTML = h;
   $('map').addEventListener('click', e => { const t = e.target.closest('[data-r]'); if (t) { G.sel = t.dataset.r; renderAll(); } });
 }
 function renderLive() {
   const gp = globalPeace();
-  $('stats').innerHTML = `<div class="stat"><b>日付</b>${dateStr(G.week)}</div><div class="stat ${G.money < 0 ? 'neg' : ''}"><b>資金</b>${G.money}万</div>`;
+  $('stats').innerHTML = `<div class="stat"><b>日付</b>${dateStr(G.week)}</div><div class="stat ${G.goods < 0 ? 'neg' : ''}"><b>物資</b>${G.goods}</div>`;
   $('gpeace').textContent = gp.toFixed(1) + '%';
   $('gfans').textContent = G.fans.toLocaleString();
-  $('gg').style.width = gp + '%';
-  $('goal').innerHTML = `目標 90%<br>残り ${Math.max(0, WEEKS - G.week + 1)} 週`;
-  for (const r of REG) {
-    const st = G.regs[r.id];
-    document.querySelectorAll(`polygon[data-r="${r.id}"]`).forEach(p => { p.style.fill = tenColor(st.ten); p.classList.toggle('sel', G.sel === r.id); });
-    $('lb_' + r.id).textContent = st.ten <= 0 ? '平和' : `緊張${Math.round(st.ten)}`;
+  $('gvenue').textContent = VENUES[G.venue].name;
+  $('gguard').textContent = G.guards + '人';
+  $('goal').innerHTML = `王都を解放すれば平和<br>残り ${Math.max(0, WEEKS - G.week + 1)} 週`;
+  for (const r of TERR) {
+    const st = G.t[r.id], el = $('tr_' + r.id), rad = r.final ? 34 : r.home ? 24 : 28;
+    const locked = !r.home && !st.free && !reach(r.id);
+    el.setAttribute('class', `terr ${G.sel === r.id ? 'sel' : ''} ${locked ? 'locked' : ''}`);
+    const icon = r.home ? `<rect x="-9" y="-11" width="14" height="20" rx="2" fill="#fff" stroke="#2a1f1a" stroke-width="2"/><rect x="-6" y="-8" width="8" height="6" fill="#2a1f1a"/><path d="M5 -6 L10 -2 L10 8" stroke="#2a1f1a" stroke-width="2" fill="none"/>`
+      : st.free ? `<path d="M-2 12 L-2 -14 L14 -8 L-2 -2" fill="#ff3d8b" stroke="#2a1f1a" stroke-width="2"/><text x="-14" y="8" style="font-size:13px;font-weight:800;fill:#fff">♪</text>`
+      : r.final ? `<path d="M-13 6 L-13 -8 L-6 -1 L0 -13 L6 -1 L13 -8 L13 6 Z" fill="#e0a020" stroke="#2a1f1a" stroke-width="2"/>`
+      : `<circle cy="-3" r="9" fill="#f4ecdc" stroke="#2a1f1a" stroke-width="2"/><rect x="-5" y="4" width="10" height="6" fill="#f4ecdc" stroke="#2a1f1a" stroke-width="2"/><circle cx="-3.5" cy="-3" r="2.4" fill="#2a1f1a"/><circle cx="3.5" cy="-3" r="2.4" fill="#2a1f1a"/>`;
+    el.innerHTML = `<g transform="translate(${r.x},${r.y})"><circle class="ring" r="${rad + 5}" fill="none"/><circle class="body" r="${rad}" fill="${r.home ? '#ff3d8b' : st.free ? '#3a9a62' : tenColor(st.ten)}"/>${icon}
+      <text class="tlabel" y="${rad + 15}">${r.name}</text>${!r.home && !st.free ? `<text class="tval" y="${-rad - 5}" fill="#2a1f1a">殺気${Math.round(st.ten)}</text>` : ''}${locked ? `<text class="tval" y="${-rad - 18}" fill="#7a5a3a">道がない</text>` : r.final && !st.free && !VENUES[G.venue].fes ? `<text class="tval" y="${-rad - 18}" fill="#b5452a">フェスが必要</text>` : ''}</g>`;
   }
-  const at = regOf(G.tour ? G.tour.reg : G.at);
-  $('bandmark').innerHTML = `<g transform="translate(${(at.cx + 18).toFixed(0)},${(at.cy - 16).toFixed(0)})"><g class="bandmark"><rect x="-14" y="-12" width="28" height="16" rx="4" fill="${G.tour ? '#5aa8d8' : '#e5568f'}" stroke="#fff" stroke-width="2"/><text x="0" y="1" text-anchor="middle" fill="#fff" style="font-size:11px;font-weight:800">${G.tour ? '移動' : '♪'}</text></g></g>`;
-  $('regs').innerHTML = REG.map(x => `<button data-r="${x.id}" aria-pressed="${G.sel === x.id}">${x.name}<span style="color:${tenColor(G.regs[x.id].ten)}">${G.regs[x.id].ten <= 0 ? '平和' : Math.round(G.regs[x.id].ten)}</span></button>`).join('');
-  const r = regOf(G.sel), st = G.regs[r.id];
+  for (const [a, b] of ROADS) { const l = $(`road_${a}_${b}`); if (l) l.setAttribute('stroke', G.t[a].free && G.t[b].free ? '#ff3d8b' : '#7a5a3a'); }
+  const at = terrOf(G.tour ? G.tour.reg : G.at);
+  $('bandmark').innerHTML = `<g transform="translate(${at.x + 26},${at.y - 30})"><g class="bandmark"><rect x="-19" y="-12" width="38" height="18" rx="4" fill="${G.tour ? '#3f8fc0' : '#2a1f1a'}" stroke="#fff" stroke-width="2"/><text x="0" y="2" text-anchor="middle" fill="#fff" style="font-size:11px;font-weight:800">${G.tour ? '移動中' : 'バンド'}</text></g></g>`;
+  const r = terrOf(G.sel), st = G.t[r.id];
   const gname = id => GEN[id].name + (G.genres[id] ? '' : '<span style="font-weight:500;color:var(--muted)">（未）</span>');
-  $('rinfo').innerHTML = `<h3>${r.name}<small>${st.ten <= 0 ? '争いは終わった' : '揉めごと：' + r.war}</small></h3>
-    <div class="tbar"><i style="width:${st.ten}%;background:${tenColor(st.ten)}"></i></div>
-    <div class="row"><span>好き <b>${r.likes.map(gname).join('・')}</b></span><span>苦手 <b>${r.hates.map(gname).join('・')}</b></span><span>この地の音楽 <b>${G.genres[r.local] ? GEN[r.local].name : '？？？（ライブで覚える）'}</b></span><span>ファン <b>${st.fans}</b></span></div>`;
+  if (r.home) $('rinfo').innerHTML = `<h3>${r.name}<small style="color:var(--muted)">あなたたちのねぐら。ここで曲を作る</small></h3>`;
+  else $('rinfo').innerHTML = `<h3>${r.name}<small>${st.free ? '解放済み。毎週 物資を届けてくれる' : r.war}</small></h3>
+    ${st.free ? '' : `<div class="tbar"><i style="width:${st.ten}%;background:${tenColor(st.ten)}"></i></div>`}
+    <div class="row"><span>ボス <b>${r.boss.name}</b>${st.free || r.final ? '' : `（倒すと${r.boss.role === 'band' ? 'バンドの' + PARTS[r.boss.part] : JOBS[r.boss.job].title}に）`}</span>
+    ${r.final ? '<span>荒野フェスでしか戦えない</span>' : `<span>好き <b>${r.likes.map(gname).join('・')}</b></span><span>苦手 <b>${r.hates.map(gname).join('・')}</b></span><span>眠っているテープ <b>${G.genres[r.tape] ? GEN[r.tape].name : '？？？'}</b></span>`}</div>`;
   renderRoom();
 }
 function renderTicker() { $('ticker').innerHTML = G.news.slice(0, 4).map(n => `<div><b>${dateStr(n.w).replace(/ \d週$/, '')}</b>　${n.text}</div>`).join(''); }
 function renderRoom() {
-  const touring = !!G.tour;
-  let h = `<svg viewBox="0 0 360 104" id="roomsvg"><rect width="360" height="104" fill="#f6e3c4"/><rect y="78" width="360" height="26" fill="#c9a77a"/>
-    <rect x="12" y="10" width="44" height="30" fill="#fff" stroke="#c9a77a" stroke-width="3"/><text x="34" y="30" text-anchor="middle" style="font-size:16px">♪</text>
-    <rect x="300" y="8" width="48" height="34" fill="#5aa8d8" stroke="#c9a77a" stroke-width="3"/><text x="324" y="30" text-anchor="middle" fill="#fff" style="font-size:10px;font-weight:800">PEACE</text>
-    <text x="180" y="20" text-anchor="middle" style="font-size:10px;fill:#7b6f80">スタジオ Lv${G.fac.studio}</text>`;
-  if (touring) h += `<text x="180" y="62" text-anchor="middle" style="font-size:16px;font-weight:800;fill:#7b6f80">ツアー中…（${regOf(G.tour.reg).name}まで あと${G.tour.left}週）</text>`;
-  else G.members.forEach((m, i) => {
-    const x = 60 + i * 80;
-    h += `<g transform="translate(${x},82)" id="mem_${m.id}"><g class="mem ${G.prod ? '' : 'idle'}">${person(m)}</g>${busy(m) ? `<text x="0" y="-58" text-anchor="middle" style="font-size:10px;font-weight:800;fill:#e0503a">特訓中</text>` : ''}</g>`;
+  let h = `<svg viewBox="0 0 360 104"><rect width="360" height="104" fill="#c9b08a"/><rect width="360" height="20" fill="#b5452a"/><text x="180" y="14" text-anchor="middle" fill="#fff" style="font-size:10px;font-weight:800;letter-spacing:.2em">GARAGE STUDIO  Lv${G.fac.studio}</text>
+    <rect y="82" width="360" height="22" fill="#8a7050"/><rect x="8" y="30" width="20" height="52" fill="#d0452f"/><rect x="11" y="34" width="14" height="10" fill="#f4e6c8"/><rect x="332" y="46" width="20" height="36" rx="4" fill="#666"/><rect x="335" y="40" width="14" height="8" fill="#e0a020"/>`;
+  if (G.tour) h += `<text x="180" y="62" text-anchor="middle" style="font-size:15px;font-weight:800;fill:#2a1f1a">ツアー中…（${terrOf(G.tour.reg).name}まで あと${G.tour.left}週）</text>`;
+  else G.band.forEach((m, i) => {
+    h += `<g transform="translate(${72 + i * 72},84)" id="mem_${m.id}"><g class="mem ${G.prod ? '' : 'idle'}">${person(m)}</g>${busy(m) ? `<text x="0" y="-70" text-anchor="middle" style="font-size:10px;font-weight:800;fill:#b5452a">特訓中</text>` : ''}</g>`;
   });
   $('room').innerHTML = h + '</svg>';
 }
 function bubble(id, dm, dn) {
   if (window.FAST) return;
   const g = document.getElementById('mem_' + id); if (!g) return;
-  const ns = 'http://www.w3.org/2000/svg';
-  [[dm, '#e5568f', -10], [dn, '#f08a24', 12]].forEach(([v, c, dx], i) => {
-    const t = document.createElementNS(ns, 'text'); t.setAttribute('class', 'bub'); t.setAttribute('x', dx); t.setAttribute('y', -56); t.setAttribute('fill', c);
+  [[dm, '#ff3d8b', -10], [dn, '#e07a1a', 12]].forEach(([v, c, dx], i) => {
+    const t = document.createElementNS('http://www.w3.org/2000/svg', 'text'); t.setAttribute('class', 'bub'); t.setAttribute('x', dx); t.setAttribute('y', -66); t.setAttribute('fill', c);
     t.style.animationDelay = (i * .15) + 's'; t.textContent = '+' + v; g.appendChild(t); setTimeout(() => t.remove(), 1400);
   });
 }
-const TABS = [['make', '曲づくり'], ['tour', 'ツアー'], ['band', 'メンバー'], ['fac', '施設']];
+const TABS = [['make', '曲づくり'], ['tour', 'ライブ'], ['crew', '仲間'], ['base', '拠点']];
 function renderDesk() {
   $('tabs').innerHTML = TABS.map(([id, n]) => `<button class="tab" role="tab" data-t="${id}" aria-selected="${G.tab === id}">${n}</button>`).join('');
-  const d = $('desk');
   let h = '';
   if (G.tab === 'make') {
     if (G.prod) {
       const g = GEN[G.prod.g], c = compat(G.prod.g, G.prod.t), known = G.known[G.prod.g + '|' + G.prod.t];
       h = `<div class="prog"><div class="t">制作中：${g.name} × ${G.prod.t}　<span style="font-size:12px;color:var(--muted)">相性 ${known ? CMARK[c] : '？'}</span></div>
-        <div class="pbar"><i id="pb" style="width:${Math.min(100, G.prod.prog / prodNeed() * 100)}%"></i></div>
+        <div class="pbar"><i style="width:${Math.min(100, G.prod.prog / 4 * 100)}%"></i></div>
         <div class="mn"><span class="m">メロディ ${G.prod.m}</span><span class="n">ノリ ${G.prod.n}</span></div>
-        <div class="note">${g.name}は${g.m > .6 ? 'メロディ' : g.n > .6 ? 'ノリ' : 'メロディとノリの両方'}が大事。${G.tour ? 'ツアー中は制作が止まる。' : ''}</div></div>`;
+        <div class="note">${g.name}は${g.m > .6 ? 'メロディ' : g.n > .6 ? 'ノリ' : 'メロディとノリの両方'}が大事。</div></div>`;
     } else if (G.tour) h = `<div class="note">ツアー中は曲を作れない。</div>`;
     else {
-      const gs = GENRES.filter(x => genreOk(x.id));
-      h = `<div class="lab">ジャンル（${gs.length}/${GENRES.length}　地域でライブすると増える）</div><div class="chipset">${gs.map(x => `<button class="pick ${x.fusion ? 'fusion' : ''}" data-g="${x.id}" aria-pressed="${G.pickG === x.id}" style="${G.pickG === x.id ? `background:${x.c};border-color:${x.c}` : ''}">${x.name}</button>`).join('')}</div>
+      const gs = GENRES.filter(x => G.genres[x.id]);
+      h = `<div class="lab">ジャンル（${gs.length}/${GENRES.length}　縄張りを解放するとテープが見つかる）</div><div class="chipset">${gs.map(x => `<button class="pick ${x.fusion ? 'fusion' : ''}" data-g="${x.id}" aria-pressed="${G.pickG === x.id}" style="${G.pickG === x.id ? `background:${x.c};border-color:${x.c}` : ''}">${x.name}</button>`).join('')}</div>
         <div class="lab">テーマ（相性は作ってみるとわかる）</div><div class="chipset">${THEMES.map(t => { const k = G.known[G.pickG + '|' + t]; return `<button class="pick" data-th="${t}" aria-pressed="${G.pickT === t}">${t}<span class="mk">${k ? CMARK[compat(G.pickG, t)] : ''}</span></button>`; }).join('')}</div>
-        <button class="go" id="goMake">${GEN[G.pickG].name} × ${G.pickT} で曲を作る（${prodNeed()}週${G.fac.studio ? '弱' : ''}）</button>
-        <div class="note">メンバー全員で作曲。メロディ（ピンク）とノリ（オレンジ）が貯まる。同じ2ジャンルで2曲ずつ作ると、新ジャンルが生まれることがある。</div>`;
+        <button class="go" id="goMake">${GEN[G.pickG].name} × ${G.pickT} で曲を作る</button>
+        <div class="note">バンド全員で作曲する。できた曲はカセットにして荒野にばらまく（物資と信者が増え、近くの殺気も少し下がる）。同じ2ジャンルで2曲ずつ作ると、新しいジャンルが生まれることがある。</div>`;
     }
   }
-  if (G.tour && G.tab === 'tour') h = `<div class="prog"><div class="t">ツアー中：${regOf(G.tour.reg).name}へ移動</div><div class="note">あと ${G.tour.left} 週で到着。到着するとライブ。</div></div>`;
-  else if (G.tab === 'tour') {
-    const r = regOf(G.sel), st = G.regs[r.id];
-    const list = G.songs.slice().sort((a, b) => b.q * likeOf(r, b.g) * .6 ** (st.played[b.id] || 0) - a.q * likeOf(r, a.g) * .6 ** (st.played[a.id] || 0)).slice(0, 6);
-    if (!G.pickSong || !list.some(s => s.id === G.pickSong)) G.pickSong = list[0] && list[0].id;
-    const cost = travelCostAt(G.fac.bus), weeks = G.sel === G.at ? 1 : Math.max(1, 3 - G.fac.bus);
-    h = `<div class="lab">行き先：<b style="color:var(--ink)">${r.name}</b>（地図で選ぶ）　緊張 ${Math.round(st.ten)}</div>`;
-    if (!list.length) h += `<div class="note">まだ曲がない。まず「曲づくり」で1曲作ろう。</div>`;
+  if (G.tab === 'tour') {
+    if (G.tour) h = `<div class="prog"><div class="t">${G.tour.street ? terrOf(G.tour.reg).name + 'で路上ライブ中' : terrOf(G.tour.reg).name + 'へ移動中'}</div><div class="note">あと ${G.tour.left} 週。</div></div>`;
     else {
-      h += `<div class="lab">演奏する曲（${r.name}に効く順）</div><div class="grid2">${list.map(s => {
-        const lk = likeOf(r, s.g), n = st.played[s.id] || 0;
-        return `<button class="item" data-song="${s.id}" aria-pressed="${G.pickSong === s.id}"><span class="nm"><span>「${s.title}」</span><span class="rank ${s.rank}">${s.rank}</span></span>
-          <span class="sub">${GEN[s.g].name}×${s.t}　曲の力 ${s.q}</span><span>${lk > 1.2 ? '<span class="tag like">好き</span>' : lk < 1 ? '<span class="tag hate">苦手</span>' : ''} ${GEN[s.g].hot >= 2 ? '<span class="tag hate">激しい</span>' : GEN[s.g].hot < 0 ? '<span class="tag like">癒し</span>' : ''} ${n ? `<span class="tag tired">${n}回目</span>` : ''}</span></button>`;
-      }).join('')}</div>
-      <button class="go alt" id="goTour" ${G.prod || G.money < cost ? 'disabled' : ''}>${r.name}でライブ（${weeks}週・${cost}万）</button>
-      <div class="note">${G.prod ? '曲の制作中は出発できない。' : '好きなジャンルほど効く。同じ曲は聞き飽きられる。激しい曲は効くが、緊張が高い地域では暴動の危険。子守唄は緊張が高いほど効く。'}</div>`;
+      const r = terrOf(G.sel), st = G.t[r.id];
+      const canStreet = !r.final && (r.home || st.free || reach(r.id));
+      const street = canStreet ? `<button class="go" id="goStreet" ${G.prod || G.goods < 2 ? 'disabled' : ''} style="background:#e0a020">${r.name}で路上ライブ（1週・物資2）→ 警備スタッフが増える</button>` : '';
+      if (r.home || st.free) h = `<div class="note">ボスに挑むなら、地図で まだ解放していない縄張りを選ぼう。ここでは路上ライブで警備スタッフ（今 ${G.guards}人）を増やせる。</div>${street}`;
+      else if (!canGo(r.id)) h = `<div class="note">${r.final && reach(r.id) ? '荒野の王都は「荒野フェス」でしか戦えない。拠点タブでステージを大きくしよう。' : 'まだ道がない。となりの縄張りを先に解放しよう。'}</div>${street}`;
+      else {
+        const sc = s => ourPower(r, s).d;
+        const list = G.songs.slice().sort((a, b) => sc(b) - sc(a)).slice(0, 4);
+        if (!G.pickSong || !list.some(s => s.id === G.pickSong)) G.pickSong = list[0] && list[0].id;
+        const op = openerPower(), fes = VENUES[G.venue].fes;
+        const bossP = .4 + st.ten / 90, ourP = guardPush({ fes }) + .25, ratio = ourP / bossP;
+        const odds = ratio > 1.05 ? ['有利', 'like'] : ratio > .75 ? ['互角（あおりで押し返せ）', ''] : ['不利（警備スタッフを増やそう）', 'hate'];
+        h = `<div class="lab">行き先：<b style="color:var(--ink)">${r.name}</b>　殺気 ${Math.round(st.ten)}　ステージ：${VENUES[G.venue].name}${op.acts.length && !fes ? `　前座：${op.acts.map(a => a.name).join('、')}` : ''}</div>
+          <div class="lab">押し合い：警備スタッフ ${G.guards}人${op.acts.length ? '＋前座' : ''} vs ${r.boss.name}の手下　<span class="tag ${odds[1]}">${odds[0]}</span></div>`;
+        if (!list.length) h += `<div class="note">まだ曲がない。まず「曲づくり」で1曲作ろう。</div>`;
+        else {
+          h += `<div class="grid2">${list.map(s => {
+            const lk = likeOf(r, s.g), n = st.played[s.id] || 0;
+            return `<button class="item" data-song="${s.id}" aria-pressed="${G.pickSong === s.id}"><span class="nm"><span>「${s.title}」</span><span class="rank ${s.rank}">${s.rank}</span></span>
+              <span class="sub">${GEN[s.g].name}×${s.t}　最後まで演れば 殺気-${(sc(s) * (fes ? 1.4 : 1)).toFixed(1)}前後</span><span>${lk > 1.2 ? '<span class="tag like">好き</span>' : lk < 1 ? '<span class="tag hate">苦手</span>' : ''} ${GEN[s.g].hot >= 2 ? '<span class="tag hate">激しい</span>' : GEN[s.g].hot < 0 ? '<span class="tag like">癒し</span>' : ''} ${n ? `<span class="tag tired">${n}回目</span>` : ''}</span></button>`;
+          }).join('')}</div>
+          <button class="go alt" id="goTour" ${G.prod || G.goods < travelCost() ? 'disabled' : ''}>${r.name}へ殴り込みライブ（${travelWeeks()}週・物資${travelCost()}）</button>
+          <div class="note">${G.prod ? '曲の制作中は出発できない。' : `ライブ中、${r.boss.name}の手下がステージに押し寄せる。警備スタッフが押しとどめている間に1曲演りきれ。「あおる！」で押し返せる。${fes ? '荒野フェスは2days。1日目は前座全員とみんなで、2日目は自分たちだけ。' : '激しい曲は効くが、相手も熱くなる。子守唄は相手がだんだん眠くなる。'}`}</div>${street}`;
+        }
+      }
     }
   }
-  if (G.tab === 'band') {
+  if (G.tab === 'crew') {
     const sbar = (l, v, c) => `<div class="sbar"><span>${l}</span><span class="tb"><i style="width:${Math.min(100, v)}%;background:${c}"></i></span><span>${v}</span></div>`;
-    h = `<div class="grid2">${G.members.map((m, i) => `<div class="item"><span class="nm"><span>${m.name}</span><span style="font-size:11px">Lv${m.lv}</span></span><span class="sub">${PARTS[m.part].name}　月給 ${m.salary}万</span>
-      ${sbar('作曲', m.comp, '#e5568f')}${sbar('演奏', m.play, '#f08a24')}${sbar('歌', m.sing, '#5aa8d8')}${sbar('華', m.star, '#e8a400')}
-      <span style="display:flex;gap:4px"><button class="small" data-train="${m.id}" ${busy(m) || G.money < trainCost(m) ? 'disabled' : ''}>${busy(m) ? '特訓中' : `特訓（${trainCost(m)}万）`}</button>${i > 0 ? `<button class="small" data-fire="${m.id}">解雇</button>` : ''}</span></div>`).join('')}</div>`;
-    h += `<div class="lab">スカウト候補（2か月ごとに入れ替わる・最大4人）</div><div class="grid2">${G.cands.map((c, i) => `<div class="item"><span class="nm"><span>${c.name}</span><span style="font-size:11px">${PARTS[c.part].name}</span></span>
-      <span class="sub">作曲${c.comp} 演奏${c.play} 歌${c.sing} 華${c.star}　月給${c.salary}万</span><button class="small" data-hire="${i}" ${G.members.length >= 4 || G.money < c.salary * 3 ? 'disabled' : ''}>契約（${c.salary * 3}万）</button></div>`).join('')}</div>`;
+    const card = m => `<div class="item"><span class="nm"><span>${m.name}</span><span style="font-size:11px">${m.part ? 'Lv' + m.lv : ''}</span></span><span class="sub">${m.part ? PARTS[m.part] : JOBS[m.job].title + '：' + JOBS[m.job].eff}</span>
+      ${m.part ? `<span class="sub" style="font-family:var(--f-dot);color:var(--ink)"><span style="color:#ff3d8b">作${m.comp}</span> <span style="color:#e07a1a">演${m.play}</span> <span style="color:#3f8fc0">歌${m.sing}</span> <span style="color:#b08000">華${m.star}</span></span>` + `<button class="small" data-train="${m.id}" ${busy(m) || G.goods < trainCost(m) ? 'disabled' : ''}>${busy(m) ? '特訓中' : `特訓（物資${trainCost(m)}）`}</button>` : ''}</div>`;
+    h = `<div class="lab">バンド（${G.band.length}/${BAND_SLOTS}）</div><div class="grid2">${G.band.map(card).join('')}${Array.from({ length: BAND_SLOTS - G.band.length }, () => `<div class="item empty">空き：縄張りのボスを音楽で屈服させると加わる</div>`).join('')}</div>
+      <div class="lab">スタッフ（${G.staff.length}/${STAFF_SLOTS}）</div><div class="grid2">${G.staff.map(card).join('')}${Array.from({ length: STAFF_SLOTS - G.staff.length }, () => `<div class="item empty">空き</div>`).join('')}</div>
+      <div class="lab">前座バンド（${G.openers.length}組）　信者が ${G.nextBand.toLocaleString()} 人になると、また新しいバンドができる</div>
+      <div class="note">${G.openers.length ? G.openers.map(b => `<b>${b.name}</b>（力${Math.round(b.pow)}）`).join('　') : 'まだいない。枠からあふれた仲間や、増えた信者が勝手にバンドを組んで前座になる。前座は勝手に近くの縄張りを回って、殺気も下げてくれる。'}</div>`;
   }
-  if (G.tab === 'fac') {
-    h = `<div class="grid2">${FAC.map(f => { const c = facCost(f); return `<button class="item" data-fac="${f.id}" ${G.money < c ? 'disabled' : ''}><span class="nm"><span>${f.name}</span><span style="font-size:11px">Lv${G.fac[f.id]}</span></span>
-      <span class="sub">${f.desc}</span><span class="sub">いま：${f.eff(G.fac[f.id])} → ${f.eff(G.fac[f.id] + 1)}</span><span class="tag">強化 ${c}万</span></button>`; }).join('')}</div>
-      <div class="note">ヒット曲の売上で施設を強化しよう。売れた曲は世界中のラジオで流れて、少しずつ緊張を下げてくれる。</div>`;
+  if (G.tab === 'base') {
+    const nv = VENUES[G.venue + 1];
+    h = `<div class="grid2">${nv ? `<button class="item" data-venue="1" ${G.goods < nv.cost ? 'disabled' : ''} style="grid-column:1/-1;border-color:var(--neon)"><span class="nm"><span>ステージを「${nv.name}」に</span><span class="tag">物資 ${nv.cost}</span></span>
+      <span class="sub">いま：${VENUES[G.venue].name}（前座 ${VENUES[G.venue].open}組）→ ${nv.fes ? '2days フェス。1日目は前座全員とみんなで、2日目は自分たちだけ。王都に挑める' : `前座を ${nv.open} 組まで出せる`}</span></button>` : `<div class="item" style="grid-column:1/-1"><span class="nm">ステージは最大（荒野フェス）</span></div>`}
+      ${FAC.map(f => { const c = facCost(f); return `<button class="item" data-fac="${f.id}" ${G.goods < c ? 'disabled' : ''}><span class="nm"><span>${f.name}</span><span style="font-size:11px">Lv${G.fac[f.id]}</span></span>
+      <span class="sub">${f.desc}</span><span class="sub">${f.eff(G.fac[f.id])} → ${f.eff(G.fac[f.id] + 1)}</span><span class="tag">物資 ${c}</span></button>`; }).join('')}</div>
+      <div class="note">物資は、カセット・ライブ・解放した縄張りから入る。毎月、仲間ひとりにつき物資2を食べる。</div>`;
   }
-  d.innerHTML = h;
+  $('desk').innerHTML = h;
 }
 function renderAll() { renderLive(); renderDesk(); renderTicker(); syncSpeed(); }
-function syncSpeed() { document.querySelectorAll('#speed button').forEach(b => b.setAttribute('aria-pressed', +b.dataset.s === G.speed)); }
+function syncSpeed() { document.querySelectorAll('#speed button').forEach(b => b.setAttribute('aria-pressed', +b.dataset.s === G.speed)); $('snd').textContent = soundOn ? '音 ON' : '音 OFF'; }
 function setTab(id, dir) { G.tab = id; renderDesk(); const d = $('desk'); d.classList.remove('slide-l', 'slide-r'); void d.offsetWidth; if (dir) d.classList.add(dir > 0 ? 'slide-l' : 'slide-r'); }
 
 // ================= overlays =================
 function overlay(html) { $('ovl').innerHTML = `<div class="ov" role="dialog" aria-modal="true">${html}</div>`; }
 function closeOv() { $('ovl').innerHTML = ''; }
 function showIntro() {
-  let saved = null; try { saved = JSON.parse(localStorage.getItem('heiwa-save') || 'null'); } catch (e) {}
-  overlay(`<div class="card"><div class="kicker">設立 1年目</div><h2>音楽で、世界を平和に。</h2>
-    <p>世界のあちこちで、しょうもない理由の争いが続いている。カレーの辛さ、ピザのパイナップル、きのことたけのこ。</p>
-    <p>あなたは小さな音楽事務所の社長兼ボーカル。<strong>曲を作って売り、その曲を持って各地でライブをして、争いを止めよう。</strong>5年以内に世界の平和度90%が目標。</p>
-    <p>ジャンルとテーマの相性は作ってみるまでわからない。地域ごとに好きな音楽も違う。ライブをするとその土地の音楽を覚える。</p>
-    <div style="display:flex;gap:8px;flex-wrap:wrap">${saved && !saved.over ? '<button class="go alt" id="cont">続きから</button>' : ''}<button class="go" id="start" style="flex:1">事務所を立ち上げる</button></div></div>`);
-  $('start').onclick = () => { G = newGame(); refreshCands(); news('事務所を立ち上げた。まずは1曲作ってみよう'); closeOv(); renderAll(); save(); };
-  if ($('cont')) $('cont').onclick = () => { G = saved; closeOv(); renderAll(); };
+  let saved = null; try { saved = JSON.parse(localStorage.getItem('koya-save') || 'null'); } catch (e) {}
+  overlay(`<div class="card"><div class="kicker">文明が滅んで何十年</div><h2>ヒャッハー！ …いや、ロックだ。</h2>
+    <p>荒れ果てた荒野。娯楽はなく、縄張り争いばかり。あなたはそんな世界の、ただのモヒカンのザコだった。</p>
+    <p>ある日、廃墟で拾った一本のカセットテープ。流れてきたのは<strong>ロック</strong>だった。</p>
+    <p>ギターを片手に曲を作り、縄張りに殴り込んでライブをしよう。殺気を0にすればボスは仲間になる。仲間の枠からあふれたやつらは、勝手にバンドを組んで前座になる。最後は荒野の王都で2daysフェスだ。</p>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">${saved && !saved.over ? '<button class="go alt" id="cont">続きから</button>' : ''}<button class="go" id="start" style="flex:1">ギターを手に取る</button></div></div>`);
+  $('start').onclick = () => { G = newGame(); news('ガソスタ跡をねぐらにした。まずは1曲作ろう'); closeOv(); renderAll(); save(); };
+  if ($('cont')) $('cont').onclick = () => { G = saved; pendingJoin = []; closeOv(); renderAll(); };
 }
 function end(kind) {
+  if (G.over) return;
   G.over = true; save();
   if (window.FAST) return;
-  const gp = globalPeace();
+  const gp = globalPeace(), fc = freeCount();
   let title, body;
-  if (kind === 'broke') { title = '事務所、解散'; body = 'お金が尽きた。メンバーはそれぞれの国に帰り、それぞれの町で歌っている。争いはまだ続いているが、少しだけ鼻歌が増えた。'; }
-  else if (kind === 'peace') { title = '世界が平和になった'; body = '最後の揉めごとが終わった日、世界中で同じ曲が流れた。カレーは辛口と甘口の両方が選べるようになり、ピザのパイナップルは「お好みで」になった。'; }
-  else if (gp >= 70) { title = 'だいたい平和'; body = 'まだ小さな揉めごとは残っているが、みんな一緒に歌えるくらいには仲良くなった。事務所は次の5年に向けて新曲を作りはじめた。'; }
-  else { title = '争いは続く'; body = '音楽だけでは足りなかった…。いや、まだ曲が足りなかっただけかもしれない。'; }
+  if (kind === 'broke') { title = 'バンド、解散'; body = '物資が尽きた。仲間はそれぞれの縄張りに帰った。でも荒野のあちこちで、誰かがあの曲を口ずさんでいる。'; }
+  else if (kind === 'peace') { title = '荒野に音楽が戻った'; body = '荒野の王は、ずっと歌いたかったのに音痴を笑われるのが怖くて、音楽を禁止していた。フェスの最後、王は泣きながらマイクを握った。下手だった。でも全員が一緒に歌った。それから荒野で殴り合いをする者はいない。'; }
+  else if (fc >= 5) { title = 'まだ王都は遠い'; body = 'いくつもの縄張りが仲間になった。でも王都にはまだ音楽が届いていない。ツアーは続く。'; }
+  else { title = '荒野は今日も荒れている'; body = 'ロックだけでは足りなかった…。いや、まだ曲が足りなかっただけだ。'; }
   const best = G.songs.slice().sort((a, b) => b.q - a.q)[0];
   overlay(`<div class="card"><div class="kicker">${dateStr(Math.min(G.week, WEEKS))}</div><h2>${title}</h2><p>${body}</p>
-    <div class="rows"><div><b>世界の平和度</b><span>${gp.toFixed(1)}%</span></div><div><b>ファン</b><span>${G.fans.toLocaleString()}人</span></div>
-    <div><b>作った曲</b><span>${G.songs.length}曲</span></div><div><b>代表曲</b><span>${best ? `「${best.title}」（${best.rank}）` : 'なし'}</span></div><div><b>大賞</b><span>${G.awards}回</span></div></div>
+    <div class="rows"><div><b>平和度</b><span>${gp.toFixed(1)}%</span></div><div><b>解放した縄張り</b><span>${fc}/${TERR.length - 1}</span></div><div><b>信者</b><span>${G.fans.toLocaleString()}人</span></div>
+    <div><b>前座バンド</b><span>${G.openers.length}組</span></div><div><b>代表曲</b><span>${best ? `「${best.title}」（${best.rank}）` : 'なし'}</span></div></div>
     <button class="go" id="again">もう一度やる</button></div>`);
-  if (kind === 'peace') sfx('award');
+  if (kind === 'peace') sfx('win');
   $('again').onclick = () => { closeOv(); showIntro(); };
 }
 
 // ================= save / loop / input =================
-function save() { if (window.FAST) return; try { localStorage.setItem('heiwa-save', JSON.stringify(G)); } catch (e) {} }
+function save() { if (window.FAST) return; try { localStorage.setItem('koya-save', JSON.stringify(G)); } catch (e) {} }
 let acc = 0, last = performance.now();
 function loop(now) {
   const dt = Math.min(250, now - last); last = now;
-  if (G && !G.over && G.speed > 0 && !pausedByCut && !$('ovl').innerHTML) {
+  if (G && !G.over && !G.won && G.speed > 0 && !pausedByCut && !$('ovl').innerHTML) {
     acc += dt * G.speed;
     if (acc >= 1500) { acc = 0; tick(); if (G.week % 4 === 0) save(); }
   }
   requestAnimationFrame(loop);
 }
-
-G = newGame(); refreshCands();
+G = newGame();
 buildMap(); renderAll(); showIntro();
 requestAnimationFrame(loop);
 
 $('speed').addEventListener('click', e => { const b = e.target.closest('[data-s]'); if (b) { G.speed = +b.dataset.s; syncSpeed(); } });
-$('regs').addEventListener('click', e => { const b = e.target.closest('[data-r]'); if (b) { G.sel = b.dataset.r; renderAll(); } });
+$('snd').onclick = () => { soundOn = !soundOn; try { localStorage.setItem('koya-sound', soundOn ? 'on' : 'off'); } catch (e) {} syncSpeed(); if (soundOn) sfx('coin'); };
 $('tabs').addEventListener('click', e => { const b = e.target.closest('[data-t]'); if (!b) return; const ids = TABS.map(t => t[0]); setTab(b.dataset.t, Math.sign(ids.indexOf(b.dataset.t) - ids.indexOf(G.tab))); });
 $('desk').addEventListener('click', e => {
   const t = e.target.closest('button'); if (!t || t.disabled) return;
@@ -797,10 +1002,10 @@ $('desk').addEventListener('click', e => {
   else if (t.id === 'goMake') startSong();
   else if (t.dataset.song) { G.pickSong = t.dataset.song; renderDesk(); }
   else if (t.id === 'goTour') startTour();
+  else if (t.id === 'goStreet') streetLive();
   else if (t.dataset.train) train(t.dataset.train);
-  else if (t.dataset.fire) fire(t.dataset.fire);
-  else if (t.dataset.hire) hire(+t.dataset.hire);
   else if (t.dataset.fac) buildFac(t.dataset.fac);
+  else if (t.dataset.venue) upVenue();
 });
 let sw = null;
 $('desk').addEventListener('pointerdown', e => { sw = { x: e.clientX, y: e.clientY }; });
@@ -812,6 +1017,6 @@ $('desk').addEventListener('pointerup', e => {
 });
 document.addEventListener('keydown', e => {
   if ($('ovl').innerHTML) return;
-  if (e.key === ' ' && e.target === document.body) { e.preventDefault(); G.speed = G.speed ? 0 : 1; syncSpeed(); }
+  if (e.key === ' ' && (e.target === document.body || e.target.tagName === 'BUTTON')) { e.preventDefault(); G.speed = G.speed ? 0 : 1; syncSpeed(); }
 });
 </script>
